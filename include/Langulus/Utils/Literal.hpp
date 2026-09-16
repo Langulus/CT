@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Core.hpp"
+#include <Langulus/Core.hpp>
 #include <array>
 #include <string_view>
 #include <bit>
@@ -16,43 +16,42 @@
 #endif
 
 
-namespace Langulus
+namespace Langulus::CT
 {
    /// MARK: Concepts                                                         
-   namespace CT
-   {
-      /// Check if all T are Literal types                                    
-      template<class...T>
-      concept Literal = Validate<T...> and (T::CTTI_Literal and ...);
-      
-      /// Supported character types used by LiteralString                     
-      template<class...T>
-      concept LiteralChar = Validate<T...> and ((
-              ::std::same_as<::std::remove_cv_t<T>, char>
-           or ::std::same_as<::std::remove_cv_t<T>, wchar_t>
-           or ::std::same_as<::std::remove_cv_t<T>, char8_t>
-           or ::std::same_as<::std::remove_cv_t<T>, char16_t>
-           or ::std::same_as<::std::remove_cv_t<T>, char32_t>
-         ) and ...);
-      
-      /// Check if all T are Literal strings                                  
-      template<class...T>
-      concept LiteralString = Literal<T...>
-          and ((T::ArraySize > 0 and LiteralChar<typename T::value_type>) and ...);
-      
-      /// Check if all T are Literal values                                   
-      template<class...T>
-      concept LiteralValue = Literal<T...> and ((T::ArraySize == 0
-          and not ::std::same_as<::std::remove_cv_t<typename T::value_type>, Unsupported>) and ...);
-      
-      /// Check if all T are Literal values, but undefined                    
-      template<class...T>
-      concept LiteralUndefined = Literal<T...>
-          and (::std::same_as<::std::remove_cv_t<typename T::value_type>, Unsupported> and ...);
-   }
+   /// Check if all T are Literal types                                       
+   template<class...T>
+   concept Literal = Validate<T...> and (T::CTTI_Literal and ...);
+   
+   /// Supported character types used by LiteralString                        
+   template<class...T>
+   concept LiteralChar = Validate<T...> and ((
+            ::std::same_as<::std::remove_cv_t<T>, char>
+         or ::std::same_as<::std::remove_cv_t<T>, wchar_t>
+         or ::std::same_as<::std::remove_cv_t<T>, char8_t>
+         or ::std::same_as<::std::remove_cv_t<T>, char16_t>
+         or ::std::same_as<::std::remove_cv_t<T>, char32_t>
+      ) and ...);
+   
+   /// Check if all T are Literal strings                                     
+   template<class...T>
+   concept LiteralString = Literal<T...>
+       and ((T::ArraySize > 0 and LiteralChar<typename T::value_type>) and ...);
+   
+   /// Check if all T are Literal values                                      
+   template<class...T>
+   concept LiteralValue = Literal<T...> and ((T::ArraySize == 0
+       and not ::std::same_as<::std::remove_cv_t<typename T::value_type>, No>) and ...);
+   
+   /// Check if all T are Literal values, but undefined                       
+   template<class...T>
+   concept LiteralUndefined = Literal<T...>
+       and (::std::same_as<::std::remove_cv_t<typename T::value_type>, No> and ...);
+}
 
+namespace Langulus
+{
    using Token = ::std::string_view;
-
 
    /// MARK: Literal                                                          
    ///                                                                        
@@ -65,12 +64,12 @@ namespace Langulus
    /// be consistent - left literal has a Literal::ArraySize of 3, but size() 
    /// of 0                                                                   
    ///                                                                        
-   template<class T = Unsupported, size_t N = 0>
+   template<class T = No, size_t N = 0>
    struct Literal {
       static_assert(N == 0 or ::std::has_single_bit(N),
          "Modify N to minimize the number of templates");
-      static constexpr bool CTTI_Literal = true;
-      static constexpr bool Undefined = ::std::same_as<T, Unsupported>;
+      static constexpr bool   CTTI_Literal = true;
+      static constexpr bool   Undefined = ::std::same_as<T, No>;
       static constexpr size_t ArraySize = N;
 
       using storage_type = ::std::array<T, N + 1>;
@@ -478,9 +477,8 @@ namespace Langulus
    }
 
 
-   ///                                                                        
-   /// Literal == Literal                                                     
    /// MARK: Comparison                                                       
+   /// Literal == Literal                                                     
    template<CT::Literal LHS, CT::Literal RHS>
    constexpr bool operator == (const LHS& lhs, const RHS& rhs) {
       if constexpr (CT::LiteralString<LHS, RHS>) {
@@ -617,9 +615,6 @@ namespace Langulus
    
 
    /// MARK: Concatenation                                                    
-   ///                                                                        
-   /// Concatenation                                                          
-   ///                                                                        
    template<CT::LiteralString LHS, CT::LiteralString RHS>
    constexpr auto operator + (const LHS& lhs, const RHS& rhs) {
       typename LHS::template Resized<LHS::ArraySize + RHS::ArraySize> result {lhs};
@@ -656,39 +651,22 @@ namespace Langulus
    }
 
    
-   /// MARK: Yes/No/Maybe                                                     
+   /// MARK: Yes                                                              
    /// Equivalent to ::std::true_type, but without the silly nomenclature     
-   /// Can carry a constant with itself                                       
+   /// Can carry a constant with itself. Alternatively, you can use just Yup  
+   /// if you don't have a constant to specify.                               
    template<Literal VALUE = 0>
    struct Yes {
       using CTTI_ReflectAs = void;
       static constexpr auto Constant = VALUE;
       static constexpr bool Enabled = true;
    };
-
-   /// Equivalent to ::std::false_type or ::std::true_type, depending on arg  
-   /// Can carry a constant with itself                                       
-   template<bool CONDITION, Literal VALUE = 0>
-   struct Maybe {
-      using CTTI_ReflectAs = void;
-      static constexpr auto Constant = VALUE;
-      static constexpr bool Enabled = CONDITION;
-   };
-
-   /// Equivalent to ::std::false_type, but without the silly nomenclature    
-   struct No {
-      using CTTI_ReflectAs = void;
-      using CTTI_Void = Yes<>;
-      static constexpr bool Enabled = false;
-   };
 }
 
 namespace std
 {
    /// MARK: {std}                                                            
-   ///                                                                        
    /// Hash support                                                           
-   ///                                                                        
    template<class TChar, size_t N>
    struct hash<Langulus::Literal<TChar, N>> {
       using argument_type = Langulus::Literal<TChar, N>;

@@ -7,61 +7,62 @@
 ///                                                                           
 #pragma once
 #include "Akin.hpp"
+#include "Typelist.hpp"
 
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Bases<T>:                       
+   /// Can be used in two ways to satisfy CT::DerivedFrom<T>:                 
    /// 1. Specialize for T/concept                                            
    /// 2. Add a public `using CTTI_Bases = <single type or Types<...>>;` in T 
    template<class T>
    struct Bases;
 }
 
+namespace Langulus::CT::Inner
+{
+   /// Helper function to extract reflected base types                        
+   template<class T>
+   consteval auto GetBaseTypes() {
+      static_assert(not ::std::is_reference_v<T>,
+         "Strip references first");
+      static_assert(not CT::Convoluted<T>,
+         "Strip constness/volatility first");
+
+      if constexpr (Complete<CTTI::Bases<T>>) {
+         // Checked externally, T doesn't have to be complete           
+         using LIST = typename CTTI::Bases<T>::Type;
+         if constexpr (CT::Typelist<LIST>)
+            return LIST {};
+         else
+            return Types<LIST> {};
+      }
+      else if constexpr (requires { typename T::CTTI_Bases; }) {
+         // Checked internally, T has to be a complete type             
+         using LIST = typename T::CTTI_Bases;
+         if constexpr (CT::Typelist<LIST>)
+            return LIST {};
+         else
+            return Types<LIST> {};
+      }
+      else return NoTypes {};
+   };
+
+   /// Check if T has BASE                                                    
+   ///   @attention involves only C++ bases, not reflected ones               
+   template<class T, class BASE>
+   consteval bool DerivedFrom() {
+      if constexpr (::std::same_as<T, BASE>)
+         // Neither T nor BASE have to be complete                      
+         return true;
+      else
+         // T has to be complete                                        
+         return ::std::derived_from<Decay<T>, Decay<BASE>>;
+   }
+}
+
 namespace Langulus::CT
 {
-   namespace Inner
-   {
-      /// Helper function to extract reflected base types                     
-      template<class T>
-      consteval auto GetBaseTypes() {
-         static_assert(not ::std::is_reference_v<T>,
-            "Strip references first");
-         static_assert(not CT::Convoluted<T>,
-            "Strip constness/volatility first");
-
-         if constexpr (Complete<CTTI::Bases<T>>) {
-            // Checked externally, T doesn't have to be complete        
-            using LIST = typename CTTI::Bases<T>::Type;
-            if constexpr (CT::Typelist<LIST>)
-               return LIST {};
-            else
-               return Types<LIST> {};
-         }
-         else if constexpr (requires { typename T::CTTI_Bases; }) {
-            // Checked internally, T has to be a complete type          
-            using LIST = typename T::CTTI_Bases;
-            if constexpr (CT::Typelist<LIST>)
-               return LIST {};
-            else
-               return Types<LIST> {};
-         }
-         else return NoTypes {};
-      };
-
-      /// Check if T has BASE                                                 
-      ///   @attention involves only C++ bases, not reflected ones            
-      template<class T, class BASE>
-      consteval bool DerivedFrom() {
-         if constexpr (::std::same_as<T, BASE>)
-            // Neither T nor BASE have to be complete                   
-            return true;
-         else
-            // T has to be complete                                     
-            return ::std::derived_from<Decay<T>, Decay<BASE>>;
-      }
-   }
-
    /// Check if the origin T publicly inherits (or is) all the BASE(s).       
    /// Compensates for std::derived_from not returning true for the same      
    /// primitive types...                                                     

@@ -12,44 +12,46 @@
 namespace Langulus::CTTI
 {
    /// Affects CT::Void<T>                                                    
-   template<class T>
+   template<class>
    struct Void;
 
    /// Make sure no one interferes with true void type                        
    template<>
    struct Void<void> {};
+
+   /// Void type identity is still considered void                            
+   template<>
+   struct Void<::std::type_identity<void>> {};
+}
+
+namespace Langulus::CT::Inner
+{
+   template<class T>
+   consteval bool IsVoidInner() {
+      using DT = ::std::remove_cvref_t<T>;
+      if constexpr (Complete<CTTI::Void<DT>>) {
+         // External check                                              
+         return true;
+      }
+      else {
+         // Internal check                                              
+         static_assert(Complete<DT>,
+            "Can't check if an incomplete type is void");
+
+         if constexpr (requires { DT::CTTI_Void::Enabled; })
+            return DT::CTTI_Void::Enabled;
+         else
+            return false;
+      }
+   }
 }
 
 namespace Langulus::CT
 {
-   namespace Inner
-   {
-      template<class T>
-      consteval bool IsVoidInner() {
-         using DT = ::std::remove_cvref_t<T>;
-         if constexpr (Complete<CTTI::Void<DT>>) {
-            // External check                                           
-            return true;
-         }
-         else if constexpr (::std::is_class_v<DT>) {
-            // Internal check                                           
-            static_assert(Complete<DT>,
-               "Can't check if an incomplete type is void");
-            if constexpr (requires { DT::CTTI_Void::Enabled; })
-               return DT::CTTI_Void::Enabled;
-            else
-               return false;
-         }
-         else return false;
-      }
-   }
-
    /// Check if all T are marked void                                         
    template<class...T>
-   concept Void = PartialValidate<T...>
-       and (Inner::IsVoidInner<T>() and ...);
+   concept Void = (Inner::IsVoidInner<T>() and ...);
 
    template<class...T>
-   concept NotVoid = PartialValidate<T...>
-       and ((not Inner::IsVoidInner<T>()) and ...);
+   concept NotVoid = ((not Void<T>) and ...);
 }

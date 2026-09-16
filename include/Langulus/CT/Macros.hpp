@@ -6,6 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
+#include "Complete.hpp"
 
 
 /// Checks for reflection traits inside types themselves.                     
@@ -55,7 +56,7 @@
           and (LANGULUS_CTTI_CHECK(HOW, NAME) and ...); \
       template<class...T> \
       concept Not##NAME = PartialValidate<T...> \
-          and ((not LANGULUS_CTTI_CHECK(HOW, NAME)) and ...); \
+          and ((not NAME<T>) and ...); \
    }
 
 /// Automatically populates the Langulus::CT namespace with the appropriate   
@@ -115,8 +116,3 @@
 ///   @attention use this macro in the global namespace                       
 #define LANGULUS_CTTI_CONCEPT_DECAY(NAME) \
    LANGULUS_CTTI_CONCEPT_INNER(NAME, Decay<T>)
-
-LANGULUS_CTTI_CONCEPT(Null);
-LANGULUS_CTTI_CONCEPT(Enum);
-LANGULUS_CTTI_CONCEPT(Aggregate);
-LANGULUS_CTTI_CONCEPT(Fundamental);

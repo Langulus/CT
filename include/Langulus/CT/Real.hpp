@@ -11,15 +11,19 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Real<T>:                        
-   /// By default, all T that satisfy std::floating_point are true            
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Real = Yes<>;` in T                        
+   /// Affects CT::Real<T>                                                    
+   /// By default, all T that satisfy std::is_floating_point_v are real       
    template<class T>
    struct Real {
       static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::floating_point<T>;
+      static constexpr bool Enabled = ::std::is_floating_point_v<T>;
    };
+
+   template<>
+   struct Real<float> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Real);
+
+static_assert(Langulus::CT::Real<float>);
+static_assert(Langulus::CT::Real<double>);

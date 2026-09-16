@@ -6,17 +6,18 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Core.hpp"
+#include <Langulus/Core.hpp>
 #include "Typenav.hpp"
-#include "TypeOf.hpp"
 #include "Assume.hpp"
+
+/*#include "TypeOf.hpp"
 #include "CT/Support.hpp"
 #include "CT/POD.hpp"
 #include "CT/Akin.hpp"
 #include <bit>
 #include <type_traits>
 #include <array>
-#include <vector>
+#include <vector>*/
 
 
 namespace Langulus
@@ -32,8 +33,8 @@ namespace Langulus
    ///      constantly regenerated, if it ends up as 0 after hashing.         
    ///   @attention hashing a single hash always returns the hash itself      
    struct Hash {
-      using CTTI_POD      = Yes<>;
-      using CTTI_Nullable = Yes<>;
+      using CTTI_POD      = Yup;
+      using CTTI_Nullable = Yup;
 
       #if LANGULUS_HASHSIZE == 32
          using InnerType = uint32_t;

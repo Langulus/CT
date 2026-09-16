@@ -7,7 +7,7 @@
 ///                                                                           
 #pragma once
 #include "CT/Sheddable.hpp"
-#include <concepts>
+#include "CT/Macros.hpp"
 
 
 ///                                                                           
@@ -75,7 +75,6 @@ namespace Langulus::CTTI
    };
 }
 
-
 namespace Langulus
 {
    /// Remove a reference from type                                           
@@ -133,7 +132,7 @@ namespace Langulus
          template<class T>
          consteval size_t GetBoundedArrayExtentNested() {
             constexpr size_t result = GetBoundedArrayExtent<T>();
-            if constexpr (not ::std::same_as<T, Deext<T>>)
+            if constexpr (not ::std::is_same_v<T, Deext<T>>)
                return result * GetBoundedArrayExtentNested<Deext<T>>();
             else
                return result;
@@ -141,7 +140,7 @@ namespace Langulus
 
          /// Removes a pointer from the type. Supports custom pointers.       
          ///   @attention if an incomplete type is reached the nesting ceases 
-         template<class T, uint TIMES>
+         template<class T, unsigned TIMES>
          consteval auto NestedDeptr() {
             static_assert(not ::std::is_reference_v<T>,
                "Shed all references prior to this call");
@@ -149,16 +148,16 @@ namespace Langulus
                "Can't deptr zero times");
 
             if constexpr (not Complete<T>)
-               return Types<T> {};
+               return ::std::type_identity<T> {};
             else {
                if constexpr (::std::is_pointer_v<T>) {
                   if constexpr (::std::is_void_v<::std::remove_pointer_t<T>>)
-                     return NoTypes {};
+                     return ::std::type_identity<void> {};
                   else {
                      // Conventional pointer dereferencing              
                      using deptr_once = ::std::remove_pointer_t<T>;
                      if constexpr (TIMES == 1)
-                        return Types<deptr_once> {};
+                        return ::std::type_identity<deptr_once> {};
                      else
                         return NestedDeptr<deptr_once, TIMES - 1>();
                   }
@@ -167,7 +166,7 @@ namespace Langulus
                   // Conventional bounded array dereferencing           
                   using deptr_once = ::std::remove_extent_t<T>;
                   if constexpr (TIMES == 1)
-                     return Types<deptr_once> {};
+                     return ::std::type_identity<deptr_once> {};
                   else
                      return NestedDeptr<deptr_once, TIMES - 1>();
                }
@@ -178,21 +177,15 @@ namespace Langulus
                   
                   using deptr_once = Deref<decltype(*LglsFake(T))>;
                   if constexpr (TIMES == 1)
-                     return Types<deptr_once> {};
+                     return ::std::type_identity<deptr_once> {};
                   else
                      return NestedDeptr<deptr_once, TIMES - 1>();
                }
-               else return Types<T> {};
+               else return ::std::type_identity<T> {};
             }
          }
       }
    }
-
-   /// Sheds any sheddable types                                              
-   template<class T>
-   using Shed = typename decltype(CT::Inner::ShedInner<T>())::First;
-   template<class T>
-   using ShedDeref = Deref<Shed<T>>;
 
    /// Get the extent of a bounded array type, or 1 if T is not an array      
    template<class T>
@@ -215,8 +208,8 @@ namespace Langulus
    /// Remove a number of pointers from type. Supports custom pointer types.  
    ///   @attention may result in a reference                                 
    ///   @attention if an incomplete type is reached the nesting ceases       
-   template<class T, uint TIMES = 1>
-   using Deptr = typename decltype(CT::Inner::NestedDeptr<ShedDeref<T>, TIMES>())::First;
+   template<class T, unsigned TIMES = 1>
+   using Deptr = typename decltype(CT::Inner::NestedDeptr<ShedDeref<T>, TIMES>())::type;
 
    namespace Inner
    {
@@ -227,7 +220,7 @@ namespace Langulus
       template<class T>
       consteval auto NestedDecay() {
          using Stripped = Decvq<Deref<Deptr<T>>>;
-         if constexpr (::std::same_as<T, Stripped>)
+         if constexpr (::std::is_same_v<T, Stripped>)
             return static_cast<Stripped*>(nullptr);
          else
             return NestedDecay<Stripped>();
@@ -306,14 +299,16 @@ namespace Langulus
       /// Includes support for custom pointers.                               
       ///   @attention this doesn't shed or remove references before check    
       template<class...T>
-      concept Decayed = PartialValidate<T...> and LglsSif(((
+      concept Decayed = PartialValidate<T...> and [] {
+         if constexpr (((
             ::std::is_bounded_array_v<T>
          or ::std::is_reference_v<T>
          or ::std::is_const_v<T>
-         or ::std::is_volatile_v<T>) or ...),
-            return false,
-            return CT::Dense<T...>
-         );
+         or ::std::is_volatile_v<T>) or ...))
+            return false;
+         else
+            return CT::Dense<T...>;
+      } ();
    
       /// Check if types have reference/pointer/extent/const/volatile         
       ///   @attention this doesn't shed or remove references before check    
@@ -324,12 +319,12 @@ namespace Langulus
       /// with [] and isn't a reference.                                      
       ///   @attention still allowed to be cv-qualified                       
       template<class...T>
-      concept Slab = PartialValidate<T...> and LglsSif(((
-            ::std::is_reference_v<T>
-         or ::std::is_array_v<T>) or ...),
-            return false,
-            return CT::Dense<T...>
-         );
+      concept Slab = PartialValidate<T...> and [] {
+         if constexpr (((::std::is_reference_v<T> or ::std::is_array_v<T>) or ...))
+            return false;
+         else
+            return CT::Dense<T...>;
+      } ();
          
       namespace Inner
       {
@@ -392,16 +387,16 @@ namespace Langulus
    /// The default PointerSpecification with all members initialized to zero  
    /// corresponds to a pointer with sizeof(void*) and thus not packed.       
    struct PointerSpecification {
-      uint PoolBits = 0;
-      uint EntryBits = 0;
-      uint OffsetBits = 0;
+      unsigned PoolBits = 0;
+      unsigned EntryBits = 0;
+      unsigned OffsetBits = 0;
 
-      constexpr uint GetTotalBits() const noexcept {
+      constexpr unsigned GetTotalBits() const noexcept {
          const auto total = PoolBits + EntryBits + OffsetBits;
          return total ? total : sizeof(void*)*8;
       }
       
-      constexpr uint GetTotalBytes() const noexcept {
+      constexpr unsigned GetTotalBytes() const noexcept {
          const auto total = PoolBits + EntryBits + OffsetBits;
          return total ? total/8u : sizeof(void*);
       }
@@ -416,53 +411,53 @@ namespace Langulus
       /// Removes all extents from a bounded array.                           
       /// Removes references.                                                 
       template<class T>
-      consteval CT::Typelist auto NestedDeext() {
+      consteval auto NestedDeext() {
          if constexpr (CT::Array<T>)
-            return Types<typename decltype(NestedDeext<Deext<T>>())::First> {};
+            return NestedDeext<Deext<T>>();
          else
-            return Types<T> {};
+            return ::std::type_identity<T> {};
       }
 
       /// Removes all const/volatile qualifiers from all indirections.        
       /// Supports custom pointers. Preserves references.                     
       template<class T>
-      consteval CT::Typelist auto NestedDecvq() {
+      consteval auto NestedDecvq() {
          if constexpr (::std::is_rvalue_reference_v<T>)
-            return Types<typename decltype(NestedDecvq<Deref<T>>())::First&&> {};
+            return ::std::type_identity<typename decltype(NestedDecvq<Deref<T>>())::type&&> {};
          else if constexpr (::std::is_lvalue_reference_v<T>)
-            return Types<typename decltype(NestedDecvq<Deref<T>>())::First&> {};
+            return ::std::type_identity<typename decltype(NestedDecvq<Deref<T>>())::type&> {};
          else if constexpr (::std::is_pointer_v<T>)
-            return Types<typename decltype(NestedDecvq<::std::remove_pointer_t<T>>())::First*> {};
+            return ::std::type_identity<typename decltype(NestedDecvq<::std::remove_pointer_t<T>>())::type*> {};
          else if constexpr (::std::is_bounded_array_v<T>)
-            return Types<typename decltype(NestedDecvq<::std::remove_extent_t<T>>())::First [::std::extent_v<T>]> {};
+            return ::std::type_identity<typename decltype(NestedDecvq<::std::remove_extent_t<T>>())::type [::std::extent_v<T>]> {};
          else if constexpr (CT::Complete<T>) {
             if constexpr (CT::CustomPointer<T>)
-               return Types<typename T::MakeDecvqAll> {};
+               return ::std::type_identity<typename T::MakeDecvqAll> {};
             else
-               return Types<::std::remove_cv_t<T>> {};
+               return ::std::type_identity<::std::remove_cv_t<T>> {};
          }
-         else return Types<::std::remove_cv_t<T>> {};
+         else return ::std::type_identity<::std::remove_cv_t<T>> {};
       }
 
       /// Adds const qualifier to all levels of indirection except the top.   
       /// Supports custom pointers. Preserves references.                     
       template<class T>
-      consteval CT::Typelist auto NestedConst() {
+      consteval auto NestedConst() {
          if constexpr (::std::is_rvalue_reference_v<T>)
-            return Types<typename decltype(NestedConst<Deref<T>>())::First const&&> {};
+            return ::std::type_identity<typename decltype(NestedConst<Deref<T>>())::type const&&> {};
          else if constexpr (::std::is_lvalue_reference_v<T>)
-            return Types<typename decltype(NestedConst<Deref<T>>())::First const&> {};
+            return ::std::type_identity<typename decltype(NestedConst<Deref<T>>())::type const&> {};
          else if constexpr (::std::is_pointer_v<T>)
-            return Types<typename decltype(NestedConst<::std::remove_pointer_t<T>>())::First const*> {};
+            return ::std::type_identity<typename decltype(NestedConst<::std::remove_pointer_t<T>>())::type const*> {};
          else if constexpr (::std::is_bounded_array_v<T>)
-            return Types<typename decltype(NestedConst<::std::remove_extent_t<T>>())::First const [::std::extent_v<T>]> {};
+            return ::std::type_identity<typename decltype(NestedConst<::std::remove_extent_t<T>>())::type const [::std::extent_v<T>]> {};
          else if constexpr (CT::Complete<T>) {
             if constexpr (CT::CustomPointer<T>)
-               return Types<typename T::MakeConstAll> {};
+               return ::std::type_identity<typename T::MakeConstAll> {};
             else
-               return Types<T> {};
+               return ::std::type_identity<T> {};
          }
-         else return Types<T> {};
+         else return ::std::type_identity<T> {};
       }
 
       /// Count the number of indirections, including custom pointers.        
@@ -570,83 +565,6 @@ namespace Langulus
       }
    }
 }
-
-/// Automatically populates the Langulus::CT namespace with the appropriate   
-/// concepts, based on the provided Langulus::CTTI::<structure name>.         
-/// Used to reduce boilerplate.                                               
-///   @attention types need to be complete only if we end up 'delving in'     
-///   @attention use this macro in the global namespace                       
-///   @param NAME the name of the concept - must be the same as the trait in  
-///      Langulus::CTTI::NAME                                                 
-///   @param HOW how to filter the type when checking it. Use ShedDeref<T>    
-///      by default                                                           
-#define LANGULUS_CTTI_CONCEPT_INNER(NAME, HOW) \
-   namespace Langulus::CT { \
-      template<class...T> \
-      concept NAME = PartialValidate<T...> \
-          and (LANGULUS_CTTI_CHECK(HOW, NAME) and ...); \
-      template<class...T> \
-      concept Not##NAME = PartialValidate<T...> \
-          and ((not LANGULUS_CTTI_CHECK(HOW, NAME)) and ...); \
-   }
-
-/// Automatically populates the Langulus::CT namespace with the appropriate   
-/// concepts, based on the provided Langulus::CTTI::<structure name>.         
-/// Used to reduce boilerplate. Sheds all sheddables and dereferences.        
-///   @attention types need to be complete only if we end up 'delving in'     
-///   @attention removes all sheddables and dereferences                      
-///   @attention use this macro in the global namespace                       
-#define LANGULUS_CTTI_CONCEPT(NAME) \
-   LANGULUS_CTTI_CONCEPT_INNER(NAME, ShedDeref<T>)
-
-/// MARK: CTTI Macros                                                         
-/// Automatically populates the Langulus::CT namespace with the appropriate   
-/// concepts, based on the provided Langulus::CTTI::<structure name>.         
-/// Used to reduce boilerplate. Removes only references.                      
-///   @attention types need to be complete only if we end up 'delving in'     
-///   @attention will only shed references                                    
-///   @attention use this macro in the global namespace                       
-#define LANGULUS_CTTI_CONCEPT_UNSHEDDABLE(NAME) \
-   LANGULUS_CTTI_CONCEPT_INNER(NAME, Deref<T>)
-
-/// Automatically populates the Langulus::CT namespace with the appropriate   
-/// concepts, based on the provided Langulus::CTTI::<structure name>.         
-/// Used to reduce boilerplate.                                               
-///   @attention types need to be complete only if we end up 'delving in'     
-///   @attention will shed only references and cv qualifiers                  
-///   @attention use this macro in the global namespace                       
-#define LANGULUS_CTTI_CONCEPT_UNSHEDDABLE_DECVQ(NAME) \
-   LANGULUS_CTTI_CONCEPT_INNER(NAME, Decvq<Deref<T>>)
-
-/// Automatically populates the Langulus::CT namespace with the appropriate   
-/// concepts, based on the provided Langulus::CTTI::<structure name>.         
-/// Used to reduce boilerplate. Removes qualifiers from argument.             
-///   @attention types need to be complete only if we end up 'delving in'     
-///   @attention will shed all sheddables, as well as references and cv       
-///      qualifiers after that                                                
-///   @attention use this macro in the global namespace                       
-#define LANGULUS_CTTI_CONCEPT_DECVQ(NAME) \
-   LANGULUS_CTTI_CONCEPT_INNER(NAME, Decvq<ShedDeref<T>>)
-
-/// Automatically populates the Langulus::CT namespace with the appropriate   
-/// concepts, based on the provided Langulus::CTTI::<structure name>.         
-/// Used to reduce boilerplate. Removes qualifiers and extents from argument. 
-///   @attention types need to be complete only if we end up 'delving in'     
-///   @attention will shed all sheddables, as well as references, cv          
-///      qualifiers, and extents after that                                   
-///   @attention use this macro in the global namespace                       
-#define LANGULUS_CTTI_CONCEPT_DECVQE(NAME) \
-   LANGULUS_CTTI_CONCEPT_INNER(NAME, Decvq<DeextAll<ShedDeref<T>>>)
-
-/// Automatically populates the Langulus::CT namespace with the appropriate   
-/// concepts, based on the provided Langulus::CTTI::<structure name>.         
-/// Used to reduce boilerplate. Decays the argument.                          
-///   @attention types need to be complete only if we end up 'delving in'     
-///   @attention will shed all sheddables, as well as references, pointers,   
-///      and cv qualifiers after that                                         
-///   @attention use this macro in the global namespace                       
-#define LANGULUS_CTTI_CONCEPT_DECAY(NAME) \
-   LANGULUS_CTTI_CONCEPT_INNER(NAME, Decay<T>)
 
 LANGULUS_CTTI_CONCEPT(Null);
 LANGULUS_CTTI_CONCEPT(Enum);

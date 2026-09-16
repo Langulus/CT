@@ -245,11 +245,11 @@ namespace Langulus
       }
    }
 
-   /// Generate a type list by providing a consteval generator lambda      
-   ///   @param lambda the function that will generate the types.          
-   ///          The lambda may or may not return Types, which will be      
-   ///          concatenated along if so.                                  
-   ///   @return a type list, containing the generated types               
+   /// Generate a type list by providing a consteval generator lambda         
+   ///   @param lambda the function that will generate the types.             
+   ///          The lambda may or may not return Types, which will be         
+   ///          concatenated along if so.                                     
+   ///   @return a type list, containing the generated types                  
    template<class...T> LANGULUS(ALWAYS_INLINED)
    consteval auto GenerateTypes(Types<T...>, auto&& lambda) {
       if constexpr (sizeof...(T) != 0) {
@@ -261,7 +261,7 @@ namespace Langulus
       else return Types<>{};
    }
 
-   /// Discard elements for which lambda returns true                      
+   /// Discard elements for which lambda returns true                         
    LANGULUS(ALWAYS_INLINED)
    constexpr auto Discard(Types<>, auto&&) { return Types<>{}; }
 
@@ -284,7 +284,7 @@ namespace Langulus
       }
    }
 
-   /// Collects stuff inside the types into a new value/type list          
+   /// Collects stuff inside the types into a new value/type list             
    template<class...T> LANGULUS(ALWAYS_INLINED)
    constexpr auto Extract(Types<T...>, auto&& lambda) {
       if constexpr (sizeof...(T) != 0) {

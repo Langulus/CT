@@ -1,0 +1,47 @@
+///                                                                           
+/// Langulus::Core                                                            
+/// Copyright (c) 2012 Dimo Markov <team@langulus.com>                        
+/// Part of the Langulus framework, see https://langulus.com                  
+///                                                                           
+/// SPDX-License-Identifier: MIT                                              
+///                                                                           
+#pragma once
+#include "Typenav.hpp"
+
+
+namespace Langulus::CTTI
+{
+   /// Affects CT::Exception<T>                                               
+   template<class T>
+   struct Exception;
+}
+
+LANGULUS_CTTI_CONCEPT_UNSHEDDABLE(Exception);
+
+namespace Langulus
+{
+   ///                                                                        
+   ///   General exception                                                    
+   ///                                                                        
+   /// It is an equivalent to std::runtime_error, but with additional info    
+   /// for debug builds, like message and location strings                    
+   struct Exception {
+      using CTTI_Exception = Yup;
+
+      static constexpr auto DefaultMessage  = "<no information provided>";
+      static constexpr auto DefaultLocation = "<unknown location>";
+
+      #if LANGULUS(DEBUG)
+         // Exception message                                           
+         const char* mMessage  = DefaultMessage;
+         // Exception location, as a separate literal to avoid concat   
+         const char* mLocation = DefaultLocation;
+
+         constexpr Exception(const char* message, const char* location) noexcept
+            : mMessage  {message}
+            , mLocation {location} {}
+      #else
+         constexpr Exception(const char*, const char*) noexcept {}
+      #endif
+   };
+}
