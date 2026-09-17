@@ -11,7 +11,7 @@
 
 namespace Langulus
 {
-   namespace Anyness
+   namespace Annies
    {
       struct Many;
    }
@@ -20,18 +20,17 @@ namespace Langulus
    /// Descriptor intermediate type, used in constructors and assignment      
    /// operators to enable describe-construction/assignment. The inner type   
    /// is always a reference to a type-erased container.                      
-   /// You should #include <Langulus/Anyness/Many.hpp>                        
+   /// You should #include <Langulus/Annies/Many.hpp>                         
    ///        and #include <Langulus/CT/Describable.hpp>                      
    ///        in order to use Describe semantics                              
    struct Describe {
-      using Many = Anyness::Many;
+      using Many = Annies::Many;
       const Many& what;
 
-      //using CTTI_Typed         = Many;
       using CTTI_ReflectAs     = void;
-      using CTTI_Abstract      = Yes<>;
+      using CTTI_Abstract      = Yup;
       using CTTI_Allocatable   = No;
-      using CTTI_Intent        = Yes<>;
+      using CTTI_Intent        = Yup;
 
       Describe() = delete;
       constexpr Describe(const Describe&) noexcept = default;
@@ -52,7 +51,7 @@ namespace Langulus::CT
    template<class...T>
    concept DescribeConstructible = not Abstract<T...>
        and not Enum<T...> and not Aggregate<T...>
-       and requires (const Anyness::Many& a) {
+       and requires (const Annies::Many& a) {
          (T (Describe {a}), ...);
        };
    
@@ -61,7 +60,7 @@ namespace Langulus::CT
    template<class...T>
    concept DescribeAssignable = not Abstract<T...>
        and not Enum<T...> and not Aggregate<T...>
-       and requires (T&...lhs, const Anyness::Many& rhs) {
+       and requires (T&...lhs, const Annies::Many& rhs) {
          ((lhs = Describe {rhs}), ...);
        };
 }

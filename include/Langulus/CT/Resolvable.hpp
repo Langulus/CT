@@ -9,7 +9,7 @@
 #include "../Typenav.hpp"
 
 
-namespace Langulus::Anyness
+namespace Langulus::Annies
 {
    struct Any;
 }

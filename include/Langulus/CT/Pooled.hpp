@@ -82,8 +82,8 @@ namespace Langulus::CTTI
    /// All fundamental types are pooled by size by default                    
    template<CT::Fundamental T>
    struct Pooled<T> {
-      static constexpr PoolTactic Tactic = PoolTactic::Size;
-      static constexpr size_t MinPool  = MinimalPoolSize;
+      static constexpr PoolTactic Tactic  = PoolTactic::Size;
+      static constexpr size_t     MinPool = MinimalPoolSize;
    };
 }
 

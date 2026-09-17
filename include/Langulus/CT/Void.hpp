@@ -22,6 +22,18 @@ namespace Langulus::CTTI
    /// Void type identity is still considered void                            
    template<>
    struct Void<::std::type_identity<void>> {};
+
+   /// True/false helper types are considered void                            
+   template<>
+   struct Void<Yup> {};
+   template<bool CONDITION>
+   struct Void<Maybe<CONDITION>> {};
+   template<>
+   struct Void<No> {};
+   template<>
+   struct Void<::std::true_type> {};
+   template<>
+   struct Void<::std::false_type> {};
 }
 
 namespace Langulus::CT::Inner

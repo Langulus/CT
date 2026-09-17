@@ -6,20 +6,23 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Integer.hpp"
-#include "Real.hpp"
+#include "Character.hpp"
+#include "Number.hpp"
 
-
-namespace Langulus::CTTI
+namespace Langulus
 {
-   /// Affects CT::Number<T>                                                  
-   /// @attention bool types are not considered numbers                       
-   template<class T>
-   struct Number;
-
-   /// All custom/built-in integers and real numbers are CT::Number           
-   template<class T> requires (CT::Integer<T> or CT::Real<T>)
-   struct Number<T> {};
+   struct Byte;
 }
 
-LANGULUS_CTTI_CONCEPT_DECVQ(Number);
+namespace Langulus::CT
+{
+   /// Scalar concept - any fundamental or custom number type, regardless     
+   /// if wrapped inside an intent. Bounded arrays of those with              
+   /// ExtentOf == 1 are also considered scalars.                             
+   template<class...T>
+   concept Scalar = ((AllExtentsOf<T> == 1 and (
+            ::std::is_same_v<Langulus::Byte, Decvq<DeextAll<T>>>
+         or Number<DeextAll<T>>
+         or Character<DeextAll<T>>
+      )) and ...);
+}

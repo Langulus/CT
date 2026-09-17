@@ -11,15 +11,13 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Allocatable<T>:                 
-   /// Non-void types are allocatable by default                              
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Allocatable = Yes<>;` in T                 
+   /// Affects CT::Allocatable<T>                                             
    template<class T>
-   struct Allocatable {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = not CT::Void<T>;
-   };
+   struct Allocatable;
+
+   /// Non-void types are allocatable by default                              
+   template<CT::NotVoid T>
+   struct Allocatable<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Allocatable);

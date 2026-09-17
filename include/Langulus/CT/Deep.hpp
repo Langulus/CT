@@ -25,12 +25,8 @@ namespace Langulus::CT
    
    /// Checks whether all decayed T are not marked as deep                    
    template<class...T>
-   concept NotDeep = Validate<Decay<T>...>
-       and ((not LANGULUS_CTTI_CHECK(Decay<T>, Deep)) and ...);
-
-   /// Same as CT::NotDeep                                                    
-   template<class...T>
-   concept Flat = NotDeep<T...>;
+   concept Flat = Validate<Decay<T>...>
+       and ((not Deep<T>) and ...);
 
    /// CT::Deep works regardless if T are sparse or not. This makes sure      
    /// T are dense as well.                                                   

@@ -59,13 +59,14 @@ namespace Langulus::CT
 namespace Langulus::CTTI
 {
    /// Affects CT::Text<T>                                                    
-   template<class T>
-   struct Text {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = CT::TextLiteral<T>
-                                   or CT::TextPointer<T>
-                                   or CT::TextRange<T>;
-   };
+   template<class>
+   struct Text;
+
+   /// Literals, cstrings and character ranges are considered CT::Text        
+   template<class T> requires (CT::TextLiteral<T>
+                            or CT::TextPointer<T>
+                            or CT::TextRange<T>)
+   struct Text<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Text);

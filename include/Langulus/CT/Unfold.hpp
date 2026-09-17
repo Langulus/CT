@@ -14,13 +14,14 @@
 namespace Langulus::CTTI
 {
    /// Affects CT::Unfoldable                                                 
-   template<class T>
-   struct Unfoldable {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = CT::Sheddable<T>
-         or ::std::is_bounded_array_v<Deref<T>>
-         or (::std::ranges::range<T> and CT::Typed<T>);
-   };
+   template<class>
+   struct Unfoldable;
+
+   /// Sheddables, bounded arrays and typed ranges are considered unfoldable  
+   template<class T> requires (CT::Sheddable<T>
+                              or ::std::is_bounded_array_v<Deref<T>>
+                              or (::std::ranges::range<T> and CT::Typed<T>))
+   struct Unfoldable<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT_UNSHEDDABLE_DECVQ(Unfoldable);

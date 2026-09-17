@@ -12,11 +12,11 @@
 namespace Langulus
 {
    /// Useful for setting CTTI_Versioned                                      
-   template<uint MAJOR, uint MINOR>
+   template<unsigned MAJOR, unsigned MINOR>
    struct Version {
-      static constexpr uint Major = MAJOR;
-      static constexpr uint Minor = MINOR;
-      static constexpr bool Enabled = true;
+      static constexpr unsigned Major   = MAJOR;
+      static constexpr unsigned Minor   = MINOR;
+      static constexpr bool     Enabled = true;
    };
 }
 
@@ -45,7 +45,7 @@ namespace Langulus::CT
 
 namespace Langulus
 {
-   ///                                                                        
+   /// Get the version of a given type T                                      
    template<class T>
    consteval auto VersionOf() {
       using ST = Shed<T>;
@@ -57,7 +57,7 @@ namespace Langulus
          return Version<1, 0> {};
    }
 
-   ///                                                                        
+   /// Get the version of a given constant E                                  
    template<auto E>
    consteval auto VersionOf() {
       if constexpr (CT::Complete<CTTI::VersionedValue<E>>)

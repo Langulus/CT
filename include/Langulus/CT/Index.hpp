@@ -11,18 +11,15 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Index<T>:                       
-   /// All integer types are considered indices by default                    
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Index = Yes<>;` in T                       
+   /// Affects CT::Index<T>                                                   
    template<class T>
-   struct Index {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = CT::Integer<T>;
-   };
+   struct Index;
+
+   /// All CT::Integer satisfy CT::Index as well                              
+   template<CT::Integer T>
+   struct Index<T> {};
 }
 
-//LANGULUS_CTTI_CONCEPT_DECVQ(Index);
 LANGULUS_CTTI_CONCEPT_UNSHEDDABLE(Index);
 
 namespace Langulus::Index

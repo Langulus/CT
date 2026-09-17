@@ -17,7 +17,7 @@ namespace Langulus::CTTI
    /// 1. Specialize for T/concept                                            
    /// 2. Add a public `using CTTI_Files = Yes<"txt,rtf,etc">;` in T          
    template<class T>
-   struct Files;;
+   struct Files;
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Files);

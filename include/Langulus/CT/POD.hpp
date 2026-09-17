@@ -8,11 +8,16 @@
 #pragma once
 #include "Abstract.hpp"
 #include "Fundamental.hpp"
+#include <ranges>
 
 
 namespace Langulus::CTTI
 {
    /// Affects CT::POD<T>                                                     
+   template<class T>
+   struct POD;
+
+   /// Some types can be detected as POD                                      
    ///   @note is_trivially_destructible_v is required to strenghten the      
    ///      is_trivial_v check on GCC/Clang due to compiler bugs; MSVC is fine
    ///   @note std::array will be considered POD if containing POD elements   
@@ -20,18 +25,17 @@ namespace Langulus::CTTI
    ///      otherwise an array containing one hash will result in a rehash    
    ///      instead of a reuse                                                
    ///   @note extents are ignored by default                                 
-   template<class T>
-   struct POD {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = not CT::Abstract<DeextAll<T>> and (
+   template<class T> requires (
+      not CT::Abstract<DeextAll<T>> and (
          CT::Sparse<DeextAll<T>> or CT::Fundamental<DeextAll<T>> or (
                 ::std::is_trivial_v<DeextAll<T>>
             and ::std::is_standard_layout_v<DeextAll<T>>
             and ::std::is_trivially_destructible_v<DeextAll<T>>
             and not ::std::ranges::range<DeextAll<T>>
          )
-      );
-   };
+      )
+   )
+   struct POD<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQE(POD);

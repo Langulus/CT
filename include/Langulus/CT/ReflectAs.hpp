@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Typenav.hpp"
+#include "Void.hpp"
 
 
 namespace Langulus::CTTI
@@ -14,7 +14,7 @@ namespace Langulus::CTTI
    /// Can be used in two ways to satisfy CT::ReflectAs<T>:                   
    /// 1. Specialize for T/concept, with the desired Type                     
    /// 2. Add a public `using CTTI_ReflectAs = <DesiredType>;` in T           
-   /// Use void/No type to disable reflection for the type                    
+   /// Use void to disable reflection for the type                            
    template<class T>
    struct ReflectAs;
 
@@ -25,87 +25,84 @@ namespace Langulus::CTTI
    };
 }
 
-namespace Langulus::CT
+namespace Langulus::CT::Inner
 {
-   namespace Inner
-   {
-      /// Convenience function that checks if ReflectAs is not void, which    
-      /// would mean that the type is not reflectable at all. It also makes   
-      /// sure that if ReflectAs is specified, then the involved types are    
-      /// binary-compatible.                                                  
-      template<class T>
-      consteval auto IsReflectable() {
-         static_assert(NotReference<T>, "Strip references first");
-         static_assert(NotSheddable<T>, "Strip sheddable types first");
-         static_assert(not ::std::is_bounded_array_v<T>, "Strip extents first");
+   /// Convenience function that checks if ReflectAs is not void, which       
+   /// would mean that the type is not reflectable at all. It also makes      
+   /// sure that if ReflectAs is specified, then the involved types are       
+   /// binary-compatible.                                                     
+   template<class T>
+   consteval auto IsReflectable() {
+      static_assert(not ::std::is_reference_v<T>, "Strip references first");
+      static_assert(not ::std::is_bounded_array_v<T>, "Strip extents first");
 
-         if constexpr (not Complete<T>) {
-            // Incomplete types are never reflectable                   
-            return NoTypes {};
-         }
-         else if constexpr (Void<T> or Typelist<T>) {
-            // Void types are never reflectable                         
-            return NoTypes {};
-         }
-         else if constexpr (Complete<CTTI::ReflectAs<T>>) {
-            // Substitution through external template                   
-            // Despite this, all participating types must be complete   
-            // because their `sizeof` and `alignof` are checked.        
-            using AS = typename CTTI::ReflectAs<T>::Type;
-            if constexpr (Void<AS>)
-               return NoTypes {};
-            else {
-               static_assert(sizeof(T) == sizeof(AS),
-                  "Provided ReflectAs type must be of the same size");
-               static_assert(alignof(T) == alignof(AS),
-                  "Provided ReflectAs type must be of the same alignment");
-               return Types<AS> {};
-            }
-         }
-         else if constexpr (Decayed<T>) {
-            if constexpr (requires { typename Decay<T>::CTTI_ReflectAs; }) {
-               // Substitution through internal type                    
-               using AS = typename Decay<T>::CTTI_ReflectAs;
-               if constexpr (Void<AS>)
-                  return NoTypes {};
-               else {
-                  static_assert(sizeof(T) == sizeof(AS),
-                     "Provided ReflectAs type must be of the same size");
-                  static_assert(alignof(T) == alignof(AS),
-                     "Provided ReflectAs type must be of the same alignment");
-                  return Types<AS> {};
-               }
-            }
-            else return Types<T> {};
-         }
+      if constexpr (not Complete<T>) {
+         // Incomplete types are never reflectable                      
+         return ::std::type_identity<void> {};
+      }
+      else if constexpr (Void<T>) {
+         // Void types are never reflectable                            
+         return ::std::type_identity<void> {};
+      }
+      else if constexpr (Complete<CTTI::ReflectAs<T>>) {
+         // Substitution through external template.                     
+         // Despite this, all participating types must be complete      
+         // because their `sizeof` and `alignof` are checked.           
+         // You can't reflect as a binary-incompatible type.            
+         using AS = typename CTTI::ReflectAs<T>::Type;
+         if constexpr (Void<AS>)
+            return ::std::type_identity<void> {};
          else {
-            if constexpr (::std::is_const_v<T>) {
-               using AS = decltype(IsReflectable<Decvq<T>>());
-               if constexpr (Void<AS>)
-                  return NoTypes {};
-               else
-                  return Types<typename AS::First const> {};
-            }
-            else if constexpr (::std::is_pointer_v<T>) {
-               if constexpr (not Complete<Deptr<T>>)
-                  return Types<T> {};
-               else {
-                  using AS = decltype(IsReflectable<Deptr<T>>());
-                  if constexpr (Void<AS>)
-                     return NoTypes{};
-                  else
-                     return Types<typename AS::First*> {};
-               }
-            }
-            else return Types<T> {};
+            static_assert(sizeof(T) == sizeof(AS),
+               "Provided ReflectAs type must be of the same size");
+            static_assert(alignof(T) == alignof(AS),
+               "Provided ReflectAs type must be of the same alignment");
+            return ::std::type_identity<AS> {};
          }
       }
+      else if constexpr (::std::is_const_v<T>) {
+         // Let's make sure constness is preserved                      
+         using AS = decltype(IsReflectable<::std::remove_reference_t<T>>());
+         if constexpr (Void<AS>)
+            return ::std::type_identity<void> {};
+         else
+            return ::std::type_identity<typename AS::type const> {};
+      }
+      else if constexpr (::std::is_pointer_v<T>) {
+         // Let's make sure indirections are preserved                  
+         if constexpr (not Complete<::std::remove_pointer_t<T>>)
+            return ::std::type_identity<T> {};
+         else {
+            using AS = decltype(IsReflectable<::std::remove_pointer_t<T>>());
+            if constexpr (Void<AS>)
+               return ::std::type_identity<void>{};
+            else
+               return ::std::type_identity<typename AS::type*> {};
+         }
+      }
+      else if constexpr (requires { typename T::CTTI_ReflectAs; }) {
+         // Substitution through internal type                          
+         using AS = typename T::CTTI_ReflectAs;
+         if constexpr (Void<AS>)
+            return ::std::type_identity<void> {};
+         else {
+            static_assert(sizeof(T) == sizeof(AS),
+               "Provided ReflectAs type must be of the same size");
+            static_assert(alignof(T) == alignof(AS),
+               "Provided ReflectAs type must be of the same alignment");
+            return ::std::type_identity<AS> {};
+         }
+      }
+      else return ::std::type_identity<T> {};
    }
+}
 
+namespace Langulus::CT
+{
    /// Check if all T are reflectable                                         
    template<class...T>
    concept Reflectable = PartialValidate<T...>
-       and (CT::NotVoid<typename decltype(Inner::IsReflectable<T>())::First> and ...);
+       and (CT::NotVoid<decltype(Inner::IsReflectable<T>())> and ...);
 
    /// Get the type a given T is reflected as. This is very useful as a       
    /// a build-time optimization, because many type-erased containers are     
@@ -117,5 +114,5 @@ namespace Langulus::CT
    ///   @attention this will strip all references, but will preserve CV      
    ///      qualifiers and indirections!                                      
    template<class T>
-   using ReflectedAs = typename decltype(Inner::IsReflectable<T>())::First;
+   using ReflectedAs = typename decltype(Inner::IsReflectable<T>())::type;
 }

@@ -9,6 +9,7 @@
 #include <Langulus/Core.hpp>
 #include "CT/Support.hpp"
 #include "CT/POD.hpp"
+#include "CT/Akin.hpp"
 #include "TypeOf.hpp"
 #include "Assume.hpp"
 #include <vector>

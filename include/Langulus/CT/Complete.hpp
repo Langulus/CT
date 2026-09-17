@@ -11,6 +11,16 @@
 
 namespace Langulus::CT
 {
+   /// Check if all T are complete (defined), by exploiting sizeof            
+   /// Usefulness of this is limited to the first instantiation, and          
+   /// that is how it is used upon reflection. Thankfully, most modern        
+   /// compilers do detect if a definition changes between completeness       
+   /// checks, so it is unlikely to cause any real harm:                      
+   /// https://stackoverflow.com/questions/21119281                           
+   //template<class...T>
+   //concept Complete = (sizeof...(T) > 0) and ((sizeof(T) == sizeof(T)) and ...);
+
+   /// This is a slightly improved version, that doesn't do ODR violations    
    template<class T, bool PROBE = requires(T) { sizeof(T); }>
    constexpr bool Complete = PROBE;
 

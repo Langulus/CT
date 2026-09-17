@@ -9,7 +9,6 @@
 #include "Akin.hpp"
 #include "../Typenav.hpp"
 #include "../Utils/Types.hpp"
-#include <type_traits>
 
 
 namespace Langulus::CTTI

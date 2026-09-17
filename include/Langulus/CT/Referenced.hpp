@@ -12,11 +12,9 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Referenced<T>:                  
+   /// Affects CT::Referenced<T>                                              
    /// @attention T has to posses the referencing interface for this to work. 
-   ///  - easiest way to achieve this is to simply inherit Referenced.        
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Referenced = Yes<>;` in T                  
+   ///  - best way to achieve this is to simply inherit Langulus::Referenced. 
    template<class T>
    struct Referenced;
 }
@@ -27,13 +25,13 @@ namespace Langulus
 {
    ///                                                                        
    /// Base types off this one, to make them CT::Referenced and provide the   
-   /// required interface for it                                              
+   /// required interface for it.                                             
    ///                                                                        
    class Referenced {
       mutable int mReferences = 1;
 
    public:
-      using CTTI_Referenced = Yes<>;
+      using CTTI_Referenced = Yup;
 
       constexpr ~Referenced() {
          LglsAssumeDev(mReferences <= 1,

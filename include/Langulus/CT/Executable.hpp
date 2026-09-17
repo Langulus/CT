@@ -8,12 +8,20 @@
 #pragma once
 #include "../Typenav.hpp"
 
+namespace Langulus::Flow
+{
+   struct Verb;
+}
 
 namespace Langulus::CTTI
 {
    /// Affects CT::Executable<T>                                              
    template<class T>
    struct Executable;
+
+   /// Verbs are always marked executable                                     
+   template<>
+   struct Executable<::Langulus::Flow::Verb> {};
 }
 
 namespace Langulus::CT
@@ -26,19 +34,5 @@ namespace Langulus::CT
   /// Checks whether all decayed T are not marked as executable               
    template<class...T>
    concept NotExecutable = Validate<Decay<T>...>
-       and ((not LANGULUS_CTTI_CHECK(Decay<T>, Executable)) and ...);
-}
-
-namespace Langulus::Flow
-{
-   struct Verb;
-}
-
-namespace Langulus::CTTI
-{
-   /// Verbs are always marked executable                                     
-   template<>
-   struct Executable<::Langulus::Flow::Verb> {
-      static constexpr bool Enabled = true;
-   };
+       and ((not Executable<T>) and ...);
 }

@@ -19,11 +19,10 @@ namespace Langulus::CTTI
 namespace Langulus::CT::Inner
 {
    /// Extracts the inner type if T is marked as sheddable                    
+   ///   @attention doesn't strip any references                              
    template<class T>
    consteval auto GetSheddedType() {
-      using DT = ::std::remove_cvref_t<T>;
-      using TI = CTTI::Sheddable<DT>;
-
+      using TI = CTTI::Sheddable<T>;
       if constexpr (Complete<TI>) {
          // External test                                               
          static_assert(requires { typename TI::Type; },
@@ -31,7 +30,7 @@ namespace Langulus::CT::Inner
 
          using InnerT = typename TI::Type;
          if constexpr (Void<InnerT>)
-            return ::std::type_identity<void> {};
+            return ::std::type_identity<T> {};
          else {
             static_assert(not requires { InnerT::Enabled; },
                "Pick a type to shed to, or void, instead of using Yes/Yup/No"
@@ -41,21 +40,22 @@ namespace Langulus::CT::Inner
       }
       else {
          // Internal check                                              
+         using DT = ::std::remove_cvref_t<T>;
          static_assert(Complete<DT>,
             "Can't access `CTTI_Sheddable` inside incomplete type");
 
          if constexpr (requires { typename DT::CTTI_Sheddable; }) {
             using InnerT = typename DT::CTTI_Sheddable;
             if constexpr (Void<InnerT>)
-               return ::std::type_identity<void> {};
+               return ::std::type_identity<T> {};
             else {
                static_assert(not requires { InnerT::Enabled; },
                   "Pick a type to shed to, or void, instead of using Yes/Yup/No"
-                  "for CTTI_Sheddable");
+                  "for T::CTTI_Sheddable");
                return ::std::type_identity<InnerT> {};
             }
          }
-         else return ::std::type_identity<void> {};
+         else return ::std::type_identity<T> {};
       }
    };
 
@@ -64,11 +64,11 @@ namespace Langulus::CT::Inner
    ///   @attention strips _all_ sheddables                                   
    template<class T>
    consteval auto ShedInner() {
-      using ST = decltype(GetSheddedType<T>());
-      if constexpr (Void<ST>)
-         return ::std::type_identity<void> {};
+      using ST = typename decltype(GetSheddedType<T>())::type;
+      if constexpr (::std::is_same_v<T, ST>)
+         return ::std::type_identity<T> {};
       else
-         return ShedInner<typename ST::type>();
+         return ShedInner<ST>();
    };
 }
 
@@ -83,7 +83,7 @@ namespace Langulus::CT
    /// other CT concepts - most will act as if sheddable types don't          
    /// exist at all.                                                          
    template<class...T>
-   concept Sheddable = ((not Void<decltype(Inner::GetSheddedType<T>())>) and ...);
+   concept Sheddable = ((not ::std::is_same_v<::std::type_identity<T>, decltype(Inner::GetSheddedType<T>())>) and ...);
 
    template<class...T>
    concept NotSheddable = ((not Sheddable<T>) and ...);

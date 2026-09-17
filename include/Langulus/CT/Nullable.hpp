@@ -11,15 +11,13 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Nullable<T>:                    
-   /// Pointers and fundamentals are nullable by default                      
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Nullable = Yes<>;` in T                    
+   /// Affects CT::Nullable<T>                                                
    template<class T>
-   struct Nullable {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::is_pointer_v<T> or ::std::is_fundamental_v<T>;
-   };
+   struct Nullable;
+
+   /// Pointers and fundamentals are nullable by default                      
+   template<class T> requires (::std::is_pointer_v<T> or ::std::is_fundamental_v<T>)
+   struct Nullable<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Nullable);

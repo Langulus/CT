@@ -7,7 +7,7 @@
 ///                                                                           
 #pragma once
 #include "../Typenav.hpp"
-#include "../Literal.hpp"
+#include "../Literal.hpp" //TODO why depend on literal tho?
 #include "../Utils/ASCII.hpp"
 
 

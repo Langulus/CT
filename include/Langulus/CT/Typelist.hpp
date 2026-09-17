@@ -24,6 +24,7 @@ namespace Langulus::CT
             // External check                                           
             static_assert(Complete<DT>,
                "Can't check if an incomplete type is a type list");
+               
             if constexpr (requires { DT::CTTI_Typelist::Enabled; })
                return DT::CTTI_Typelist::Enabled;
             else

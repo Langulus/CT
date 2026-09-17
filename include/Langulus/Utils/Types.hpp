@@ -29,8 +29,9 @@ namespace Langulus
    /// Satisfies CT::Void and is considered 'void'.                           
    template<>
    struct Types<> {
-      using CTTI_Typelist = Yup;
-      using CTTI_Void     = Yup;
+      using CTTI_Typelist  = Yup;
+      using CTTI_Void      = Yup;
+      using CTTI_ReflectAs = void;
 
       template<class...> friend struct Types;
 
@@ -62,7 +63,8 @@ namespace Langulus
    /// Type list that contains exactly one type                               
    template<class T>
    struct Types<T> {
-      using CTTI_Typelist = Yup;
+      using CTTI_Typelist  = Yup;
+      using CTTI_ReflectAs = void;
 
       template<class...> friend struct Types;
 
@@ -92,7 +94,8 @@ namespace Langulus
    /// Type list that contains multiple types                                 
    template<class T1, class T2, class...TN>
    struct Types<T1, T2, TN...> {
-      using CTTI_Typelist = Yup;
+      using CTTI_Typelist  = Yup;
+      using CTTI_ReflectAs = void;
 
       template<class...> friend struct Types;
 

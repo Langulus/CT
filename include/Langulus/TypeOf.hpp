@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include "Typenav.hpp"
+#include "CT/Typelist.hpp"
 
 
 namespace Langulus::CTTI
@@ -36,23 +37,30 @@ namespace Langulus::CT::Inner
 
       if constexpr (::std::is_bounded_array_v<T>) {
          // Get the type of a bounded array (int[5] -> int)             
-         static_assert(INDEX == 0, "Bounded arrays have exactly one inner type");
-         return Types<Deext<T>> {};
+         static_assert(INDEX == 0,
+            "Bounded arrays have exactly one inner type");
+         return ::std::type_identity<Deext<T>> {};
       }
       else if constexpr (Complete<CTTI::Typed<T>>) {
          // Checked externally, T doesn't have to be complete           
          using InnerT = typename CTTI::Typed<T>::Type;
-         if constexpr (CT::Typelist<InnerT>)
-            return Types<typename InnerT::template At<INDEX>> {};
+         static_assert(not requires { InnerT::Enabled; },
+            "Pick a type to shed to, or void, instead of using Yes/Yup/No"
+            "for CTTI::Typed::Type");
+
+         if constexpr (Typelist<InnerT>)
+            return ::std::type_identity<typename InnerT::template At<INDEX>> {};
          else {
-            static_assert(INDEX == 0, "Outer type has exactly one inner type");
-            return Types<InnerT> {};
+            static_assert(INDEX == 0,
+               "Outer type has exactly one inner type");
+            return ::std::type_identity<InnerT> {};
          }
       }
       else if constexpr (::std::is_enum_v<T>) {
          // Get the type of an enum (enum stuff : char {...}; -> char)  
-         static_assert(INDEX == 0, "Enums have exactly one inner type");
-         return Types<::std::underlying_type_t<T>> {};
+         static_assert(INDEX == 0,
+            "Enums have exactly one inner type");
+         return ::std::type_identity<::std::underlying_type_t<T>> {};
       }
       else if constexpr (::std::is_class_v<T>) {
          // Checked internally, T has to be a complete type             
@@ -62,33 +70,36 @@ namespace Langulus::CT::Inner
          if constexpr (requires { typename T::CTTI_Typed; }) {
             // Inner type defined by a langulus protocol (CTTI_Typed)   
             using InnerT = typename T::CTTI_Typed;
-            if constexpr (::std::is_void_v<InnerT> or ::std::same_as<InnerT, No>)
-               return NoTypes {};
+            if constexpr (Void<InnerT>)
+               return ::std::type_identity<void> {};
             else {
-               static_assert(not ::std::same_as<InnerT, Yes<>>,
-                  "Instead of Yes<> pick a type(list) for CTTI_Typed");
+               static_assert(not requires { InnerT::Enabled; },
+                  "Pick a type to shed to, or void, instead of using Yes/Yup/No"
+                  "for T::CTTI_Typed");
 
-               if constexpr (CT::Typelist<InnerT>)
-                  return Types<typename InnerT::template At<INDEX>> {};
+               if constexpr (Typelist<InnerT>)
+                  return ::std::type_identity<typename InnerT::template At<INDEX>> {};
                else {
-                  static_assert(INDEX == 0, "Outer type has exactly one inner type");
-                  return Types<InnerT> {};
+                  static_assert(INDEX == 0,
+                     "Outer type has exactly one inner type");
+                  return ::std::type_identity<InnerT> {};
                }
             }
          }
          else if constexpr (requires { typename T::value_type; }) {
             // Inner type defined by a std protocol (value_type)        
             using InnerT = typename T::value_type;
-            if constexpr (CT::Typelist<InnerT>)
-               return Types<typename InnerT::template At<INDEX>> {};
+            if constexpr (Typelist<InnerT>)
+               return ::std::type_identity<typename InnerT::template At<INDEX>> {};
             else {
-               static_assert(INDEX == 0, "Outer type has exactly one inner type");
-               return Types<InnerT> {};
+               static_assert(INDEX == 0,
+                  "Outer type has exactly one inner type");
+               return ::std::type_identity<InnerT> {};
             }
          }
-         else return NoTypes {};
+         else return ::std::type_identity<void> {};
       }
-      else return NoTypes {};
+      else return ::std::type_identity<void> {};
    };
 }
 
@@ -105,7 +116,7 @@ namespace Langulus
    ///   - if T has CTTI_Typed/value_type -> return the inner type(s)         
    ///   - otherwise just return a void type                                  
    template<class T, int INDEX = 0>
-   using TypeOf = typename decltype(CT::Inner::GetUnderlyingType<Decvq<Deref<T>>, INDEX>())::First;
+   using TypeOf = typename decltype(CT::Inner::GetUnderlyingType<Decvq<Deref<T>>, INDEX>())::type;
 
    namespace CT
    {
@@ -139,13 +150,13 @@ namespace Langulus
    constexpr decltype(auto) TypedCast(T&& what) {
       if constexpr (requires { what.TypedCast(); }) {
          using InnerT = decltype(what.TypedCast());
-         static_assert(not ::std::same_as<Decvq<Deref<T>>, Decvq<Deref<InnerT>>>,
+         static_assert(not ::std::is_same_v<Decvq<Deref<T>>, Decvq<Deref<InnerT>>>,
             "TypedCast() returns the same type, and will result in infinite regress");
          return what.TypedCast();
       }
       else {
          using InnerT = TypeOf<T>;
-         static_assert(not ::std::same_as<Decvq<Deref<T>>, Decvq<Deref<InnerT>>>,
+         static_assert(not ::std::is_same_v<Decvq<Deref<T>>, Decvq<Deref<InnerT>>>,
             "TypeOf returns the same type, and will result in infinite regress");
 
          if constexpr (CT::Void<InnerT>)

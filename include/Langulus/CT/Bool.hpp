@@ -11,15 +11,13 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Bool<T>:                        
-   /// `bool` is CT::Bool by default                                          
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Bool = Yes<>;` in T                        
+   /// Affects CT::Bool<T>                                                    
    template<class T>
-   struct Bool {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::same_as<T, bool>;
-   };
+   struct Bool;
+
+   /// Built-in bool always satisfies CT::Bool                                
+   template<>
+   struct Bool<bool> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Bool);

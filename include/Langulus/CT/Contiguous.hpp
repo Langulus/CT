@@ -12,15 +12,13 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Contiguous<T>:                  
-   /// All T that satisfy std::ranges::contiguous_range are covered by default
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Contiguous = Yes<>;` in T                  
+   /// Affects CT::Contiguous<T>                                              
    template<class T>
-   struct Contiguous {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::ranges::contiguous_range<T>;
-   };
+   struct Contiguous;
+   
+   /// All T that satisfy std::ranges::contiguous_range are covered by default
+   template<::std::ranges::contiguous_range T>
+   struct Contiguous<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Contiguous);

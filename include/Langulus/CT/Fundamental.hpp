@@ -11,12 +11,13 @@
 
 namespace Langulus::CTTI
 {
-   /// Affects CT::Fundamental<T>:                                            
+   /// Affects CT::Fundamental<T>                                             
    template<class T>
-   struct Fundamental {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::is_fundamental_v<T>;
-   };
+   struct Fundamental;
+
+   /// Built-in fundamental types always satisfy CT::Fundamental              
+   template<class T> requires (::std::is_fundamental_v<T>)
+   struct Fundamental<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT(Fundamental);

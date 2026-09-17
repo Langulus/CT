@@ -7,244 +7,144 @@
 ///                                                                           
 #pragma once
 #include <Langulus/Core.hpp>
+#include <compare>
 
 
 namespace Langulus
 {
-
    ///                                                                        
    ///   A byte                                                               
    ///                                                                        
-   ///   std::byte is shitty, this one's better. It preserves arithmetic      
+   /// std::byte is shitty, this one's better. It preserves arithmetic        
    /// operations on the byte. These operations counteract integer promotion, 
-   /// the result is always truncated back down to a byte.                    
-   ///                                                                        
+   /// the result is always truncated back down to a byte. This means that    
+   /// this byte is significantly slower to operate with, but much safer.     
+   /// It's mostly useful on small scale byte operations. You can always      
+   /// reinterpret it as char/uint8_t/std::byte in loops if you prefer speed. 
    #pragma pack(push, 1)
    struct Byte {
-      using Type = ::std::uint8_t;
-      using CTTI_InnerType = Type;
-      static constexpr bool CTTI_POD = true;
-      static constexpr bool CTTI_Nullifiable = true;
+      using Type          = uint8_t;
+      using CTTI_Typed    = Type;
+      using CTTI_POD      = Yup;
+      using CTTI_Nullable = Yup;
 
-      Type mValue {};
+      Type value;
 
-   public:
       constexpr Byte() noexcept = default;
-      constexpr Byte(const Byte&) noexcept = default;
+      constexpr Byte(Byte const&) noexcept = default;
       constexpr Byte(Byte&&) noexcept = default;
+      explicit constexpr Byte(Type const& a) noexcept : value {a} {}
 
-      LANGULUS(INLINED)
-      constexpr Byte(const Type& a) noexcept
-         : mValue {a} {}
-
-      Byte& operator = (const Byte&) noexcept = default;
-      Byte& operator = (Byte&&) noexcept = default;
-
-      LANGULUS(INLINED)
-      Byte& operator = (const Type& a) noexcept {
-         mValue = a;
+      constexpr Byte& operator = (Byte const&) noexcept = default;
+      constexpr Byte& operator = (Byte&&) noexcept = default;
+      constexpr Byte& operator = (Type const& a) noexcept {
+         value = a;
          return *this;
       }
 
-      LANGULUS(INLINED)
-      constexpr explicit operator Type& () const noexcept {
-         return const_cast<Type&>(mValue);
-      }
-
-      template<CT::BuiltinNumber T> LANGULUS(INLINED)
-      constexpr explicit operator T () const noexcept
-      requires (CT::Dense<T> and not CT::Same<T, Type>) {
-         return static_cast<T>(mValue);
-      }
-
-      LANGULUS(INLINED)
       constexpr Byte operator + (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue + rhs.mValue);
+         return static_cast<Byte>(value + rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator - (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue - rhs.mValue);
+         return static_cast<Byte>(value - rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator * (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue * rhs.mValue);
+         return static_cast<Byte>(value * rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator / (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue / rhs.mValue);
+         return static_cast<Byte>(value / rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator % (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue % rhs.mValue);
+         return static_cast<Byte>(value % rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator << (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue << rhs.mValue);
+         return static_cast<Byte>(value << rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator >> (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue >> rhs.mValue);
+         return static_cast<Byte>(value >> rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator ^ (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue ^ rhs.mValue);
+         return static_cast<Byte>(value ^ rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator & (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue & rhs.mValue);
+         return static_cast<Byte>(value & rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte operator | (const Byte& rhs) const noexcept {
-         return static_cast<Byte>(mValue | rhs.mValue);
+         return static_cast<Byte>(value | rhs.value);
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator += (const Byte& rhs) noexcept {
-         mValue += rhs.mValue;
+         value += rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator -= (const Byte& rhs) noexcept {
-         mValue -= rhs.mValue;
+         value -= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator *= (const Byte& rhs) noexcept {
-         mValue *= rhs.mValue;
+         value *= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator /= (const Byte& rhs) noexcept {
-         mValue /= rhs.mValue;
+         value /= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator %= (const Byte& rhs) noexcept {
-         mValue %= rhs.mValue;
+         value %= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator <<= (const Byte& rhs) noexcept {
-         mValue <<= rhs.mValue;
+         value <<= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator >>= (const Byte& rhs) noexcept {
-         mValue >>= rhs.mValue;
+         value >>= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator ^= (const Byte& rhs) noexcept {
-         mValue ^= rhs.mValue;
+         value ^= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator &= (const Byte& rhs) noexcept {
-         mValue &= rhs.mValue;
+         value &= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
       constexpr Byte& operator |= (const Byte& rhs) noexcept {
-         mValue |= rhs.mValue;
+         value |= rhs.value;
          return *this;
       }
 
-      LANGULUS(INLINED)
-      constexpr bool operator == (const Byte&) const noexcept = default;
+      constexpr auto operator <=> (const Byte&) const noexcept = default;
+      constexpr bool operator ==  (const Byte&) const noexcept = default;
 
-      LANGULUS(INLINED)
-      constexpr bool operator <= (const Byte& rhs) const noexcept {
-         return mValue <= rhs.mValue;
-      }
-
-      LANGULUS(INLINED)
-      constexpr bool operator >= (const Byte& rhs) const noexcept {
-         return mValue >= rhs.mValue;
-      }
-
-      LANGULUS(INLINED)
-      constexpr bool operator < (const Byte& rhs) const noexcept {
-         return mValue < rhs.mValue;
-      }
-
-      LANGULUS(INLINED)
-      constexpr bool operator > (const Byte& rhs) const noexcept {
-         return mValue > rhs.mValue;
-      }
+      constexpr auto operator <=> (const uint8_t& r) const noexcept { return value <=> r; }
+      constexpr bool operator ==  (const uint8_t& r) const noexcept { return value ==  r; }
 
       /// Prefix operators                                                    
-      Byte& operator ++ () noexcept {
-         ++mValue;
-         return *this;
-      }
-      Byte& operator -- () noexcept {
-         --mValue;
-         return *this;
-      }
+      constexpr Byte& operator ++ () noexcept { ++value; return *this; }
+      constexpr Byte& operator -- () noexcept { --value; return *this; }
 
       /// Suffix operators                                                    
-      Byte operator ++ (int) noexcept {
-         return static_cast<Byte>(mValue++);
-      }
-
-      Byte operator -- (int) noexcept {
-         return static_cast<Byte>(mValue--);
-      }
+      constexpr Byte operator -- (int) noexcept { return static_cast<Byte>(value--); }
+      constexpr Byte operator ++ (int) noexcept { return static_cast<Byte>(value++); }
    };
    #pragma pack(pop)
-
-   namespace CT
-   {
-
-      /// Built-in byte concept                                               
-      template<class...T>
-      concept BuiltinByte = sizeof...(T) > 0 and ((
-            SimilarAsOneOf<Deref<T>, ::Langulus::Byte, ::std::byte>
-         ) and ...);
-
-      /// Custom byte concept (wrapped in another type)                       
-      template<class...T>
-      concept CustomByte = ((Typed<T> and
-            BuiltinByte<TypeOf<T>> and sizeof(T) == sizeof(TypeOf<T>)
-         ) and ...);
-
-      /// Byte concept                                                        
-      template<class...T>
-      concept Byte = ((BuiltinByte<T> or CustomByte<T>) and ...);
-
-      /// Any unsigned character, byte or integer, sized exactly 1 byte       
-      template<class...T>
-      concept UnsignedInteger8 = sizeof...(T) > 0
-          and (((UnsignedInteger<T> or Character<T> or Byte<T>)
-          and sizeof(Decay<T>) == 1) and ...);
-
-      /// Any signed character, byte or integer, sized exactly 1 byte         
-      template<class...T>
-      concept Integer8 = sizeof...(T) > 0
-          and ((SignedInteger8<T> or UnsignedInteger8<T>) and ...);
-
-      template<class...T>
-      concept IntegerX = sizeof...(T) > 0
-          and ((Integer8<T> or Integer16<T> or Integer32<T> or Integer64<T>) and ...);
-
-   } // namespace Langulus::CT
-
-} // namespace Langulus
+}

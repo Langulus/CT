@@ -11,17 +11,14 @@
 
 /// Checks for reflection traits inside types themselves.                     
 /// Requires the TYPE to be complete in order to do that.                     
-#define LANGULUS_CTTI_DELVE_IN(TYPE,NAME,FALLBACK) ([] consteval -> bool { \
-      if constexpr (::std::is_class_v<TYPE>) { \
-         static_assert(::Langulus::CT::Complete<TYPE>, \
-            "Can't access `CTTI_" #NAME "` inside incomplete type " #TYPE); \
-         if constexpr (not ::Langulus::CT::Complete<TYPE>) \
-            return FALLBACK; \
-         else if constexpr (requires { TYPE::CTTI_##NAME::Enabled; }) \
-            return TYPE::CTTI_##NAME::Enabled; \
-         else return FALLBACK; \
-      } else return FALLBACK; \
-   }())
+#define LANGULUS_CTTI_DELVE_IN(TYPE,NAME,FALLBACK) \
+   if constexpr (::std::is_class_v<TYPE>) { \
+      static_assert(Complete<TYPE>, \
+         "Can't access `CTTI_" #NAME "` inside incomplete type " #TYPE); \
+      if constexpr (requires { TYPE::CTTI_##NAME::Enabled; }) \
+         return TYPE::CTTI_##NAME::Enabled; \
+      else return FALLBACK; \
+   } else return FALLBACK;
 
 /// Checks for reflection traits outside types by CTTI struct specializations 
 /// If CTTI struct is incomplete, it has no effect.                           
@@ -30,14 +27,14 @@
 /// If CTTI struct has no Default member, it is assumed specialized, and no   
 ///   LANGULUS_CTTI_DELVE_IN is required, the Enabled member is used.         
 #define LANGULUS_CTTI_CHECK(TYPE,NAME) ([] consteval -> bool { \
-      using ctti = ::Langulus::CTTI::NAME<TYPE>; \
-      if constexpr (::Langulus::CT::Complete<ctti>) { \
+      using ctti = CTTI::NAME<TYPE>; \
+      if constexpr (Complete<ctti>) { \
          if constexpr(requires { ctti::Default; }) { \
-            return LANGULUS_CTTI_DELVE_IN(TYPE, NAME, ctti::Enabled); \
+            { LANGULUS_CTTI_DELVE_IN(TYPE, NAME, ctti::Enabled) } \
          } else if constexpr (requires { ctti::Enabled; }) { \
             return ctti::Enabled; \
          } else return true; \
-      } else return LANGULUS_CTTI_DELVE_IN(TYPE, NAME, false); \
+      } else { LANGULUS_CTTI_DELVE_IN(TYPE, NAME, false) } \
    }())
    
 /// Automatically populates the Langulus::CT namespace with the appropriate   

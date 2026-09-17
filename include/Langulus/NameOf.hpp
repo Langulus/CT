@@ -539,36 +539,36 @@ namespace Langulus::RTTI
          }
          return result;
       }
-      
-      /// Get the last, most relevant part of a token that may or may not     
-      /// have namespaces in it. Essentially finds last "::" that isn't       
-      /// enclosed in a <template>, and skip forward to that.                 
-      ///   @param token the token to scan                                    
-      ///   @return the last token                                            
-      constexpr size_t FindLastToken(const Token& token) noexcept {
-         size_t depth = 0;
-         for (size_t i = token.size() - 1; i < token.size(); --i) {
-            switch (token[i]) {
-            case ':':
-               // If no depth, then we found it                         
-               if (not depth)
-                  return i + 1;
-               break;
-            case '>':
-               // Open template scope                                   
-               ++depth;
-               break;
-            case '<':
-               // Close template scope                                  
-               if (depth)
-                  --depth;
-               break;
-            default:
-               break;
-            }
+   }
+
+   /// Get the last, most relevant part of a token that may or may not        
+   /// have namespaces in it. Essentially finds last "::" that isn't          
+   /// enclosed in a <template>, and skip forward to that.                    
+   ///   @param token the token to scan                                       
+   ///   @return the last token                                               
+   constexpr size_t FindLastToken(const Token& token) noexcept {
+      size_t depth = 0;
+      for (size_t i = token.size() - 1; i < token.size(); --i) {
+         switch (token[i]) {
+         case ':':
+            // If no depth, then we found it                            
+            if (not depth)
+               return i + 1;
+            break;
+         case '>':
+            // Open template scope                                      
+            ++depth;
+            break;
+         case '<':
+            // Close template scope                                     
+            if (depth)
+               --depth;
+            break;
+         default:
+            break;
          }
-         return 0;
       }
+      return 0;
    }
 }
 
@@ -609,7 +609,7 @@ namespace Langulus
    constexpr auto LastCppNameOf() {
       // Find the last ':' symbol, that is not inside <...> scope       
       auto fullName = RTTI::Inner::IsolateTypename<T, NORMALIZE, false>();
-      auto lastName = RTTI::Inner::FindLastToken(fullName);
+      auto lastName = RTTI::FindLastToken(fullName);
       return fullName.substr(lastName);
    }
 
@@ -623,7 +623,7 @@ namespace Langulus
    constexpr auto LastCppNameOf() {
       // Find the last ':' symbol, that is not inside <...> scope       
       auto fullName = RTTI::Inner::IsolateConstant<E, NORMALIZE, false>();
-      auto lastName = RTTI::Inner::FindLastToken(fullName);
+      auto lastName = RTTI::FindLastToken(fullName);
       return fullName.substr(lastName);
    }
 

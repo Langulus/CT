@@ -30,17 +30,17 @@ namespace Langulus::CT::Inner
 
       if constexpr (not CT::Abstract<T>) {
          // T has to be abstract in order to be concretizable           
-         return NoTypes {};
+         return ::std::type_identity<void> {};
       }
       else if constexpr (Complete<CTTI::Concrete<T>>) {
          // Checked externally, T doesn't have to be complete           
-         return Types<typename CTTI::Concrete<T>::Type> {};
+         return ::std::type_identity<typename CTTI::Concrete<T>::Type> {};
       }
       else if constexpr (requires { typename T::CTTI_Concrete; }) {
          // Checked internally, T has to be a complete type             
-         return Types<typename T::CTTI_Concrete> {};
+         return ::std::type_identity<typename T::CTTI_Concrete> {};
       }
-      else return NoTypes {};
+      else return ::std::type_identity<void> {};
    };
 }
 
@@ -48,7 +48,7 @@ namespace Langulus
 {
    /// Get the reflected concrete type, void if none                          
    template<class T>
-   using ConcreteOf = typename decltype(CT::Inner::GetConcreteType<Decvq<Deref<T>>>())::First;
+   using ConcreteOf = typename decltype(CT::Inner::GetConcreteType<Decvq<Deref<T>>>())::type;
 
    namespace CT
    {

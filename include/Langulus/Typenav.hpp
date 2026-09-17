@@ -471,7 +471,7 @@ namespace Langulus
    /// For example: `void const volatile* const* const` becomes `void**`.     
    ///              `void const volatile* const&` becomes `void*&`.           
    template<class T>
-   using DecvqAll = typename decltype(Inner::NestedDecvq<T>())::First;
+   using DecvqAll = typename decltype(Inner::NestedDecvq<T>())::type;
 
    /// Adds const qualifiers to all levels of indirection of a type, except   
    /// the top one. You can always do `const ConstAll<T>` to fix that.        
@@ -479,14 +479,14 @@ namespace Langulus
    /// For example: `void**` becomes `void const* const*`.                    
    ///              `void*&` becomes `void const* const&`.                    
    template<class T>
-   using ConstAll = typename decltype(Inner::NestedConst<T>())::First;
+   using ConstAll = typename decltype(Inner::NestedConst<T>())::type;
 
    /// Removes all bounded array extents from a type.                         
    /// Removes references if type had extent.                                 
    /// For example: `void**(&)[6][6][6]` becomes `void**`.                    
    ///              `void*&` remains `void*&`.                                
    template<class T>
-   using DeextAll = typename decltype(Inner::NestedDeext<T>())::First;
+   using DeextAll = typename decltype(Inner::NestedDeext<T>())::type;
 
    /// Strips all cv-qualifiers from the provided argument                    
    ///   @attention this will return pointers for bounded array arguments     

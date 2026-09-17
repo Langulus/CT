@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include <Langulus/Core.hpp>
+#include <type_traits>
 
 
 namespace Langulus::CT

@@ -6,8 +6,9 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "TypeOf.hpp"
-#include "Assume.hpp"
+//#include "TypeOf.hpp"
+//#include "Assume.hpp"
+#include "CT/Sheddable.hpp"
 #include "CT/Derived.hpp"
 #include "CT/POD.hpp"
 #include "CT/Support.hpp"
@@ -100,18 +101,22 @@ namespace Langulus
 {
    namespace Inner
    {
+      /// Sheds _all_ sheddables, but only if T is an intent.                 
+      /// An intent can't contain another intent, but can contain another     
+      /// sheddable that contains another intent, so all must be stripped     
+      /// just in case.                                                       
       template<class T>
       consteval auto GetDeintInner() {
          if constexpr (CT::Intent<T>)
-            return Types<TypeOf<T>> {};
+            return ::std::type_identity<Shed<T>> {};
          else
-            return Types<T> {};
+            return ::std::type_identity<T> {};
       }
    }
 
    /// Shed only the intent from a type, if any                               
    template<class T>
-   using Deint = typename decltype(Inner::GetDeintInner<T>())::First;
+   using Deint = typename decltype(Inner::GetDeintInner<T>())::type;
 
    /// Decay an intent to the contained data                                  
    ///   @param intent the intent to decay                                    
@@ -131,9 +136,9 @@ namespace Langulus
       template<uint DEPTH, bool KEEP, bool MOVE>
       struct CommonIntent {
          using CTTI_ReflectAs     = void;
-         using CTTI_Abstract      = Yes<>;
+         using CTTI_Abstract      = Yup;
          using CTTI_Allocatable   = No;
-         using CTTI_Intent        = Yes<>;
+         using CTTI_Intent        = Yup;
 
          static consteval uint GetDepth()     { return DEPTH; }
          static consteval bool IsKept()       { return KEEP;  }
@@ -160,7 +165,6 @@ namespace Langulus
    struct Refer final : Inner::CommonIntent<0, true, false> {
       const T& what;
 
-      using CTTI_Typed     = decltype(what);
       using CTTI_Sheddable = decltype(what);
 
       template<class ALT>
@@ -228,10 +232,10 @@ namespace Langulus
    Refer(T&) -> Refer<T>;
 
    template<CT::Intent T>
-   Refer(T&&) -> Refer<Decq<Deref<TypeOf<T>>>>;
+   Refer(T&&) -> Refer<Decq<Deref<Deint<T>>>>;
 
    template<CT::Intent T>
-   Refer(T const&) -> Refer<Decq<Deref<TypeOf<T>>>>;
+   Refer(T const&) -> Refer<Decq<Deref<Deint<T>>>>;
 
    
    /// MARK: Copy                                                             
@@ -243,7 +247,6 @@ namespace Langulus
    struct Copy final : Inner::CommonIntent<1, true, false> {
       const T& what;
       
-      using CTTI_Typed     = decltype(what);
       using CTTI_Sheddable = decltype(what);
 
       template<class ALT>
@@ -306,10 +309,10 @@ namespace Langulus
    Copy(T&) -> Copy<T>;
    
    template<CT::Intent T>
-   Copy(T&&) -> Copy<Decq<Deref<TypeOf<T>>>>;
+   Copy(T&&) -> Copy<Decq<Deref<Deint<T>>>>;
 
    template<CT::Intent T>
-   Copy(T const&) -> Copy<Decq<Deref<TypeOf<T>>>>;
+   Copy(T const&) -> Copy<Decq<Deref<Deint<T>>>>;
 
 
    /// MARK: Move                                                             
@@ -322,7 +325,6 @@ namespace Langulus
       static_assert(CT::Mutable<T>, "Constant T isn't movable");
       T&& what;
 
-      using CTTI_Typed     = decltype(what);
       using CTTI_Sheddable = decltype(what);
 
       template<class ALT>
@@ -395,7 +397,7 @@ namespace Langulus
    Move(T&&) -> Move<Deref<T>>;
 
    template<CT::Intent T>
-   Move(T&&) -> Move<Decq<Deref<TypeOf<T>>>>;
+   Move(T&&) -> Move<Decq<Deref<Deint<T>>>>;
 
 
    /// MARK: Abandon                                                          
@@ -413,7 +415,6 @@ namespace Langulus
       static_assert(CT::Mutable<T>, "Constant T isn't abandonable");
       T&& what;
 
-      using CTTI_Typed     = decltype(what);
       using CTTI_Sheddable = decltype(what);
 
       template<class ALT>
@@ -486,7 +487,7 @@ namespace Langulus
    Abandon(T&&) -> Abandon<Deref<T>>;
 
    template<CT::Intent T>
-   Abandon(T&&) -> Abandon<Decq<Deref<TypeOf<T>>>>;
+   Abandon(T&&) -> Abandon<Decq<Deref<Deint<T>>>>;
 
 
    /// MARK: Disown                                                           
@@ -498,7 +499,6 @@ namespace Langulus
    struct Disown final : Inner::CommonIntent<0, false, false> {
       const T& what;
 
-      using CTTI_Typed     = decltype(what);
       using CTTI_Sheddable = decltype(what);
 
       template<class ALT>
@@ -561,10 +561,10 @@ namespace Langulus
    Disown(T&) -> Disown<T>;
 
    template<CT::Intent T>
-   Disown(T&&) -> Disown<Decq<Deref<TypeOf<T>>>>;
+   Disown(T&&) -> Disown<Decq<Deref<Deint<T>>>>;
 
    template<CT::Intent T>
-   Disown(T const&) -> Disown<Decq<Deref<TypeOf<T>>>>;
+   Disown(T const&) -> Disown<Decq<Deref<Deint<T>>>>;
 
 
    /// MARK: Clone                                                            
@@ -576,7 +576,6 @@ namespace Langulus
    struct Clone final : Inner::CommonIntent<static_cast<uint>(-1), true, false> {
       const T& what;
       
-      using CTTI_Typed     = decltype(what);
       using CTTI_Sheddable = decltype(what);
 
       template<class ALT>
@@ -624,10 +623,10 @@ namespace Langulus
    Clone(T&) -> Clone<T>;
 
    template<CT::Intent T>
-   Clone(T&&) -> Clone<Decq<Deref<TypeOf<T>>>>;
+   Clone(T&&) -> Clone<Decq<Deref<Deint<T>>>>;
 
    template<CT::Intent T>
-   Clone(T const&) -> Clone<Decq<Deref<TypeOf<T>>>>;
+   Clone(T const&) -> Clone<Decq<Deref<Deint<T>>>>;
    
 
    /// MARK: CT::Has*                                                         
@@ -650,8 +649,8 @@ namespace Langulus
       /// Check if all TypeOf<S> have a dedicated intent constructor for S    
       ///   @tparam S the intents and types                                   
       template<class...S>
-      concept HasIntentConstructorAlt = Intent<S...> and not Aggregate<TypeOf<S>...>
-          and requires (S&&...arg) { (Decvq<Deref<TypeOf<S>>> {LglsFwd(arg)}, ...); };
+      concept HasIntentConstructorAlt = Intent<S...> and not Aggregate<Deint<S>...>
+          and requires (S&&...arg) { (Decvq<Deref<Deint<S>>> {LglsFwd(arg)}, ...); };
 
       /// Check if all T have a dedicated disown-constructor                  
       /// Disowning does a shallow copy without referencing contents,         
@@ -703,7 +702,7 @@ namespace Langulus
       ///   @tparam S - the intent and type                                   
       template<class...S>
       concept HasIntentAssignAlt = Validate<S...> and ((Intent<S>
-          and requires (Decvq<Deref<TypeOf<S>>>& lhs, S&& rhs) { lhs = LglsFwd(rhs); }
+          and requires (Decvq<Deref<Deint<S>>>& lhs, S&& rhs) { lhs = LglsFwd(rhs); }
          ) and ...);
 
       /// Check if all T have a dedicated disown-assigner                     
@@ -770,26 +769,9 @@ namespace Langulus
    }
 }
 
-//#define IntentOf(a) ::Langulus::IntentOfT<decltype(a)>
-//#define FWDIntent(a) IntentOf(a) {LglsFwd(a)} // for some reason this doesn't work on clang 22
 #define FWDIntent(a) ::Langulus::DeduceIntent<decltype(a)>(LglsFwd(a))
-#define IntentOf(a) decltype(FWDIntent(a)) /*::Langulus::Deref<decltype(FWDIntent(a))>*/
-#define NestIntentOf(a, ...) IntentOf(a)::Nest(__VA_ARGS__) //::Langulus::Deref<decltype(FWDIntent(a))>::Nest(__VA_ARGS__)
-
-/// A handy constructor & assignment pattern that adds all possible intents   
-/// and collapses them for a given type. Useful when you don't want intents   
-/// to get in the way of simple types that need those reflected, but not      
-/// implemented in some particular way. Basically acts as "= default".        
-/*#define ignore_all_intents(FOR_TYPE) \
-   template<template<class> class I> requires ::Langulus::CT::Intent<I<FOR_TYPE>> \
-   explicit constexpr FOR_TYPE(I<FOR_TYPE>&& meta) noexcept \
-      : FOR_TYPE {*meta} {} \
-   template<template<class> class I> requires ::Langulus::CT::Intent<I<FOR_TYPE>> \
-   constexpr FOR_TYPE& operator = (I<FOR_TYPE>&& rhs) noexcept { \
-      new (this) FOR_TYPE {*rhs}; \
-      return *this; \
-   }*/
-
+#define IntentOf(a) decltype(FWDIntent(a))
+#define NestIntentOf(a, ...) IntentOf(a)::Nest(__VA_ARGS__)
 
 namespace Langulus
 {   
@@ -811,11 +793,11 @@ namespace Langulus
    constexpr auto IntentNew(void* placement, S<T>&& intent) {
       static_assert(    CT::Complete<T>,  "T has to be complete");
       static_assert(not CT::Reference<T>, "T can't be a reference");
-      LglsAssumeDev(placement, "Invalid placement pointer");
+      //LglsAssumeDev(placement, "Invalid placement pointer");
 
       if constexpr (CT::Abstract<T>) {
          static_assert(FAKE, "Can't construct abstract type");
-         return Unsupported {};
+         return No {};
       }
       else if constexpr (CT::Referred<S<T>>) {
          // Refer                                                       
@@ -825,7 +807,7 @@ namespace Langulus
             return new (placement) T {intent.what};
          else {
             static_assert(FAKE, "Can't refer-construct type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Moved<S<T>>) {
@@ -836,7 +818,7 @@ namespace Langulus
             return new (placement) T {LglsFwd(intent.what)};
          else {
             static_assert(FAKE, "Can't move-construct type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Abandoned<S<T>>) {
@@ -851,7 +833,7 @@ namespace Langulus
             static_assert(FAKE,
                "Can't abandon-construct destructible type"
                " - explicit abandon-constructor is required");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Cloned<S<T>>) {
@@ -863,7 +845,7 @@ namespace Langulus
          using DT = Decay<T>;
          if constexpr (not CT::Complete<DT>) {
             static_assert(FAKE, "Can't clone-construct an incomplete type");
-            return Unsupported {};            
+            return No {};            
          }
          else if constexpr (CT::NotVoid<DT>) {
             if constexpr (CT::HasCloneConstructor<DT>)
@@ -874,12 +856,12 @@ namespace Langulus
                return new (placement) DT {DenseCast(intent.what)};
             else {
                static_assert(FAKE, "Can't clone-construct type");
-               return Unsupported {};
+               return No {};
             }
          }
          else {
             static_assert(FAKE, "Can't clone-construct a void type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Copied<S<T>>) {
@@ -892,7 +874,7 @@ namespace Langulus
             return new (placement) T {intent.what};
          else {
             static_assert(FAKE, "Can't copy-construct type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Disowned<S<T>>) {
@@ -905,7 +887,7 @@ namespace Langulus
             return new (placement) T {intent.what};
          else {
             static_assert(FAKE, "Can't disown-construct type");
-            return Unsupported {};
+            return No {};
          }
       }
       else static_assert(false, "Intent wasn't recognized");
@@ -938,7 +920,7 @@ namespace Langulus
             return (lhs = rhs.what);
          else {
             static_assert(FAKE, "Can't refer-assign type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Moved<S>) {
@@ -949,7 +931,7 @@ namespace Langulus
             return (lhs = LglsFwd(rhs.what));
          else {
             static_assert(FAKE, "Can't move-assign type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Abandoned<S>) {
@@ -964,7 +946,7 @@ namespace Langulus
             static_assert(FAKE,
                "Can't abandon-assign destructible type"
                " - explicit abandon-assigner is required");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Cloned<S>) {
@@ -977,7 +959,7 @@ namespace Langulus
 
          if constexpr (not CT::Complete<DT>) {
             static_assert(FAKE, "Can't clone-assign incomplete type");
-            return Unsupported {};            
+            return No {};            
          }   
          else if constexpr (CT::NotVoid<DT>) {
             if constexpr (CT::Mutable<Deptr<T>>) {
@@ -989,17 +971,17 @@ namespace Langulus
                   return (DenseCast(lhs) = DenseCast(rhs.what));
                else {
                   static_assert(FAKE, "Can't clone-assign type");
-                  return Unsupported {};
+                  return No {};
                }
             }
             else {
                static_assert(FAKE, "Can't clone-assign type - lhs is not mutable");
-               return Unsupported {};
+               return No {};
             }
          }
          else {
             static_assert(FAKE, "Can't clone-assign void or incomplete type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Copied<S>) {
@@ -1012,7 +994,7 @@ namespace Langulus
             return (lhs = rhs.what);
          else {
             static_assert(FAKE, "Can't copy-assign type");
-            return Unsupported {};
+            return No {};
          }
       }
       else if constexpr (CT::Disowned<S>) {
@@ -1025,7 +1007,7 @@ namespace Langulus
             return (lhs = rhs.what);
          else {
             static_assert(FAKE, "Can't disown-assign type");
-            return Unsupported {};
+            return No {};
          }
       }
       else static_assert(false, "Intent wasn't recognized");
@@ -1069,17 +1051,6 @@ namespace Langulus
           and requires (S<T>&&...a) {
              {(IntentNew<true>(nullptr, LglsFwd(a)), ...)} -> Supported;
           };
-
-      /// Check if all TypeOf<S> are intent-constructible by intent S.        
-      /// T can be intent-constructible even if not having the specific       
-      /// constructor, as long as T and S are compatible with standard C++20  
-      /// semantics.                                                          
-      ///   @tparam S the intents and types                                   
-      /*template<class...S>
-      concept IntentConstructibleAlt = Intent<S...>
-          and requires (S&&...a) {
-             {(IntentNew<true>(nullptr, LglsFwd(a)), ...)} -> Supported;
-          };*/
 
       /// Check if all T are disown-constructible.                            
       /// Disowning does a shallow copy without referencing contents,         
@@ -1171,15 +1142,6 @@ namespace Langulus
           and Intent<S<Decvq<T>>...> and requires (S<Decvq<T>>&&...a) {
             {(IntentAssign<true>(LglsFake(Decvq<T>&), LglsFwd(a)), ...)} -> Supported;
           };
-
-      /// Check if all TypeOf<S> are intent-assignable by S.                  
-      /// T can be intent-assignable even if not having an explicit assigner  
-      /// as long as T and S are compatible with standard C++20 semantics.    
-      ///   @tparam S - the intent and type                                   
-      /*template<class...S>
-      concept IntentAssignableAlt = Intent<S...> and requires (S&&...a) {
-            {(IntentAssign<true>(LglsFake(Decq<Deref<TypeOf<S>>>&), LglsFwd(a)), ...)} -> Supported;
-          };*/
 
       /// Check if all T are disown-assignable.                               
       /// Disowning does a shallow copy without referencing contents,         

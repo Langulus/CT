@@ -11,16 +11,14 @@
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Integer<T>:                     
-   /// All T satisfying std::integer are CT::Integer by default, with the     
-   /// exception of custom and built-in boolean types                         
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Integer = Yes<>;` in T                     
+   /// Affects CT::Integer<T>                                                 
    template<class T>
-   struct Integer {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::integral<T> and not CT::Bool<T>;
-   };
+   struct Integer;
+
+   /// All T satisfying std::integer are CT::Integer by default, with the     
+   /// exception of custom and built-in boolean types.                        
+   template<::std::integral T> requires (not CT::Bool<T>)
+   struct Integer<T> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Integer);
