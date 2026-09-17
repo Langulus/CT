@@ -7,8 +7,6 @@
 ///                                                                           
 #pragma once
 #include "Except.hpp"
-#include "Logger.hpp"
-#include "NameOf.hpp"
 
 #if LANGULUS(DEBUG)
    #include "Utils/DebugBreak.hpp"
@@ -16,21 +14,24 @@
    #define LglsDebugBreak()
 #endif
 
-#if LANGULUS(STACKTRACE)
-   #include <stacktrace>
+/// Include <Langulus/Logger.hpp> prior to this file to enable logging        
+#if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+   #if LANGULUS(STACKTRACE)
+      #include <stacktrace>
 
-   #ifndef LANGULUS_DEFAULT_STACK_SKIP
-      #define LANGULUS_DEFAULT_STACK_SKIP 2
-   #endif
+      #ifndef LANGULUS_DEFAULT_STACK_SKIP
+         #define LANGULUS_DEFAULT_STACK_SKIP 2
+      #endif
 
-   #ifndef LANGULUS_DEFAULT_STACK_DEPTH
-      #define LANGULUS_DEFAULT_STACK_DEPTH 3
+      #ifndef LANGULUS_DEFAULT_STACK_DEPTH
+         #define LANGULUS_DEFAULT_STACK_DEPTH 3
+      #endif
    #endif
 #endif
 
 namespace Langulus
 {
-   #if LANGULUS(STACKTRACE)
+   #if LANGULUS(STACKTRACE) and LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
       /// MARK: Stacktracing                                                  
       /// Dump the stack                                                      
       ///   @param depth - the number of stack entries to log                 
@@ -38,6 +39,7 @@ namespace Langulus
       ///      usually the Stacktrace() function itself, as well as the       
       ///      ErrorInner/AssertInner/AssumeInner function that called it.    
       inline void Stacktrace(
+         [[maybe_unused]] const char* location,
          const size_t depth = LANGULUS_DEFAULT_STACK_DEPTH,
          const size_t skip  = LANGULUS_DEFAULT_STACK_SKIP
       ) {
@@ -73,6 +75,16 @@ namespace Langulus
          }
          else Logger::Line("At: ", std::to_string(stack[skip]));
       }
+   #else
+      inline void Stacktrace(
+         [[maybe_unused]] const char* location,
+         size_t = 0, size_t = 0
+      ) {
+         #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+            if (location)
+               Logger::Line("At: ", location);
+         #endif
+      }
    #endif
 
    /// MARK: Error                                                            
@@ -83,18 +95,15 @@ namespace Langulus
    template<bool BREAK = false, class E = Exception, class...MORE>
    void ErrorInner(
       [[maybe_unused]] const char* location,
-      ::std::string_view const& m1 = "<unknown error>",
-      MORE&&...mn
+      [[maybe_unused]] const char* m1 = "<unknown error>",
+      [[maybe_unused]] MORE&&...mn
    ) {
-      // Log error message                                              
-      auto s = Logger::ErrorScoped("Assertion failure: ");
-      Logger::Append(m1);
-      (Logger::Append(LglsFwd(mn)), ...);
-      #if LANGULUS(STACKTRACE)
-         Stacktrace();
-      #else
-         if (location)
-            Logger::Line("At: ", location);
+      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+         // Log error message                                           
+         auto s = Logger::ErrorScoped("Assertion failure: ");
+         Logger::Append(m1);
+         (Logger::Append(LglsFwd(mn)), ...);
+         Stacktrace(location);
       #endif
 
       if constexpr (BREAK) {
@@ -103,9 +112,9 @@ namespace Langulus
 
       // Throw                                                          
       if constexpr (CT::Exception<E>)
-         throw E {m1.data(), location};
+         throw E {m1, location};
       else
-         throw E {m1.data()};
+         throw E {m1};
    }
 
    #define LglsError(...) ::Langulus::ErrorInner(HERE() __VA_OPT__(,) __VA_ARGS__)
@@ -121,20 +130,17 @@ namespace Langulus
    template<bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssertInner(
       [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown assertion failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
+      [[maybe_unused]] MORE&&...mn
    ) {
       if not consteval {
          if (not condition) {
-            // Log error message                                        
-            auto s = Logger::ErrorScoped("Assertion failure: ");
-            Logger::Append(m1);
-            (Logger::Append(LglsFwd(mn)), ...);
-            #if LANGULUS(STACKTRACE)
-               Stacktrace();
-            #else
-               if (location)
-                  Logger::Line("At: ", location);
+            #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+               // Log error message                                     
+               auto s = Logger::ErrorScoped("Assertion failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               Stacktrace(location);
             #endif
 
             if constexpr (BREAK) {
@@ -143,9 +149,9 @@ namespace Langulus
 
             // Throw                                                    
             if constexpr (CT::Exception<E>)
-               throw E {m1.data(), location};
+               throw E {m1, location};
             else
-               throw E {m1.data()};
+               throw E {m1};
          }
       }
    }
@@ -161,24 +167,22 @@ namespace Langulus
    ///   @param mn additional information to log                              
    template<class...MORE>
    constexpr void AssertWarnInner(
-      [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown assertion failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* location, 
+      [[maybe_unused]] bool condition,
+      [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
+      [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      if not consteval {
-         if (not condition) {
-            // Log error message                                        
-            auto s = Logger::WarningScoped("Assertion failure: ");
-            Logger::Append(m1);
-            (Logger::Append(LglsFwd(mn)), ...);
-            #if LANGULUS(STACKTRACE)
-               Stacktrace(1);
-            #else
-               if (location)
-                  Logger::Line("At: ", location);
-            #endif
+      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+         if not consteval {
+            if (not condition) {
+               // Log error message                                     
+               auto s = Logger::WarningScoped("Assertion failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               Stacktrace(location, 1);
+            }
          }
-      }
+      #endif
    }
    
    #define LglsAssertWarn(...) ::Langulus::AssertWarnInner(HERE(), __VA_ARGS__)
@@ -194,21 +198,19 @@ namespace Langulus
    ///   @param mn additional information to log                              
    template<bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssumeUserInner(
-      [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown user assumption failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* location, 
+      [[maybe_unused]] bool condition,
+      [[maybe_unused]] const char* m1 = "<unknown user assumption failure>",
+      [[maybe_unused]] MORE&&...mn
    ) {
       if not consteval {
          if (not condition) {
-            // Log error message                                        
-            auto s = Logger::ErrorScoped("User assumption failure: ");
-            Logger::Append(m1);
-            (Logger::Append(LglsFwd(mn)), ...);
-            #if LANGULUS(STACKTRACE)
-               Stacktrace();
-            #else
-               if (location)
-                  Logger::Line("At: ", location);
+            #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+               // Log error message                                     
+               auto s = Logger::ErrorScoped("User assumption failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               Stacktrace(location);
             #endif
 
             if constexpr (BREAK) {
@@ -217,9 +219,9 @@ namespace Langulus
 
             // Throw                                                    
             if constexpr (CT::Exception<E>)
-               throw E {m1.data(), location};
+               throw E {m1, location};
             else
-               throw E {m1.data()};
+               throw E {m1};
          }
       }
    }
@@ -233,24 +235,22 @@ namespace Langulus
    ///   @param mn additional information to log                              
    template<class...MORE>
    constexpr void AssumeUserWarnInner(
-      [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown assertion failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* location, 
+      [[maybe_unused]] bool condition,
+      [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
+      [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      if not consteval {
-         if (not condition) {
-            // Log error message                                        
-            auto s = Logger::WarningScoped("User assumption failure: ");
-            Logger::Append(m1);
-            (Logger::Append(LglsFwd(mn)), ...);
-            #if LANGULUS(STACKTRACE)
-               Stacktrace(1);
-            #else
-               if (location)
-                  Logger::Line("At: ", location);
-            #endif
+      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+         if not consteval {
+            if (not condition) {
+               // Log error message                                     
+               auto s = Logger::WarningScoped("User assumption failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               Stacktrace(location, 1);
+            }
          }
-      }
+      #endif
    }
 
       #define LglsAssumeUser(...)         ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__)
@@ -281,21 +281,19 @@ namespace Langulus
    ///   @param mn additional information to log                              
    template<bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssumeDevInner(
-      [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown dev assumption failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* location, 
+      [[maybe_unused]] bool condition,
+      [[maybe_unused]] const char* m1 = "<unknown dev assumption failure>",
+      [[maybe_unused]] MORE&&...mn
    ) {
       if not consteval {
          if (not condition) {
-            // Log error message                                        
-            auto s = Logger::ErrorScoped("Dev assumption failure: ");
-            Logger::Append(m1);
-            (Logger::Append(LglsFwd(mn)), ...);
-            #if LANGULUS(STACKTRACE)
-               Stacktrace();
-            #else
-               if (location)
-                  Logger::Line("At: ", location);
+            #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+               // Log error message                                     
+               auto s = Logger::ErrorScoped("Dev assumption failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               Stacktrace(location);
             #endif
 
             if constexpr (BREAK) {
@@ -304,9 +302,9 @@ namespace Langulus
 
             // Throw                                                    
             if constexpr (CT::Exception<E>)
-               throw E {m1.data(), location};
+               throw E {m1, location};
             else
-               throw E {m1.data()};
+               throw E {m1};
          }
       }
    }
@@ -319,24 +317,22 @@ namespace Langulus
    ///   @param mn additional information to log                              
    template<class...MORE>
    constexpr void AssumeDevWarnInner(
-      [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown assertion failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* location, 
+      [[maybe_unused]] bool condition,
+      [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
+      [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      if not consteval {
-         if (not condition) {
-            // Log error message                                        
-            auto s = Logger::WarningScoped("Dev assumption failure: ");
-            Logger::Append(m1);
-            (Logger::Append(LglsFwd(mn)), ...);
-            #if LANGULUS(STACKTRACE)
-               Stacktrace(1);
-            #else
-               if (location)
-                  Logger::Line("At: ", location);
-            #endif
+      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+         if not consteval {
+            if (not condition) {
+               // Log error message                                     
+               auto s = Logger::WarningScoped("Dev assumption failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               Stacktrace(location, 1);
+            }
          }
-      }
+      #endif
    }
 
       #define LglsAssumeDev(...)          ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__)
@@ -364,24 +360,22 @@ namespace Langulus
    ///   @param m1 optional main error message if condition doesn't hold      
    ///   @param location optional location of the error                       
    ///   @param mn additional information to log                              
-   template<uint LEVEL, bool BREAK = false, class E = Exception, class...MORE>
+   template<unsigned LEVEL, bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssumeInner(
-      [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown assumption failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* location, 
+      [[maybe_unused]] bool condition,
+      [[maybe_unused]] const char* m1 = "<unknown assumption failure>",
+      [[maybe_unused]] MORE&&...mn
    ) {
       if constexpr (LANGULUS(SAFE) >= LEVEL) {
          if not consteval {
             if (not condition) {
-               // Log error message                                     
-               auto s = Logger::ErrorScoped("Assumption level ", LEVEL, " failure: ");
-               Logger::Append(m1);
-               (Logger::Append(LglsFwd(mn)), ...);
-               #if LANGULUS(STACKTRACE)
-                  Stacktrace();
-               #else
-                  if (location)
-                     Logger::Line("At: ", location);
+               #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+                  // Log error message                                  
+                  auto s = Logger::ErrorScoped("Assumption level ", LEVEL, " failure: ");
+                  Logger::Append(m1);
+                  (Logger::Append(LglsFwd(mn)), ...);
+                  Stacktrace(location);
                #endif
 
                if constexpr (BREAK) {
@@ -390,9 +384,9 @@ namespace Langulus
    
                // Throw                                                 
                if constexpr (CT::Exception<E>)
-                  throw E {m1.data(), location};
+                  throw E {m1, location};
                else
-                  throw E {m1.data()};
+                  throw E {m1};
             }
          }
       }
@@ -414,28 +408,26 @@ namespace Langulus
    ///   @param m1 optional main warning message if condition doesn't hold    
    ///   @param location optional location of the error                       
    ///   @param mn additional information to log                              
-   template<uint LEVEL, class...MORE>
+   template<unsigned LEVEL, class...MORE>
    constexpr void AssumeWarnInner(
-      [[maybe_unused]] const char* location, bool condition,
-      ::std::string_view const& m1 = "<unknown assertion failure>",
-      MORE&&...mn
+      [[maybe_unused]] const char* location, 
+      [[maybe_unused]] bool condition,
+      [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
+      [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      if constexpr (LANGULUS(SAFE) >= LEVEL) {
-         if not consteval {
-            if (not condition) {
-               // Log error message                                     
-               auto s = Logger::WarningScoped("Assumption level ", LEVEL, " failure: ");
-               Logger::Append(m1);
-               (Logger::Append(LglsFwd(mn)), ...);
-               #if LANGULUS(STACKTRACE)
-                  Stacktrace(1);
-               #else
-                  if (location)
-                     Logger::Line("At: ", location);
-               #endif
+      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
+         if constexpr (LANGULUS(SAFE) >= LEVEL) {
+            if not consteval {
+               if (not condition) {
+                  // Log error message                                  
+                  auto s = Logger::WarningScoped("Assumption level ", LEVEL, " failure: ");
+                  Logger::Append(m1);
+                  (Logger::Append(LglsFwd(mn)), ...);
+                  Stacktrace(location, 1);
+               }
             }
          }
-      }
+      #endif
    }
 
    #define LglsAssumeWarn(LEVEL, ...) ::Langulus::AssumeWarnInner<LEVEL>(HERE(), __VA_ARGS__)
@@ -444,7 +436,7 @@ namespace Langulus
 /// Convenience macro for specifying temporary lazyness                       
 #define TODO() ::Langulus::AssertInner(HERE(), false, "Unfinished code")
 
-#if LANGULUS_FEATURE(LOGGING)
+#if LANGULUS_FEATURE(LOGGING) and defined(LANGULUS_LIBRARY_LOGGER)
 namespace fmt
 {
    /// MARK: {fmt}                                                            
@@ -462,12 +454,12 @@ namespace fmt
 
       template<class CONTEXT>
       auto format([[maybe_unused]] T const& e, CONTEXT& ctx) const {
-         constexpr auto name = ::Langulus::NameOf<T>();
          #if LANGULUS(DEBUG)
             return format_to(ctx.out(), "{}({} at {})",
-               static_cast<::Langulus::Token>(name), e.mMessage, e.mLocation);
+               T::Name, e.mMessage, e.mLocation
+            );
          #else
-            return format_to(ctx.out(), "{}", static_cast<::Langulus::Token>(name));
+            return format_to(ctx.out(), "{}", T::Name);
          #endif
       }
    };

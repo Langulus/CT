@@ -7,7 +7,7 @@
 ///                                                                           
 #pragma once
 #include "Abstract.hpp"
-#include "Langulus/Typenav.hpp"
+#include "Fundamental.hpp"
 
 
 namespace Langulus::CTTI

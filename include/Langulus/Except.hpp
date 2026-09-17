@@ -6,6 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
+#include <Langulus/Core.hpp>
 #include "Typenav.hpp"
 
 
@@ -28,6 +29,7 @@ namespace Langulus
    struct Exception {
       using CTTI_Exception = Yup;
 
+      static constexpr auto Name            = "GeneralException";
       static constexpr auto DefaultMessage  = "<no information provided>";
       static constexpr auto DefaultLocation = "<unknown location>";
 

@@ -7,8 +7,13 @@
 ///                                                                           
 #pragma once
 #include <Langulus/Core.hpp>
-#include "Typenav.hpp"
+#include "CT/Support.hpp"
+#include "CT/POD.hpp"
+#include "TypeOf.hpp"
 #include "Assume.hpp"
+#include <vector>
+//#include "Typenav.hpp"
+//#include "Assume.hpp"
 
 /*#include "TypeOf.hpp"
 #include "CT/Support.hpp"
@@ -226,11 +231,11 @@ namespace Langulus
    template<bool FORCE_RUNTIME, Hash SEED, class T, class...MORE>
    constexpr auto HashOf(T&& head, MORE&&...rest) {
       static_assert(not CT::Sheddable<T, MORE...>,
-         "Shed all sheddable wrappers before hashing");
+         "Shed all sheddables before hashing");
 
       if constexpr (CT::Unsupported<T, MORE...>) {
          // If any of the types isn't supported abort the entire hash   
-         return Unsupported {};
+         return No {};
       }
       else if constexpr (sizeof...(MORE)) {
          // Combine all data into a single array of hashes, and then    
@@ -362,7 +367,7 @@ namespace Langulus
          else {
             // Hash each individual element, then combine all hashes    
             // Possible only at runtime                                 
-            ::std::vector<Hash> coal;
+            ::std::vector<Hash> coal; //TODO we can optimize for unordered containers - just xor the hashes of all elements
             for (auto& i : head)
                coal.emplace_back(HashOf<FORCE_RUNTIME, SEED>(i));
 
@@ -381,7 +386,7 @@ namespace Langulus
       else {
          // Handle failure statically                                   
          static_assert(FORCE_RUNTIME, "Can't hash data");
-         return Unsupported {};
+         return No {};
       }
    }
 }

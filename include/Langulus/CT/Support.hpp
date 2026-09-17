@@ -6,19 +6,16 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Core.hpp"
-#include <concepts>
+#include <Langulus/Core.hpp>
 
 
 namespace Langulus::CT
 {
-   /// Check if any T is the built-in one that signifies lack of support      
+   /// Check if any T is the built-in `No`, which signifies lack of support   
    template<class...T>
-   concept Unsupported = PartialValidate<T...>
-       and (::std::same_as<::Langulus::Unsupported, Decay<T>> or ...);
+   concept Unsupported = (::std::is_same_v<T, No> or ...);
 
    /// Check if all T are supported                                           
    template<class...T>
-   concept Supported = PartialValidate<T...>
-       and ((not Unsupported<T>) and ...);
+   concept Supported = ((not Unsupported<T>) and ...);
 }
