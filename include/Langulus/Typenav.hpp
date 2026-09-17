@@ -66,13 +66,6 @@ namespace Langulus::CTTI
       static constexpr bool Default = true;
       static constexpr bool Enabled = ::std::is_aggregate_v<T>;
    };
-   
-   /// Affects CT::Fundamental<T>:                                            
-   template<class T>
-   struct Fundamental {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::is_fundamental_v<T>;
-   };
 }
 
 namespace Langulus
@@ -569,4 +562,3 @@ namespace Langulus
 LANGULUS_CTTI_CONCEPT(Null);
 LANGULUS_CTTI_CONCEPT(Enum);
 LANGULUS_CTTI_CONCEPT(Aggregate);
-LANGULUS_CTTI_CONCEPT(Fundamental);

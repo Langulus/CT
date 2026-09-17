@@ -6,8 +6,8 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include <Langulus/Types.hpp>
-#include <Langulus/CT/Fundamental.hpp>
+#include "../Utils/Types.hpp"
+#include "Fundamental.hpp"
 #include "Vector.hpp"
 
 

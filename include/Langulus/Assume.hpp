@@ -6,15 +6,453 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include <Langulus/Core.hpp>
-#include <Langulus/Logger.hpp>
+#include "Except.hpp"
+#include "Logger.hpp"
+#include "NameOf.hpp"
 
+#if LANGULUS(DEBUG)
+   #include "Utils/DebugBreak.hpp"
+#else
+   #define LglsDebugBreak()
+#endif
 
+#if LANGULUS(STACKTRACE)
+   #include <stacktrace>
+
+   #ifndef LANGULUS_DEFAULT_STACK_SKIP
+      #define LANGULUS_DEFAULT_STACK_SKIP 2
+   #endif
+
+   #ifndef LANGULUS_DEFAULT_STACK_DEPTH
+      #define LANGULUS_DEFAULT_STACK_DEPTH 3
+   #endif
+#endif
+
+namespace Langulus
 {
+   #if LANGULUS(STACKTRACE)
+      /// MARK: Stacktracing                                                  
+      /// Dump the stack                                                      
+      ///   @param depth - the number of stack entries to log                 
+      ///   @param skip - the number of stack entries to skip. These are      
+      ///      usually the Stacktrace() function itself, as well as the       
+      ///      ErrorInner/AssertInner/AssumeInner function that called it.    
+      inline void Stacktrace(
+         const size_t depth = LANGULUS_DEFAULT_STACK_DEPTH,
+         const size_t skip  = LANGULUS_DEFAULT_STACK_SKIP
+      ) {
+         auto stack = std::stacktrace::current();
+         if (depth > 1) {
+            auto group = Logger::Section("Current stack:");
+            auto skipped = skip;
+            auto dumped = depth;
+            for (auto const& frame : stack) {
+               if (skipped) {
+                  --skipped;
+                  continue;
+               }
+
+               try {
+                  Logger::Line(std::to_string(frame));
+               }
+               catch (...) {
+                  Logger::Line("<error while logging stack frame>");
+               }
+
+               --dumped;
+               if (not dumped)
+                  break;
+            }
+
+            if (stack.size() > depth + skip) {
+               Logger::Line("(", stack.size() - (depth + skip),
+                  " additional hidden entries, "
+                  "define LANGULUS_DEFAULT_STACK_DEPTH to show more)"
+               );
+            }
+         }
+         else Logger::Line("At: ", std::to_string(stack[skip]));
+      }
+   #endif
+
+   /// MARK: Error                                                            
+   /// Will throw an exception                                                
+   ///   @param m1 optional main error message                                
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<bool BREAK = false, class E = Exception, class...MORE>
+   void ErrorInner(
+      [[maybe_unused]] const char* location,
+      ::std::string_view const& m1 = "<unknown error>",
+      MORE&&...mn
+   ) {
+      // Log error message                                              
+      auto s = Logger::ErrorScoped("Assertion failure: ");
+      Logger::Append(m1);
+      (Logger::Append(LglsFwd(mn)), ...);
+      #if LANGULUS(STACKTRACE)
+         Stacktrace();
+      #else
+         if (location)
+            Logger::Line("At: ", location);
+      #endif
+
+      if constexpr (BREAK) {
+         LglsDebugBreak();
+      }
+
+      // Throw                                                          
+      if constexpr (CT::Exception<E>)
+         throw E {m1.data(), location};
+      else
+         throw E {m1.data()};
+   }
+
+   #define LglsError(...) ::Langulus::ErrorInner(HERE() __VA_OPT__(,) __VA_ARGS__)
+   #define LglsErrorAndBreak(...) ::Langulus::ErrorInner<true>(HERE() __VA_OPT__(,) __VA_ARGS__)
    
+   /// MARK: Assert                                                           
+   /// Assertion that works both at runtime and at compile-time.              
+   /// Will throw an exception if condition isn't met at runtime.             
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main error message if condition doesn't hold      
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<bool BREAK = false, class E = Exception, class...MORE>
+   constexpr void AssertInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown assertion failure>",
+      MORE&&...mn
+   ) {
+      if not consteval {
+         if (not condition) {
+            // Log error message                                        
+            auto s = Logger::ErrorScoped("Assertion failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            #if LANGULUS(STACKTRACE)
+               Stacktrace();
+            #else
+               if (location)
+                  Logger::Line("At: ", location);
+            #endif
+
+            if constexpr (BREAK) {
+               LglsDebugBreak();
+            }
+
+            // Throw                                                    
+            if constexpr (CT::Exception<E>)
+               throw E {m1.data(), location};
+            else
+               throw E {m1.data()};
+         }
+      }
+   }
+   
+   #define LglsAssert(...) ::Langulus::AssertInner(HERE(), __VA_ARGS__)
+   #define LglsAssertAndBreak(...) ::Langulus::AssertInner<true>(HERE(), __VA_ARGS__)
+
+   /// Assertion that works at runtime.                                       
+   /// Doesn't throw or ruin compilation.                                     
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main warning message if condition doesn't hold    
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<class...MORE>
+   constexpr void AssertWarnInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown assertion failure>",
+      MORE&&...mn
+   ) noexcept {
+      if not consteval {
+         if (not condition) {
+            // Log error message                                        
+            auto s = Logger::WarningScoped("Assertion failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            #if LANGULUS(STACKTRACE)
+               Stacktrace(1);
+            #else
+               if (location)
+                  Logger::Line("At: ", location);
+            #endif
+         }
+      }
+   }
+   
+   #define LglsAssertWarn(...) ::Langulus::AssertWarnInner(HERE(), __VA_ARGS__)
+
+   #if LANGULUS(SAFE) > 0
+   /// MARK: User assumes                                                     
+   /// User assumption that works both at runtime and at compile-time.        
+   /// Tested only if LANGULUS(SAFE) >= 1.                                    
+   /// Will throw an exception if condition isn't met at runtime.             
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main error message if condition doesn't hold      
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<bool BREAK = false, class E = Exception, class...MORE>
+   constexpr void AssumeUserInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown user assumption failure>",
+      MORE&&...mn
+   ) {
+      if not consteval {
+         if (not condition) {
+            // Log error message                                        
+            auto s = Logger::ErrorScoped("User assumption failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            #if LANGULUS(STACKTRACE)
+               Stacktrace();
+            #else
+               if (location)
+                  Logger::Line("At: ", location);
+            #endif
+
+            if constexpr (BREAK) {
+               LglsDebugBreak();
+            }
+
+            // Throw                                                    
+            if constexpr (CT::Exception<E>)
+               throw E {m1.data(), location};
+            else
+               throw E {m1.data()};
+         }
+      }
+   }
+   
+   /// User assumption at runtime.                                            
+   /// Tested only if LANGULUS(SAFE) >= 1.                                    
+   /// Doesn't throw or ruin compilation.                                     
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main warning message if condition doesn't hold    
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<class...MORE>
+   constexpr void AssumeUserWarnInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown assertion failure>",
+      MORE&&...mn
+   ) noexcept {
+      if not consteval {
+         if (not condition) {
+            // Log error message                                        
+            auto s = Logger::WarningScoped("User assumption failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            #if LANGULUS(STACKTRACE)
+               Stacktrace(1);
+            #else
+               if (location)
+                  Logger::Line("At: ", location);
+            #endif
+         }
+      }
+   }
+
+      #define LglsAssumeUser(...)         ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__)
+      #define LglsAssumeUserAndBreak(...) ::Langulus::AssumeUserInner<true>(HERE(), __VA_ARGS__)
+      #define LglsAssumeUserWarn(...)     ::Langulus::AssumeUserWarnInner(HERE(), __VA_ARGS__)
+   
+      /// Leverages C++23's [[assume(condition)]] attribute, in order to both 
+      /// test the assumption when safety is enabled, and instruct the        
+      /// compiler to generate more performant code                           
+      #define LglsAssumeUserAndOptimize(...) \
+         ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__); \
+         LglsCompilerSpecificAssume(__VA_ARGS__)
+   #else
+      #define LglsAssumeUser(...)            LANGULUS(NOOP)
+      #define LglsAssumeUserAndBreak(...)    LANGULUS(NOOP)
+      #define LglsAssumeUserWarn(...)        LANGULUS(NOOP)
+      #define LglsAssumeUserAndOptimize(...) LglsCompilerSpecificAssume(__VA_ARGS__)
+   #endif
+
+   #if LANGULUS(SAFE) > 1
+   /// MARK: Dev assumes                                                      
+   /// Developer assumption that works both at runtime and at compile-time.   
+   /// Tested only if LANGULUS(SAFE) >= 2.                                    
+   /// Will throw an exception if condition isn't met at runtime.             
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main error message if condition doesn't hold      
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<bool BREAK = false, class E = Exception, class...MORE>
+   constexpr void AssumeDevInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown dev assumption failure>",
+      MORE&&...mn
+   ) {
+      if not consteval {
+         if (not condition) {
+            // Log error message                                        
+            auto s = Logger::ErrorScoped("Dev assumption failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            #if LANGULUS(STACKTRACE)
+               Stacktrace();
+            #else
+               if (location)
+                  Logger::Line("At: ", location);
+            #endif
+
+            if constexpr (BREAK) {
+               LglsDebugBreak();
+            }
+
+            // Throw                                                    
+            if constexpr (CT::Exception<E>)
+               throw E {m1.data(), location};
+            else
+               throw E {m1.data()};
+         }
+      }
+   }
+   
+   /// Developer assumption at runtime.  Tested only if LANGULUS(SAFE) >= 2.  
+   /// Doesn't throw or ruin compilation.                                     
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main warning message if condition doesn't hold    
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<class...MORE>
+   constexpr void AssumeDevWarnInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown assertion failure>",
+      MORE&&...mn
+   ) noexcept {
+      if not consteval {
+         if (not condition) {
+            // Log error message                                        
+            auto s = Logger::WarningScoped("Dev assumption failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            #if LANGULUS(STACKTRACE)
+               Stacktrace(1);
+            #else
+               if (location)
+                  Logger::Line("At: ", location);
+            #endif
+         }
+      }
+   }
+
+      #define LglsAssumeDev(...)          ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__)
+      #define LglsAssumeDevAndBreak(...)  ::Langulus::AssumeDevInner<true>(HERE(), __VA_ARGS__)
+      #define LglsAssumeDevWarn(...)      ::Langulus::AssumeDevWarnInner(HERE(), __VA_ARGS__)
+   
+      /// Leverages C++23's [[assume(condition)]] attribute, in order to both 
+      /// test the assumption when safety is enabled, and instruct the        
+      /// compiler to generate more performant code                           
+      #define LglsAssumeDevAndOptimize(...) \
+         ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__); \
+         LglsCompilerSpecificAssume(__VA_ARGS__)
+   #else
+      #define LglsAssumeDev(...)             LANGULUS(NOOP)
+      #define LglsAssumeDevAndBreak(...)     LANGULUS(NOOP)
+      #define LglsAssumeDevWarn(...)         LANGULUS(NOOP)
+      #define LglsAssumeDevAndOptimize(...)  LglsCompilerSpecificAssume(__VA_ARGS__)
+   #endif
+
+   /// MARK: Custom assume                                                    
+   /// Custom assumption that works both at runtime and at compile-time.      
+   /// Tested only if LANGULUS(SAFE) >= LEVEL.                                
+   /// Will throw an exception if condition isn't met at runtime.             
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main error message if condition doesn't hold      
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<uint LEVEL, bool BREAK = false, class E = Exception, class...MORE>
+   constexpr void AssumeInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown assumption failure>",
+      MORE&&...mn
+   ) {
+      if constexpr (LANGULUS(SAFE) >= LEVEL) {
+         if not consteval {
+            if (not condition) {
+               // Log error message                                     
+               auto s = Logger::ErrorScoped("Assumption level ", LEVEL, " failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               #if LANGULUS(STACKTRACE)
+                  Stacktrace();
+               #else
+                  if (location)
+                     Logger::Line("At: ", location);
+               #endif
+
+               if constexpr (BREAK) {
+                  LglsDebugBreak();
+               }
+   
+               // Throw                                                 
+               if constexpr (CT::Exception<E>)
+                  throw E {m1.data(), location};
+               else
+                  throw E {m1.data()};
+            }
+         }
+      }
+   }
+
+   /// Leverages C++23's [[assume(condition)]] attribute, in order to both    
+   /// test the assumption when safety is enabled, and instruct the compiler  
+   /// to generate more performant code                                       
+   #define LglsAssume(LEVEL, ...)         ::Langulus::AssumeInner<LEVEL>(HERE(), __VA_ARGS__)
+   #define LglsAssumeAndBreak(LEVEL, ...) ::Langulus::AssumeInner<LEVEL, true>(HERE(), __VA_ARGS__)
+
+   #define LglsAssumeAndOptimize(LEVEL, ...) \
+      ::Langulus::AssumeInner<LEVEL>(HERE(), __VA_ARGS__) \
+      LglsCompilerSpecificAssume(__VA_ARGS__)
+   
+   /// Custom assumption at runtime. Tested only if LANGULUS(SAFE) >= LEVEL.  
+   /// Doesn't throw or ruin compilation.                                     
+   ///   @param condition the condition that must hold true                   
+   ///   @param m1 optional main warning message if condition doesn't hold    
+   ///   @param location optional location of the error                       
+   ///   @param mn additional information to log                              
+   template<uint LEVEL, class...MORE>
+   constexpr void AssumeWarnInner(
+      [[maybe_unused]] const char* location, bool condition,
+      ::std::string_view const& m1 = "<unknown assertion failure>",
+      MORE&&...mn
+   ) noexcept {
+      if constexpr (LANGULUS(SAFE) >= LEVEL) {
+         if not consteval {
+            if (not condition) {
+               // Log error message                                     
+               auto s = Logger::WarningScoped("Assumption level ", LEVEL, " failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               #if LANGULUS(STACKTRACE)
+                  Stacktrace(1);
+               #else
+                  if (location)
+                     Logger::Line("At: ", location);
+               #endif
+            }
+         }
+      }
+   }
+
+   #define LglsAssumeWarn(LEVEL, ...) ::Langulus::AssumeWarnInner<LEVEL>(HERE(), __VA_ARGS__)
+}
+
+/// Convenience macro for specifying temporary lazyness                       
+#define TODO() ::Langulus::AssertInner(HERE(), false, "Unfinished code")
+
+#if LANGULUS_FEATURE(LOGGING)
+namespace fmt
+{
+   /// MARK: {fmt}                                                            
+   /// @note global qualifier specializations don't work on GCC :(            
+   /// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66892                     
+
    ///                                                                        
    /// Extend FMT to be capable of logging any exception                      
-   ///                                                                        
    template<::Langulus::CT::Exception T>
    struct formatter<T> {
       template<class CONTEXT>
@@ -22,174 +460,16 @@
          return ctx.begin();
       }
 
-      template<class CONTEXT> LANGULUS(INLINED)
-      auto format(T const& e, CONTEXT& ctx) const {
+      template<class CONTEXT>
+      auto format([[maybe_unused]] T const& e, CONTEXT& ctx) const {
+         constexpr auto name = ::Langulus::NameOf<T>();
          #if LANGULUS(DEBUG)
-            return ::fmt::format_to(ctx.out(), "{}({} at {})",
-               e.GetName(), e.GetMessage(), e.GetLocation());
+            return format_to(ctx.out(), "{}({} at {})",
+               static_cast<::Langulus::Token>(name), e.mMessage, e.mLocation);
          #else
-            return ::fmt::format_to(ctx.out(), "{}", e.GetName());
+            return format_to(ctx.out(), "{}", static_cast<::Langulus::Token>(name));
          #endif
       }
    };
-
-} // namespace fmt
-
-namespace Langulus
-{
-
-   /// A developer assumption level is higher - it is less likely to fail     
-   /// Useful inside inner functions, that are implementation details         
-   constexpr unsigned DevAssumes {2};
-
-   /// A user assumption level is lower - more likely to fail - no one RTFM!  
-   /// Useful for public interface functions, that are exposed to user input  
-   constexpr unsigned UserAssumes {1};
-
-   /// Common Langulus assertion                                              
-   ///   @tparam LEVEL - level of the assumption, configurable from CMake,    
-   ///           using LANGULUS_ASSERTION_LEVEL and LANGULUS_SAFE_MODE        
-   ///   @param condition - the condition that must hold true                 
-   ///   @param message - an error message if condition doesn't hold          
-   ///   @param location - the location of the error, if any                  
-   template<unsigned LEVEL, class EXCEPTION = Except::Assertion, class...MORE>
-   LANGULUS(INLINED) constexpr void Assume(
-      bool condition, 
-      const char* message = "<unknown assumption failure>", 
-      const char* location = nullptr,
-      [[maybe_unused]] MORE&&...additional_messages
-   ) noexcept (LEVEL > LANGULUS(SAFE)) {
-      if constexpr (LEVEL <= LANGULUS(SAFE)) {
-         IF_NOT_CONSTEXPR() {
-            if (not condition) {
-               // Log location first, because message might cause       
-               // additional errors                                     
-               DEBUGGERY(if (location) Logger::Error("At ", location));
-
-               // Log error message                                     
-               if constexpr (LEVEL == 0)
-                  Logger::Error("Assertion failure: ",
-                     message, Forward<MORE>(additional_messages)...);
-               else if constexpr (LEVEL == UserAssumes)
-                  Logger::Error("User assumption failure: ",
-                     message, Forward<MORE>(additional_messages)...);
-               else if constexpr (LEVEL == DevAssumes)
-                  Logger::Error("Dev assumption failure: ",
-                     message, Forward<MORE>(additional_messages)...);
-               else
-                  Logger::Error("Assumption level ", LEVEL, " failure: ",
-                     message, Forward<MORE>(additional_messages)...);
-
-               // Throw                                                 
-               Throw<EXCEPTION>(message, location);
-            }
-         }
-      }
-   }
-
-} // namespace Langulus
-
-
-#if LANGULUS(DEBUG)
-   /// Convenience macros for declaring assumptions, assertions, etc.         
-   #if LANGULUS_COMPILER(CLANG) or LANGULUS_COMPILER(GCC)
-      /// Logs error, and throws Except::Assertion if condition isn't met     
-      ///   @param level - the level at which assumption will be checked -    
-      ///      if level is larger than LANGULUS_SAFE(), no check is done      
-      ///   @attention zero level assumptions are always checked              
-      ///   @attention assumption macro is entirely disabled when building    
-      ///      without LANGULUS(SAFE)                                         
-      ///   @param condition - the condition to check for failure             
-      ///   @param message - the exception message, if condition doesn't hold 
-      #if LANGULUS(SAFE)
-         #define LANGULUS_ASSUME(level, condition, message, ...) \
-            ::Langulus::Assume<level>((condition)?true:false, message, \
-               LANGULUS_LOCATION() __VA_OPT__(,) __VA_ARGS__)
-      #else
-         #define LANGULUS_ASSUME(level, condition, message, ...) 
-      #endif
-
-      /// Logs error, and throws an exception of your choice, if condition    
-      /// wasn't met                                                          
-      ///   @attention assertions are always checked, even in release builds  
-      ///      use assumptions instead, if that is not desired                
-      ///   @param condition - the condition to check for failure             
-      ///   @param exception - the exception to throw if condition isn't met  
-      ///   @param message - the exception message, if condition doesn't hold 
-      #define LANGULUS_ASSERT(condition, exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>((condition)?true:false, message, \
-            LANGULUS_LOCATION() __VA_OPT__(,) __VA_ARGS__)
-
-      /// Logs error, and throws an exception of your choice                  
-      /// If you want to throw without logging, use LANGULUS_THROW instead    
-      ///   @attention always throws (even in release builds)                 
-      ///   @param exception - the exception to throw                         
-      ///   @param message - the exception message                            
-      #define LANGULUS_OOPS(exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>(false, message, \
-            LANGULUS_LOCATION() __VA_OPT__(,) __VA_ARGS__)
-
-      /// Just throws, without logging anything                               
-      ///   @param exception - the exception to throw                         
-      ///   @param message - the exception message                            
-      #define LANGULUS_THROW(exception, message, ...) \
-         ::Langulus::Throw<::Langulus::Except::exception>(message, \
-            LANGULUS_LOCATION() __VA_OPT__(,) __VA_ARGS__)
-   #else
-      #if LANGULUS(SAFE)
-         #define LANGULUS_ASSUME(level, condition, message, ...) \
-            ::Langulus::Assume<level>((condition)?true:false, message, \
-               LANGULUS_LOCATION(), __VA_ARGS__)
-      #else
-         #define LANGULUS_ASSUME(level, condition, message, ...) 
-      #endif
-
-      #define LANGULUS_ASSERT(condition, exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>((condition)?true:false, message, \
-            LANGULUS_LOCATION(), __VA_ARGS__)
-
-      #define LANGULUS_OOPS(exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>(false, message, \
-            LANGULUS_LOCATION(), __VA_ARGS__)
-
-      #define LANGULUS_THROW(exception, message, ...) \
-         ::Langulus::Throw<::Langulus::Except::exception>(message, \
-            LANGULUS_LOCATION(), __VA_ARGS__)
-   #endif
-#else
-   #if LANGULUS(SAFE)
-      #define LANGULUS_ASSUME(level, condition, message, ...) \
-         ::Langulus::Assume<level>((condition)?true:false)
-   #else
-      #define LANGULUS_ASSUME(level, condition, message, ...) 
-   #endif
-
-   #if LANGULUS_COMPILER(CLANG) or LANGULUS_COMPILER(GCC)
-      #define LANGULUS_ASSERT(condition, exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>((condition)?true:false, message, \
-            nullptr __VA_OPT__(,) __VA_ARGS__)
-
-      #define LANGULUS_OOPS(exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>(false, message, \
-            nullptr __VA_OPT__(,) __VA_ARGS__)
-   #else
-      #define LANGULUS_ASSERT(condition, exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>((condition)?true:false, message, \
-            nullptr, __VA_ARGS__)
-
-      #define LANGULUS_OOPS(exception, message, ...) \
-         ::Langulus::Assume<0, ::Langulus::Except::exception>(false, message, \
-            nullptr, __VA_ARGS__)
-   #endif
-
-   #define LANGULUS_THROW(exception, message, ...) \
-      ::Langulus::Throw<::Langulus::Except::exception>()
+}
 #endif
-
-/// A shorter LANGULUS_ASSERT, with default exception and message             
-#define LANGULUS_CHECK(condition) \
-   ::Langulus::Assume<0>((condition)?true:false, "<no message>", \
-      LANGULUS_LOCATION())
-
-/// Convenience macro for specifying temporary lazyness                       
-#define TODO() LANGULUS_OOPS(ToDo, "Unfinished code")

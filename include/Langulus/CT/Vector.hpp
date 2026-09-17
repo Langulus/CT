@@ -8,7 +8,7 @@
 #pragma once
 #include <Langulus/CountOf.hpp>
 #include <Langulus/Intent.hpp>
-#include <Langulus/Byte.hpp>
+#include <Langulus/Utils/Byte.hpp>
 
 
 namespace Langulus::CT

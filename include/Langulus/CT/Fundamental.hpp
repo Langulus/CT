@@ -11,13 +11,12 @@
 
 namespace Langulus::CTTI
 {
-   /// Affects CT::Real<T>                                                    
-   /// By default, all T that satisfy std::is_floating_point_v are real       
+   /// Affects CT::Fundamental<T>:                                            
    template<class T>
-   struct Real {
+   struct Fundamental {
       static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::is_floating_point_v<T>;
+      static constexpr bool Enabled = ::std::is_fundamental_v<T>;
    };
 }
 
-LANGULUS_CTTI_CONCEPT_DECVQ(Real);
+LANGULUS_CTTI_CONCEPT(Fundamental);
