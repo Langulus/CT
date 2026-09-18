@@ -652,14 +652,14 @@ namespace Langulus
 
    
    /// MARK: Yes                                                              
-   /// Equivalent to ::std::true_type, but without the silly nomenclature     
-   /// Can carry a constant with itself. Alternatively, you can use just Yup  
-   /// if you don't have a constant to specify.                               
+   /// Equivalent to ::std::true_type, but without the silly nomenclature.    
+   /// Can carry a constant of any kind (including string) with itself.       
+   /// Alternatively, you can use just Yup if you don't need the constant.    
    template<Literal VALUE = 0>
    struct Yes {
       using CTTI_ReflectAs = void;
       static constexpr auto Constant = VALUE;
-      static constexpr bool Enabled = true;
+      static constexpr bool Enabled  = true;
    };
 }
 

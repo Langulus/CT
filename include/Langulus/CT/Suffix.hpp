@@ -13,8 +13,7 @@
 
 namespace Langulus::CTTI
 {
-   /// Extends T with suffix meta data at compile time                        
-   /// Examples:                                                              
+   /// Extends T with suffix meta data at compile time. Examples:             
    /// 1) template<> struct Suffix<Seconds> : Yes<"s"> {};                    
    /// 2) struct Seconds { using CTTI_Suffix = Yes<"s">; };                   
    template<class T>

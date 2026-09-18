@@ -17,7 +17,7 @@ namespace Langulus::CTTI
 
    /// All T satisfying std::integer are CT::Integer by default, with the     
    /// exception of custom and built-in boolean types.                        
-   template<::std::integral T> requires (not CT::Bool<T>)
+   template<class T> requires (::std::is_integral_v<T> and not CT::Bool<T>)
    struct Integer<T> {};
 }
 

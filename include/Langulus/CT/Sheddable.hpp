@@ -22,40 +22,46 @@ namespace Langulus::CT::Inner
    ///   @attention doesn't strip any references                              
    template<class T>
    consteval auto GetSheddedType() {
-      using TI = CTTI::Sheddable<T>;
-      if constexpr (Complete<TI>) {
-         // External test                                               
-         static_assert(requires { typename TI::Type; },
-            "CTTI::Sheddable lacks Type");
-
-         using InnerT = typename TI::Type;
-         if constexpr (Void<InnerT>)
-            return ::std::type_identity<T> {};
-         else {
-            static_assert(not requires { InnerT::Enabled; },
-               "Pick a type to shed to, or void, instead of using Yes/Yup/No"
-               "for CTTI::Sheddable::Type");
-            return ::std::type_identity<InnerT> {};
-         }
+      if constexpr (Void<T>) {
+         // Void types are never sheddable                              
+         return ::std::type_identity<T> {};
       }
       else {
-         // Internal check                                              
-         using DT = ::std::remove_cvref_t<T>;
-         static_assert(Complete<DT>,
-            "Can't access `CTTI_Sheddable` inside incomplete type");
+         using TI = CTTI::Sheddable<T>;
+         if constexpr (Complete<TI>) {
+            // External test                                            
+            static_assert(requires { typename TI::Type; },
+               "CTTI::Sheddable lacks Type");
 
-         if constexpr (requires { typename DT::CTTI_Sheddable; }) {
-            using InnerT = typename DT::CTTI_Sheddable;
+            using InnerT = typename TI::Type;
             if constexpr (Void<InnerT>)
                return ::std::type_identity<T> {};
             else {
                static_assert(not requires { InnerT::Enabled; },
                   "Pick a type to shed to, or void, instead of using Yes/Yup/No"
-                  "for T::CTTI_Sheddable");
+                  "for CTTI::Sheddable::Type");
                return ::std::type_identity<InnerT> {};
             }
          }
-         else return ::std::type_identity<T> {};
+         else {
+            // Internal check                                           
+            using DT = ::std::remove_cvref_t<T>;
+            static_assert(Complete<DT>,
+               "Can't access `CTTI_Sheddable` inside incomplete type");
+
+            if constexpr (requires { typename DT::CTTI_Sheddable; }) {
+               using InnerT = typename DT::CTTI_Sheddable;
+               if constexpr (Void<InnerT>)
+                  return ::std::type_identity<T> {};
+               else {
+                  static_assert(not requires { InnerT::Enabled; },
+                     "Pick a type to shed to, or void, instead of using Yes/Yup/No"
+                     "for T::CTTI_Sheddable");
+                  return ::std::type_identity<InnerT> {};
+               }
+            }
+            else return ::std::type_identity<T> {};
+         }
       }
    };
 
