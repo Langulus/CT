@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Core.hpp"
+#include <Langulus/Core.hpp>
 
 
 namespace Langulus
@@ -24,13 +24,13 @@ namespace Langulus
 
    protected:
       template<auto...> friend struct Values;
-      template<uint>
+      template<unsigned>
       static consteval auto AtInner() {
          static_assert(false, "Empty values");
       }
 
    public:
-      template<uint I>
+      template<unsigned I>
       static constexpr auto At = AtInner<I>();
       template<auto>
       static constexpr bool Contains = false;
@@ -68,7 +68,7 @@ namespace Langulus
 
    protected:
       template<auto...> friend struct Values;
-      template<uint I>
+      template<unsigned I>
       static consteval auto AtInner() {
          static_assert(I == 0, "Index is out of value list bounds");
          return E1;
@@ -80,7 +80,7 @@ namespace Langulus
       }
 
    public:
-      template<uint I>
+      template<unsigned I>
       static constexpr auto At = AtInner<I>();
 
       template<auto E>
@@ -125,7 +125,7 @@ namespace Langulus
       }
 
       template<class OTHER>
-      using Intersect = Tif<IntersectInner(OTHER{}), Values<E1>, Values<>>;
+      using Intersect = ::std::conditional_t<IntersectInner(OTHER{}), Values<E1>, Values<>>;
    };
 
 
@@ -146,7 +146,7 @@ namespace Langulus
 
    protected:
       template<auto...> friend struct Values;
-      template<uint I>
+      template<unsigned I>
       static consteval auto AtInner() {
          static_assert(I < Count, "Index is out of value list bounds");
 
@@ -174,7 +174,7 @@ namespace Langulus
       }
 
    public:
-      template<uint I>
+      template<unsigned I>
       static constexpr auto At = AtInner<I>();
 
       template<auto E>

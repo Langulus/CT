@@ -133,14 +133,14 @@ namespace Langulus
       ///   @tparam DEPTH the depth of the intent, use -1 for infinite        
       ///   @tparam KEEP does the intent practice ownership                   
       ///   @tparam MOVE does the intent involve transfer of ownership        
-      template<uint DEPTH, bool KEEP, bool MOVE>
+      template<unsigned DEPTH, bool KEEP, bool MOVE>
       struct CommonIntent {
          using CTTI_ReflectAs     = void;
          using CTTI_Abstract      = Yup;
          using CTTI_Allocatable   = No;
          using CTTI_Intent        = Yup;
 
-         static consteval uint GetDepth()     { return DEPTH; }
+         static consteval unsigned GetDepth() { return DEPTH; }
          static consteval bool IsKept()       { return KEEP;  }
          static consteval bool IsMoved()      { return MOVE;  }
          static consteval bool ResetsOnMove() { return KEEP and MOVE; }
@@ -573,7 +573,7 @@ namespace Langulus
    /// to clone container, doing a deep copy instead of default shallow one   
    ///   @tparam T the type to clone                                          
    template<class T> requires (not ::std::is_reference_v<T>)
-   struct Clone final : Inner::CommonIntent<static_cast<uint>(-1), true, false> {
+   struct Clone final : Inner::CommonIntent<static_cast<unsigned>(-1), true, false> {
       const T& what;
       
       using CTTI_Sheddable = decltype(what);
@@ -750,9 +750,9 @@ namespace Langulus
    ///   - if it has one of those, then we get move intent                    
    ///   - if it isn't - we get refer intent                                  
    template<class T>
-   using IntentOfT = Tif<CT::Intent<Decvq<Deref<T>>>,
+   using IntentOfT = ::std::conditional_t<CT::Intent<Decvq<Deref<T>>>,
          Decq<Deref<T>>,
-         Tif<::std::is_rvalue_reference_v<T> and CT::Mutable<Deref<T>>,
+         ::std::conditional_t<::std::is_rvalue_reference_v<T> and CT::Mutable<Deref<T>>,
             Move<Deref<T>>,
             Refer<Decq<Deref<T>>>
          >

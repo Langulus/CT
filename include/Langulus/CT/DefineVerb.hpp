@@ -6,7 +6,10 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Literal.hpp"
+#include "../Typenav.hpp"
+#include "../Utils/Literal.hpp"
+#include "../Utils/Types.hpp"
+#include "Typelist.hpp"
 
 
 namespace Langulus
@@ -14,10 +17,10 @@ namespace Langulus
    /// Useful for setting CTTI_DefineVerb                                     
    template<Literal POSITIVE, Literal NEGATIVE = "", auto PRECEDENCE = 0>
    struct DefineVerb {
-      static constexpr Literal Positive = POSITIVE;
-      static constexpr Literal Negative = NEGATIVE;
-      static constexpr float Precedence = static_cast<float>(PRECEDENCE);
-      static constexpr bool Enabled = true;
+      static constexpr Literal Positive   = POSITIVE;
+      static constexpr Literal Negative   = NEGATIVE;
+      static constexpr float   Precedence = static_cast<float>(PRECEDENCE);
+      static constexpr bool    Enabled    = true;
    };
 }
 

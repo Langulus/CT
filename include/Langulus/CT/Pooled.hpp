@@ -8,6 +8,7 @@
 #pragma once
 #include "../Typenav.hpp"
 #include "../Utils/Roof.hpp"
+#include "Fundamental.hpp"
 
 #if not LANGULUS_FEATURE(MANAGED_MEMORY)
    #error "This file shouldn't be included if MANAGED_MEMORY is disabled"
@@ -61,7 +62,7 @@ namespace Langulus
    /// Useful for setting CTTI_Pooled                                         
    /// Instructs Fractalloc to pool to dedicated type-indexed pools           
    ///   @tparam MIN_POOL what's the minimal pool size in bytes               
-   template<uint MIN_POOL>
+   template<unsigned MIN_POOL>
    struct PooledByType {
       static_assert(::std::has_single_bit(MIN_POOL),
          "MIN_POOL must be a power-of-two");
@@ -81,43 +82,65 @@ namespace Langulus::CTTI
 
    /// All fundamental types are pooled by size by default                    
    template<CT::Fundamental T>
-   struct Pooled<T> {
-      static constexpr PoolTactic Tactic  = PoolTactic::Size;
-      static constexpr size_t     MinPool = MinimalPoolSize;
-   };
+   struct Pooled<T> : PooledBySize {};
 }
 
-namespace Langulus::CT
+namespace Langulus
 {
    /// Get the minimal pool size in bytes at compile time for T               
    template<class T>
-   consteval size_t GetMinPool() {
+   consteval size_t MinPoolOf() {
       static_assert(::std::has_single_bit(MinimalPoolSize),
          "MinimalPoolSize must be a power-of-two");
 
       using ST = Shed<T>;
-      if constexpr (Complete<CTTI::Pooled<ST>>) {
-         constexpr size_t minpool = Roof2(CTTI::Pooled<ST>::MinPool);
-         return minpool < MinimalPoolSize ? MinimalPoolSize : minpool;
+      using ctti = CTTI::Pooled<ST>;
+      if constexpr (CT::Complete<ctti>) {
+         if constexpr (ctti::Enabled) {
+            constexpr size_t minpool = Roof2(ctti::MinPool);
+            return minpool < MinimalPoolSize ? MinimalPoolSize : minpool;
+         }
+         else return 0;
       }
-      else if constexpr (LANGULUS_CTTI_DELVE_IN(ST, Pooled, false)) {
-         constexpr size_t minpool = Roof2(Decay<ST>::CTTI_Pooled::MinPool);
-         return minpool < MinimalPoolSize ? MinimalPoolSize : minpool;
+      else {
+         static_assert(CT::Complete<Decay<ST>>,
+            "Can't access `CTTI_Pooled` inside incomplete type");
+
+         if constexpr (requires { Decay<ST>::CTTI_Pooled; }) {
+            using inner = Decay<ST>::CTTI_Pooled;
+            if constexpr (inner::Enabled) {
+               constexpr size_t minpool = Roof2(ctti::MinPool);
+               return minpool < MinimalPoolSize ? MinimalPoolSize : minpool;
+            }
+            else return 0;
+         }
+         else return Roof2(sizeof(ST) * 256 <= MinimalPoolSize
+            ? MinimalPoolSize : sizeof(ST) * 256
+         );
       }
-      else return Roof2(sizeof(ST) * 256 <= MinimalPoolSize
-         ? MinimalPoolSize : sizeof(ST) * 256
-      );
    }
    
    /// Get the reflected pool tactic for T at compile time                    
    template<class T>
-   consteval PoolTactic GetPoolTactic() {
-      using ST = Shed<T>;
+   consteval PoolTactic PoolTacticOf() {
       PoolTactic result = PoolTactic::Default;
-      if constexpr (Complete<CTTI::Pooled<ST>>)
-         result = CTTI::Pooled<ST>::Tactic;
-      else if constexpr (LANGULUS_CTTI_DELVE_IN(ST, Pooled, false))
-         result = Decay<ST>::CTTI_Pooled::Tactic;
+
+      using ST = Shed<T>;
+      using ctti = CTTI::Pooled<ST>;
+      if constexpr (CT::Complete<ctti>) {
+         if constexpr (ctti::Enabled)
+            result = ctti::Tactic;
+      }
+      else {
+         static_assert(CT::Complete<Decay<ST>>,
+            "Can't access `CTTI_Pooled` inside incomplete type");
+
+         if constexpr (requires { typename Decay<ST>::CTTI_Pooled; }) {
+            using inner = typename Decay<ST>::CTTI_Pooled;
+            if constexpr (inner::Enabled)
+               result = inner::Tactic;
+         }
+      }
 
       if (result == PoolTactic::Main
       and (alignof(ST) > Alignment or sizeof(ST) > Alignment)) {

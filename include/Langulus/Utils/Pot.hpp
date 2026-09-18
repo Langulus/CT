@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include <Langulus/Assume.hpp>
+#include <Langulus/Logger.hpp>
 #include <bit>
 #include <concepts>
 #include <compare>
@@ -149,12 +150,12 @@ namespace Langulus
       }
    };
 
-   constexpr pot_t operator""_pot(ulonger num) assumptious {
+   constexpr pot_t operator""_pot(unsigned long long num) assumptious {
       return pot_t(num);
    }
 }
 
-#if LANGULUS_FEATURE(LOGGING)
+#if LANGULUS_FEATURE(LOGGING) and defined(LANGULUS_LIBRARY_LOGGER)
 namespace fmt
 {
    ///                                                                        

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Literal.hpp"
+#include "Literal.hpp"
 #include "Values.hpp"
 
 LglsDisableWarningPush

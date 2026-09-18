@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Utils/Values.hpp"
+#include "../Typenav.hpp"
 
 
 namespace Langulus::CTTI
@@ -36,7 +36,7 @@ namespace Langulus::CT::Inner
          // Checked internally, T has to be a complete type             
          return typename T::CTTI_Values {};
       }
-      else return NoTypes {};
+      else return No {};
    };
 }
 

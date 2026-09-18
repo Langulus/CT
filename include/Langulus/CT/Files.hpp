@@ -7,42 +7,30 @@
 ///                                                                           
 #pragma once
 #include "../Typenav.hpp"
-#include "../Literal.hpp"
+#include "../Utils/Literal.hpp"
 
 
 namespace Langulus::CTTI
 {
-   /// Used to define a custom file extensions for types                      
-   /// Can be used in two ways to satisfy CT::Files<T>:                       
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Files = Yes<"txt,rtf,etc">;` in T          
+   /// Extends T with a file extension meta data at compile time              
+   /// Examples:                                                              
+   /// 1) template<> struct Files<YourType> : Yes<"txt,rtf,etc"> {};          
+   /// 2) struct YourType { using CTTI_Files = Yes<"txt,rtf,etc">; };         
    template<class T>
    struct Files;
 }
 
-LANGULUS_CTTI_CONCEPT_DECVQ(Files);
-
 namespace Langulus
 {
-   /// Get the file extensions of a type at compile-time                      
-   ///   @tparam T the type to get the file extensions of                     
+   /// Get the file extensions for a type at compile-time                     
+   ///   @tparam T the type to get the info of                                
    ///   @return a compile-time string                                        
+   //TODO check if tested, cuz i found some mistakes
    template<class T>
    consteval auto FilesOf() {
       using DT = Decvq<Deref<T>>;
-      static_assert(CT::Void<T> or CT::Complete<T>,
-         "Can't get file extensions of an incomplete type");
-      
-      if constexpr (CT::Complete<CTTI::Files<DT>>) {
-         constexpr auto s = CTTI::Files<DT>::Name;
-         static_assert(IsASCII(s), "File extensions must be ASCII");
-         return s;
-      }
-      else if constexpr (LANGULUS_CTTI_DELVE_IN(DT, Files, false)) {
-         constexpr auto s = DT::CTTI_Files::Constant;
-         static_assert(IsASCII(s), "File extensions must be ASCII");
-         return s;
-      }
-      else return Literal {};
+      constexpr auto files = LANGULUS_CTTI_CHECK_EXTRACT(DT, Files, Literal {});
+      static_assert(IsASCII(files), "File extensions must be ASCII");
+      return files;
    }
 }

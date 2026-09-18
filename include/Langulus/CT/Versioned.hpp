@@ -12,7 +12,7 @@
 namespace Langulus
 {
    /// Useful for setting CTTI_Versioned                                      
-   template<unsigned MAJOR, unsigned MINOR>
+   template<unsigned MAJOR = 0, unsigned MINOR = 0>
    struct Version {
       static constexpr unsigned Major   = MAJOR;
       static constexpr unsigned Minor   = MINOR;
@@ -22,47 +22,66 @@ namespace Langulus
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Versioned<T>:                   
-   /// 1. Specialize for T/concept having Enabled as true and a version       
-   /// 2. Add a public `using CTTI_Versioned = Version<major, minor>;` in T   
+   /// Extends T with a version meta data at compile time                     
+   /// Examples:                                                              
+   /// 1) template<> struct Versioned<YourType> : Version<2, 5> {};           
+   /// 2) struct YourType { using CTTI_Versioned = Version<2, 5>; };          
    template<class T>
    struct Versioned;
 
+   /// Extends constant E with a version meta data at compile time            
+   /// Examples:                                                              
+   /// 1) template<> struct VersionedValue<E> : Version<2, 5> {};             
    template<auto E>
    struct VersionedValue;
-}
-
-LANGULUS_CTTI_CONCEPT_DECVQ(Versioned);
-
-namespace Langulus::CT
-{
-   template<auto E>
-   concept VersionedValue = Complete<CTTI::VersionedValue<E>>;
-
-   template<auto E>
-   concept NotVersionedValue = not Complete<CTTI::VersionedValue<E>>;
 }
 
 namespace Langulus
 {
    /// Get the version of a given type T                                      
+   ///   @return No if version hasn't been defined                            
    template<class T>
    consteval auto VersionOf() {
-      using ST = Shed<T>;
-      if constexpr (CT::Complete<CTTI::Versioned<ST>>)
-         return CTTI::Versioned<ST> {};
-      else if constexpr (LANGULUS_CTTI_DELVE_IN(ST, Versioned, false))
-         return typename Decay<ST>::CTTI_Versioned {};
-      else
-         return Version<1, 0> {};
+      using DT = Shed<T>;
+      using ctti = CTTI::Versioned<DT>;
+      if constexpr (CT::Complete<ctti>) {
+         if constexpr (ctti::Enabled) {
+            static_assert(requires { ctti::Major; },
+               "Wrongly specialized `CTTI::Versioned`");  
+            return ctti {};
+         }
+         else return Version<> {};
+      }
+      else {
+         static_assert(CT::Complete<DT>,
+            "Can't access `CTTI_Versioned` inside incomplete type");
+
+         if constexpr (requires { typename DT::CTTI_Versioned; }) {
+            using inner = typename DT::CTTI_Versioned;
+            if constexpr (inner::Enabled) {
+               static_assert(requires { inner::Major; },
+                  "Wrongly specialized `T::CTTI_Versioned`");  
+               return inner {};
+            }
+            else return Version<> {};
+         }
+         else return Version<> {};
+      }
    }
 
    /// Get the version of a given constant E                                  
+   ///   @return No if version hasn't been defined                            
    template<auto E>
    consteval auto VersionOf() {
-      if constexpr (CT::Complete<CTTI::VersionedValue<E>>)
-         return CTTI::VersionedValue<E> {};
-      else
-         return Version<1, 0> {};
+      using ctti = CTTI::VersionedValue<E>;
+      if constexpr (CT::Complete<ctti>) {
+         if constexpr (ctti::Enabled) {
+            static_assert(requires { ctti::Major; },
+               "Wrongly specialized `CTTI::VersionedValue`");  
+            return ctti {};
+         }
+         else return Version<> {};
+      }
+      else return Version<> {};
    }
 }

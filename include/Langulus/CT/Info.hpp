@@ -7,29 +7,23 @@
 ///                                                                           
 #pragma once
 #include "../Typenav.hpp"
+#include "../Utils/Literal.hpp"
 
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Info<T>:                        
-   /// 1. Specialize for T/concept having Enabled as true and an info string  
-   /// 2. Add a public `using CTTI_Info = Yes<"some info">;` in T             
+   /// Extends T with an info meta data at compile time                       
+   /// Examples:                                                              
+   /// 1) template<> struct Info<YourType> : Yes<"Some info string"> {};      
+   /// 2) struct YourType { using CTTI_Info = Yes<"Some info string">; };     
    template<class T>
    struct Info;
 
+   /// Extends constant E with a info meta data at compile time               
+   /// Examples:                                                              
+   /// 1) template<> struct InfoValue<E> : Yes<"Some info string"> {};        
    template<auto E>
    struct InfoValue;
-}
-
-LANGULUS_CTTI_CONCEPT_DECVQ(Info);
-
-namespace Langulus::CT
-{
-   template<auto E>
-   concept InfoValue = Complete<CTTI::InfoValue<E>>;
-
-   template<auto E>
-   concept NotInfoValue = not Complete<CTTI::InfoValue<E>>;
 }
 
 namespace Langulus
@@ -37,26 +31,23 @@ namespace Langulus
    /// Get the info for a type at compile-time                                
    ///   @tparam T the type to get the info of                                
    ///   @return a compile-time string                                        
+   //TODO check if tested, cuz i found some mistakes
    template<class T>
    consteval auto InfoOf() {
       using DT = Decvq<Deref<T>>;
-      
-      if constexpr (CT::Complete<CTTI::Info<DT>>)
-         return CTTI::Info<DT>::Text;
-      else if constexpr (LANGULUS_CTTI_DELVE_IN(DT, Info, false))
-         return DT::CTTI_Info::Constant;
-      else
-         return Literal {};
+      return LANGULUS_CTTI_CHECK_EXTRACT(DT, Info, Literal {});
    }
    
    /// Get the info for a constant at compile-time                            
    ///   @tparam E the constant to get the info of                            
    ///   @return a compile-time string                                        
+   //TODO check if tested, cuz i found some mistakes
    template<auto E>
    consteval auto InfoOf() {
-      if constexpr (CT::Complete<CTTI::InfoValue<E>>)
-         return CTTI::InfoValue<E>::Text;
-      else
-         return Literal {};
+      using ctti = CTTI::InfoValue<E>;
+      if constexpr (CT::Complete<ctti>) {
+         LANGULUS_CTTI_DELVE_IN_EXTRACT(ctti, Literal {});
+      }
+      else return Literal {};
    }
 }

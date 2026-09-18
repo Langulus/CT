@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Core.hpp"
+#include <Langulus/Core.hpp>
 #include <bit>
 
 #if LANGULUS(SAFE)
