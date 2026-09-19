@@ -514,6 +514,15 @@ namespace Langulus
    constexpr bool operator >= (compact_tuple<T...> const& t, compact_tuple<U...> const& u) {
       return !(t < u);
    }
+
+   namespace Inner
+   {
+      template<template<class...> class TYPELIST, class...TYPES>
+      constexpr auto CompactTupleFromTypelist(TYPELIST<TYPES...>) -> compact_tuple<TYPES...>;
+   }
+
+   template<class L>
+   using compact_tuple_from_typelist = decltype(Inner::CompactTupleFromTypelist(L{}));
 }
 
 namespace std

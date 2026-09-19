@@ -130,8 +130,8 @@ namespace Langulus::CT::Inner
          or ::std::same_as<LIST, void>)
             return NoTypes {};
          else {
-            static_assert(not ::std::same_as<LIST, Yes<>>,
-               "Instead of Yes<> use either a verb name, "
+            static_assert(not ::std::same_as<LIST, Yup>,
+               "Instead of Yup use either a verb name, "
                "or Types<multiple,verb,names> for CTTI_Verbs");
             return Types<LIST> {};
          }

@@ -48,7 +48,7 @@ namespace Langulus::CT
          }
          else if constexpr (Typed<T>) {
             // This includes ::std::ranges::range, as well as anything  
-            // that is statically typed in Anyness, unless reflected    
+            // that is statically typed in Annies, unless reflected    
             // as not Unfoldable                                        
             return UnfoldInner<TypeOf<T>>();
          }

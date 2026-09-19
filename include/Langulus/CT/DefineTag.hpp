@@ -33,3 +33,14 @@ namespace Langulus::RTTI
       return tag;
    }
 }
+
+namespace Langulus::CT
+{
+   /// Checks if Ts are tag definitions                                       
+   template<class...T>
+   concept DefineTag = ((RTTI::NameOfTag<T>() != "") and ...);
+
+   /// Checks if Ts are not tag definitions                                   
+   template<class...T>
+   concept NotDefineTag = ((not DefineTag<T>) and ...);
+}

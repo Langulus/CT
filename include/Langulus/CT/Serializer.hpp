@@ -105,7 +105,7 @@ namespace Langulus::Serial
 {
    /// Helps to define an operator                                            
    struct Operator {
-      Token mToken;
+      ::std::string_view mToken;
       bool mCharge = false;
    };
 

@@ -37,8 +37,7 @@ namespace Langulus::CT::Inner
          if constexpr (CT::Void<ctti>)
             return NoTypes {};
          else {
-            constexpr auto tag_definition = RTTI::NameOfTag<ctti>();
-            if constexpr (tag_definition != "") {
+            if constexpr (CT::DefineTag<ctti>) {
                // Defined as in example 1)                                 
                return Types<ctti> {}; //TODO could be problematic in the future - will produce a different cppname if reflected using that
             }
@@ -62,8 +61,7 @@ namespace Langulus::CT::Inner
             if constexpr (CT::Void<inner>)
                return NoTypes {};
             else {
-               constexpr auto tag_definition = RTTI::NameOfTag<inner>();
-               if constexpr (tag_definition != "") {
+               if constexpr (CT::DefineTag<inner>) {
                   // Defined as in examples 3)                             
                   return Types<inner> {}; //TODO could be problematic in the future - will produce a different cppname if reflected using that
                }

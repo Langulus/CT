@@ -18,7 +18,7 @@ namespace Langulus::CTTI
 {
    /// Can be used in two ways to satisfy CT::Resolvable<T>:                  
    /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Resolvable = Yes<>;` in T                  
+   /// 2. Add a public `using CTTI_Resolvable = Yup;` in T                  
    /// Either way, the type also has to have the required interface for this  
    /// to work. By default, all types are not CT::Resolvable.                 
    template<class T>

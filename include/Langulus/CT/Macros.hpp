@@ -21,21 +21,23 @@
 #define LANGULUS_CTTI_CHECK_EXTRACT(TYPE, NAME, FALLBACK) ([] consteval { \
       if constexpr (CT::Complete<CTTI::NAME<TYPE>>) { \
          LANGULUS_CTTI_DELVE_IN_EXTRACT(CTTI::NAME<TYPE>, FALLBACK); \
-      } else { \
+      } else if constexpr (::std::is_class_v<TYPE>) { \
          static_assert(CT::Complete<TYPE>, \
             "Can't access `CTTI_" #NAME "` inside incomplete type " #TYPE); \
          LANGULUS_CTTI_DELVE_IN_EXTRACT(TYPE::CTTI_##NAME, FALLBACK); \
-      } \
+      } else return FALLBACK; \
    }())
    
 /// Checks for reflection traits inside types themselves.                     
 /// Requires the TYPE to be complete in order to do that.                     
 #define LANGULUS_CTTI_DELVE_IN(TYPE, NAME, FALLBACK) \
-   static_assert(Complete<TYPE>, \
-      "Can't access `CTTI_" #NAME "` inside incomplete type " #TYPE); \
-   if constexpr (requires { TYPE::CTTI_##NAME::Enabled; }) \
-      return TYPE::CTTI_##NAME::Enabled; \
-   else return FALLBACK;
+   if constexpr (::std::is_class_v<TYPE>) { \
+      static_assert(Complete<TYPE>, \
+         "Can't access `CTTI_" #NAME "` inside incomplete type " #TYPE); \
+      if constexpr (requires { TYPE::CTTI_##NAME::Enabled; }) \
+         return TYPE::CTTI_##NAME::Enabled; \
+      else return FALLBACK; \
+   } else return FALLBACK;
 
 /// Checks for reflection traits outside types by CTTI struct specializations 
 /// If CTTI struct is incomplete, it has no effect.                           
