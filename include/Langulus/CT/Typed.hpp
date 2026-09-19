@@ -6,8 +6,8 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Typenav.hpp"
-#include "CT/Typelist.hpp"
+#include "../Typenav.hpp"
+#include "../Utils/Types.hpp"
 
 
 namespace Langulus::CTTI

@@ -10,7 +10,7 @@
 #include "CT/Support.hpp"
 #include "CT/POD.hpp"
 #include "CT/Akin.hpp"
-#include "TypeOf.hpp"
+#include "CT/Typed.hpp"
 #include "Assume.hpp"
 #include <vector>
 //#include "Typenav.hpp"

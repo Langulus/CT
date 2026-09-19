@@ -7,7 +7,7 @@
 ///                                                                           
 #pragma once
 #include "Character.hpp"
-#include "../TypeOf.hpp"
+#include "Typed.hpp"
 #include <ranges>
 #include <type_traits>
 

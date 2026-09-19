@@ -8,18 +8,22 @@
 #pragma once
 #include "../Typenav.hpp"
 
+
 namespace Langulus::Flow
 {
+   /// Predeclaration of type-erased function container                       
    struct Verb;
 }
 
 namespace Langulus::CTTI
 {
-   /// Affects CT::Executable<T>                                              
+   /// Extends T by marking it as executable. Examples:                       
+   /// 1) template<> struct Executable<YourType> {};                          
+   /// 2) struct YourType { using CTTI_Executable = Yup; };                   
    template<class T>
    struct Executable;
 
-   /// Verbs are always marked executable                                     
+   /// Type-erased verbs are always marked executable                         
    template<>
    struct Executable<::Langulus::Flow::Verb> {};
 }

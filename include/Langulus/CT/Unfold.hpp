@@ -7,7 +7,7 @@
 ///                                                                           
 #pragma once
 #include "Akin.hpp"
-#include "../TypeOf.hpp"
+#include "Typed.hpp"
 #include "Comparable.hpp"
 
 

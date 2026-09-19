@@ -8,141 +8,200 @@
 #pragma once
 #include "../Typenav.hpp"
 #include "../Utils/Literal.hpp"
-#include "../Utils/Types.hpp"
-#include "Typelist.hpp"
 
 
 namespace Langulus
 {
-   /// Useful for setting CTTI_DefineVerb                                     
-   template<Literal POSITIVE, Literal NEGATIVE = "", auto PRECEDENCE = 0>
-   struct DefineVerb {
-      static constexpr Literal Positive   = POSITIVE;
-      static constexpr Literal Negative   = NEGATIVE;
-      static constexpr float   Precedence = static_cast<float>(PRECEDENCE);
-      static constexpr bool    Enabled    = true;
+   /// A helper structure for reflecting a verb                               
+   template<
+      Literal POSITIVE,
+      Literal NEGATIVE = "",
+      auto PRECEDENCE = 0,
+      bool SHORTCIRCUITED = false
+   >
+   struct NamedVerb {
+      using ConsistentNamedVerbTypeEvenIfInherited = NamedVerb;
+      static constexpr auto  Positive      = POSITIVE;
+      static constexpr auto  Negative      = NEGATIVE;
+      static constexpr float Precedence    = static_cast<float>(PRECEDENCE);
+      static constexpr bool  ShortCircuit  = SHORTCIRCUITED;
+      static constexpr bool  Enabled       = true;
+   };
+
+   /// A helper structure for reflecting a verb operator                      
+   template<
+      Literal POSITIVE,
+      Literal NEGATIVE = ""
+   >
+   struct NamedOperator {
+      static constexpr auto  Positive      = POSITIVE;
+      static constexpr auto  Negative      = NEGATIVE;
+      static constexpr bool  Enabled       = true;
    };
 }
 
 namespace Langulus::CTTI
 {
-   /// Can be used in three ways to satisfy CT::DefineVerb<T>:                
-   /// 1. Specialize for T/concept having Enabled as true and the needed      
-   ///    tokens. Negative is optional and makes the verb reversible          
-   /// 2. To define a reversible verb add a public                            
-   ///   `using CTTI_DefineVerb = VerbToken<"positive", "negative">;` in T    
-   /// 3. To define a non-reversible verb add a public                        
-   ///   `using CTTI_DefineVerb = VerbToken<"verb">;` in T                    
+   /// Declares T is a verb definition. Examples:                             
+   /// 1) template<> struct DefineVerb<Do> : NamedVerb<"Do", "Undo"> {};      
+   /// 2) struct Do { using CTTI_DefineVerb = NamedVerb<"Do", "Undo">; };     
    template<class T>
    struct DefineVerb;
 
-   /// Can be used in two ways to satisfy CT::DefineVerbOperator<T>:          
-   /// 1. Specialize for T/concept having Enabled as true and the needed      
-   ///    tokens. All operators are optional and don't affect reversibility   
-   /// 2. To define a verb operator add a public                              
-   ///   `using CTTI_DefineVerbOperator = VerbToken<"positive", "negative">;` 
-   ///                                 or VerbToken<"positive">;`             
-   ///                                 or VerbToken<"negative">;` in T        
+   /// Augments a verb definition with operator tokens. Examples:             
+   /// 1) template<> struct DefineVerbOp<Do> : NamedOperator<"+", "-"> {};    
+   /// 2) struct Do { using CTTI_DefineVerbOp = NamedOperator<"+", "-">; };   
    template<class T>
-   struct DefineVerbOperator;
-
-   /// Can be used in two ways to satisfy CT::Verbs<T>:                       
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Verbs = <single type or Types<...>>;` in T 
-   template<class T>
-   struct Verbs;
-}
-
-LANGULUS_CTTI_CONCEPT(DefineVerb);
-LANGULUS_CTTI_CONCEPT(DefineVerbOperator);
-
-namespace Langulus::RTTI
-{
-   /// Get the name of CTTI_DefineVerb::Positive at compile-time              
-   ///   @tparam T the verb to get the name of                                
-   ///   @return the name                                                     
-   template<CT::DefineVerb T>
-   consteval auto NameOfVerb() {
-      if constexpr (CT::Complete<CTTI::DefineVerb<T>>)
-         return CTTI::DefineVerb<T>::Positive;
-      else
-         return T::CTTI_DefineVerb::Positive;
-   }
-   
-   /// Get the name of CTTI_DefineVerb::Negative at compile-time              
-   ///   @tparam T the verb to get the name of                                
-   ///   @return the name                                                     
-   template<CT::DefineVerb T>
-   consteval auto NameOfVerbReverse() {
-      if constexpr (CT::Complete<CTTI::DefineVerb<T>>)
-         return CTTI::DefineVerb<T>::Negative;
-      else
-         return T::CTTI_DefineVerb::Negative;
-   }
-   
-   /// Get the name of DefineVerbOperator::Positive at compile-time           
-   ///   @tparam T the verb to get the name of                                
-   ///   @return the name                                                     
-   template<CT::DefineVerb T>
-   consteval auto OperatorOfVerb() {
-      if constexpr (CT::Complete<CTTI::DefineVerbOperator<T>>)
-         return CTTI::DefineVerbOperator<T>::Positive;
-      else
-         return T::CTTI_DefineVerbOperator::Positive;
-   }
-   
-   /// Get the name of DefineVerbOperator::Negative at compile-time           
-   ///   @tparam T the verb to get the name of                                
-   ///   @return the name                                                     
-   template<CT::DefineVerb T>
-   consteval auto OperatorOfVerbReverse() {
-      if constexpr (CT::Complete<CTTI::DefineVerbOperator<T>>)
-         return CTTI::DefineVerbOperator<T>::Negative;
-      else
-         return T::CTTI_DefineVerbOperator::Negative;
-   }
+   struct DefineVerbOp;
 }
 
 namespace Langulus::CT::Inner
 {
-   /// Helper function to extract reflected verbs                             
+   /// Get the definition of a verb at compile-time                           
+   ///   @tparam T the verb to get the info of                                
+   ///   @return a NamedVerb if verb was defined, or No otherwise             
    template<class T>
-   consteval auto GetVerbs() {
-      static_assert(not ::std::is_reference_v<T>,
-         "Strip references first");
-      static_assert(not CT::Convoluted<T>,
-         "Strip constness/volatility first");
+   consteval auto DefinitionOfVerb() {
+      static_assert(not ::std::is_reference_v<T>, "Strip references first");
+      static_assert(not ::std::is_const_v<T>, "Strip constness first");
+      using ctti = CTTI::DefineVerb<T>;
 
-      if constexpr (Complete<CTTI::Verbs<T>>) {
-         // Checked externally, T doesn't have to be complete           
-         using LIST = typename CTTI::Verbs<T>::Type;
-         if constexpr (CT::Typelist<LIST>)
-            return LIST {};
-         else
-            return Types<LIST> {};
+      if constexpr (CT::Complete<ctti>) {
+         // Verb was defined externally                                 
+         return typename ctti::ConsistentNamedVerbTypeEvenIfInherited {};
       }
-      else if constexpr (requires { typename T::CTTI_Verbs; }) {
-         // Checked internally, T has to be a complete type             
-         using LIST = typename T::CTTI_Verbs;
-         if constexpr (CT::Typelist<LIST>)
-            return LIST {};
-         else if constexpr (::std::same_as<LIST, No>
-         or ::std::same_as<LIST, void>)
-            return NoTypes {};
-         else {
-            static_assert(not ::std::same_as<LIST, Yup>,
-               "Instead of Yup use either a verb name, "
-               "or Types<multiple,verb,names> for CTTI_Verbs");
-            return Types<LIST> {};
-         }
+      else if constexpr (::std::is_class_v<T>) {
+         // Verb was defined internally                                 
+         static_assert(CT::Complete<T>,
+            "Can't access CTTI_DefineVerb in incomplete type");
+
+         using inner = typename T::CTTI_DefineVerb;
+         if constexpr (CT::Void<inner>)
+            return No {};
+         else 
+            return inner {};
       }
-      else return NoTypes {};
-   };
+      else return No {};
+   }
+   
+   /// Get the definition of a verb operator at compile-time                  
+   ///   @tparam T the verb to get the info of                                
+   ///   @return a NamedVerbOp if defined, or No otherwise                    
+   template<class T>
+   consteval auto DefinitionOfVerbOp() {
+      static_assert(not ::std::is_reference_v<T>, "Strip references first");
+      static_assert(not ::std::is_const_v<T>, "Strip constness first");
+      using ctti = CTTI::DefineVerbOp<T>;
+
+      if constexpr (CT::Complete<ctti>) {
+         // Verb was defined externally                                 
+         return ctti {};
+      }
+      else if constexpr (::std::is_class_v<T>) {
+         // Verb was defined internally                                 
+         static_assert(CT::Complete<T>,
+            "Can't access CTTI_DefineVerbOp in incomplete type");
+
+         using inner = typename T::CTTI_DefineVerbOp;
+         if constexpr (CT::Void<inner>)
+            return No {};
+         else 
+            return inner {};
+      }
+      else return No {};
+   }
+
+   /// Get the name of NamedVerb::Positive at compile-time                    
+   ///   @tparam T the verb to get the name of                                
+   ///   @return the name                                                     
+   template<class T>
+   consteval auto PositiveNameOfVerb() {
+      constexpr auto definition = DefinitionOfVerb<T>();
+      if constexpr (::std::is_same_v<decltype(definition), No>)
+         return Langulus::Literal {};
+      else {
+         constexpr auto c = definition.Positive;
+         static_assert(IsASCII(c), "Verb positive name must be ASCII");
+         static_assert(c == "" or IsAlphabetical(c[0]),
+            "Verb positive name must begin with an alphabetical symbol");
+         return c;
+      }
+   }
+   
+   /// Get the name of NamedVerb::Negative at compile-time                    
+   ///   @tparam T the verb to get the name of                                
+   ///   @return the name                                                     
+   template<class T>
+   consteval auto NegativeNameOfVerb() {
+      constexpr auto definition = DefinitionOfVerb<T>();
+      if constexpr (::std::is_same_v<decltype(definition), No>)
+         return Langulus::Literal {};
+      else {
+         constexpr auto c = definition.Negative;
+         static_assert(IsASCII(c), "Verb negative name must be ASCII");
+         static_assert(c == "" or IsAlphabetical(c[0]),
+            "Verb negative name must begin with an alphabetical symbol");
+         return c;
+      }
+   }
+   
+   /// Get the name of NamedOperator::Positive at compile-time                
+   ///   @tparam T the verb to get the name of                                
+   ///   @return the name                                                     
+   template<class T>
+   consteval auto PositiveOperatorOfVerb() {
+      constexpr auto definition = DefinitionOfVerbOp<T>();
+      if constexpr (::std::is_same_v<decltype(definition), No>)
+         return Langulus::Literal {};
+      else {
+         constexpr auto c = definition.Positive;
+         static_assert(IsASCII(c), "Verb positive operator must be ASCII");
+         return c;
+      }
+   }
+   
+   /// Get the name of NamedOperator::Negative at compile-time                
+   ///   @tparam T the verb to get the name of                                
+   ///   @return the name                                                     
+   template<class T>
+   consteval auto NegativeOperatorOfVerb() {
+      constexpr auto definition = DefinitionOfVerbOp<T>();
+      if constexpr (::std::is_same_v<decltype(definition), No>)
+         return Langulus::Literal {};
+      else {
+         constexpr auto c = definition.Negative;
+         static_assert(IsASCII(c), "Verb negative operator must be ASCII");
+         return c;
+      }
+   }
+}
+
+namespace Langulus::CT
+{
+   /// Checks if all E are defined constants                                  
+   template<class...T>
+   concept DefineVerb = ((not ::std::is_same_v<No, decltype(Inner::DefinitionOfVerb<Decvq<Deref<T>>>())>) and ...);
+
+   /// Checks if all E are not defined constants                              
+   template<class...T>
+   concept NotDefineVerb = ((not DefineVerb<T>) and ...);
 }
 
 namespace Langulus
 {
-   /// Get the reflected verbs, CT::Void if none                              
+   /// Get the positive name of a verb, if it exists                          
    template<class T>
-   using VerbsOf = decltype(CT::Inner::GetVerbs<Decvq<Deref<T>>>());
+   constexpr auto PositiveNameOfVerb = CT::Inner::PositiveNameOfVerb<T>();
+
+   /// Get the negative name of a verb, if it exists                          
+   template<class T>
+   constexpr auto NegativeNameOfVerb = CT::Inner::NegativeNameOfVerb<T>();
+
+   /// Get the positive operator of a verb, if it exists                      
+   template<class T>
+   constexpr auto PositiveOperatorOfVerb = CT::Inner::PositiveOperatorOfVerb<T>();
+   
+   /// Get the negative operator of a verb, if it exists                      
+   template<class T>
+   constexpr auto NegativeOperatorOfVerb = CT::Inner::NegativeOperatorOfVerb<T>();
 }

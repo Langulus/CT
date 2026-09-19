@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include "CT/Named.hpp"
+#include "CT/DefineConst.hpp"
 #include "Utils/Literal.hpp"
 #include "Utils/ASCII.hpp"
 #include <string>
@@ -309,28 +310,29 @@ namespace Langulus::RTTI
       }
 
       /// Skip all decorations in front and back of a WrappedEnumName         
-      ///   @tparam T the constant to isolate                                 
+      ///   @tparam E the constant to isolate                                 
       ///   @tparam NORMALIZE whether or not to normalize the constant to     
       ///      Langulus specification                                         
       ///   @tparam NAMED whether or not to apply any CTTI named traits       
       ///   @return a compile-time string                                     
-      template<auto T, bool NORMALIZE = true, bool NAMED = true>
+      template<auto E, bool NORMALIZE = true, bool NAMED = true>
       consteval auto IsolateConstant() {
-         if constexpr (NAMED and CT::NamedValue<T>) {
-            // Custom name by specializing CTTI::NamedValue             
-            static_assert(IsKeyword(CTTI::NamedValue<T>::Name),
+         constexpr auto custom_token = CT::Inner::CustomNameOfConstant<E>();
+         if constexpr (NAMED and custom_token != "") {
+            // Custom name by specializing CTTI::DefineConstant found   
+            static_assert(IsKeyword(custom_token),
                "Not a valid CTTI::NamedValue - "
                "must be ASCII, starting with an alphabetical symbol, "
                "and must not contain any spaces or operators"
             );
-            static_assert(not IsReserved(CTTI::NamedValue<T>::Name),
+            static_assert(not IsReserved(custom_token),
                "Not a valid CTTI::NamedValue - token is reserved"
             );
-            return CTTI::NamedValue<T>::Name;
+            return custom_token;
          }
          else {
             // Extract the C++ name and normalize it if required        
-            constexpr auto name = WrappedEnumName<T>();
+            constexpr auto name = WrappedEnumName<E>();
             constexpr auto size = name.size();
             constexpr auto left = CalibratedEnumLeftOffset;
             constexpr auto right = CalibratedEnumRightOffset;

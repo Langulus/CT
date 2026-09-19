@@ -8,6 +8,7 @@
 #pragma once
 #include <Langulus/Core.hpp>
 #include <Langulus/CT/Void.hpp>
+#include <Langulus/CT/Typelist.hpp>
 #include <type_traits>
 #include <concepts>
 #include <utility>

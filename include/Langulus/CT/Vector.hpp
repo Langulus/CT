@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include <Langulus/TypeOf.hpp>
+#include <Langulus/CT/Typed.hpp>
 #include <Langulus/IntentOf.hpp>
 #include <Langulus/Utils/Byte.hpp>
 

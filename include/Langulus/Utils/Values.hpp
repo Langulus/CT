@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include <Langulus/Core.hpp>
+#include "../CT/Valuelist.hpp"
 
 
 namespace Langulus

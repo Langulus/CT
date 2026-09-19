@@ -4,9 +4,9 @@
 
 namespace Langulus::CTTI
 {
-   /// Affects CT::Typelist<T>                                                
+   /// Affects CT::Valuelist<T>                                               
    template<class T>
-   struct Typelist;
+   struct Valuelist;
 }
 
 namespace Langulus::CT
@@ -14,19 +14,19 @@ namespace Langulus::CT
    namespace Inner
    {
       template<class T>
-      consteval bool IsTypelistInner() {
+      consteval bool IsValuelistInner() {
          using DT = ::std::remove_cvref_t<T>;
-         if constexpr (Complete<CTTI::Typelist<DT>>) {
+         if constexpr (Complete<CTTI::Valuelist<DT>>) {
             // Internal check                                           
             return true;
          }
          else if constexpr (::std::is_class_v<DT>) {
             // External check                                           
             static_assert(Complete<DT>,
-               "Can't check if an incomplete type is a type list");
+               "Can't check if an incomplete type is a value list");
                
-            if constexpr (requires { DT::CTTI_Typelist::Enabled; })
-               return DT::CTTI_Typelist::Enabled;
+            if constexpr (requires { DT::CTTI_Valuelist::Enabled; })
+               return DT::CTTI_Valuelist::Enabled;
             else
                return false;
          }
@@ -36,10 +36,10 @@ namespace Langulus::CT
 
    /// Check if all T are typelists                                           
    template<class...T>
-   concept Typelist = PartialValidate<T...>
-       and (Inner::IsTypelistInner<T>() and ...);
+   concept Valuelist = PartialValidate<T...>
+       and (Inner::IsValuelistInner<T>() and ...);
 
    template<class...T>
-   concept NotTypelist = PartialValidate<T...>
-       and ((not Typelist<T>) and ...);
+   concept NotValuelist = PartialValidate<T...>
+       and ((not Valuelist<T>) and ...);
 }
