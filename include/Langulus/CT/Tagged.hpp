@@ -17,6 +17,8 @@ namespace Langulus::CTTI
    /// 2) template<> struct Tagged<MyData> : Types<Tag1, Tag2, etc...> {};    
    /// 3) struct MyData { using CTTI_Tagged = Tag1; };                        
    /// 4) struct MyData { using CTTI_Tagged = Types<Tag1, Tag2, etc...>; };   
+   ///   @attention this isn't the same as reflecting tags. It has more       
+   ///      to do with reflecting tag IDs in statically-tagged containers.    
    template<class>
    struct Tagged;
 }

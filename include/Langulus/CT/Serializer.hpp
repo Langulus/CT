@@ -49,18 +49,14 @@ namespace Langulus::CTTI
 
 namespace Langulus
 {
-   /// Get the reflected serializer, CT::Void if none                         
-   //template<class T>
-   //using SerializerOf = decltype(CT::Inner::GetSerializer<Shed<T>>());
-
    /// Serialize                                                              
    ///   @attention there is a major difference between conversion and        
    ///      serialization. For example, you can't convert Text -> Text, as    
    ///      the same type is never converter to itself. However, you can      
    ///      serialize Text ~> Text, which will wrap the contents in quotes,   
-   ///      and produce a completely different string.                        
-   ///      In other words: serialization is an indirection on top of         
-   ///      conversion.                                                       
+   ///      and produce a completely different string. In other words:        
+   ///      serialization is an indirection on top of conversion.             
+   ///   @return the number of elements written to 'to'                       
    template<class FROM, CT::Serializer TO> requires CT::NoIntent<FROM, TO>
    auto Serialize(FROM const& from, TO& to, typename CTTI::Serializer<TO>::Context* context = nullptr) -> size_t {
       using DFROM = DecvqAll<FROM>;
@@ -98,6 +94,21 @@ namespace Langulus
          to += Convert<DTO, FROM>(from);
       }
       return to.GetCount() - initial;
+   }
+
+   /// Deserialize                                                            
+   ///   @return the number of elements read from 'from'                      
+   template<CT::Serializer FROM, class TO> requires CT::NoIntent<FROM, TO>
+   auto Deserialize(FROM const& from, TO& to, size_t progress, typename CTTI::Serializer<FROM>::Context const* context = nullptr) -> size_t {
+      using DFROM = DecvqAll<FROM>;
+      using DTO   = DecvqAll<TO>;
+      
+      if constexpr (requires { from.GetDictionary(); }) {
+         if (not context)
+            context = from.GetDictionary();
+      }
+
+      return CTTI::SerializationRule<DFROM, DTO>::Deserialize(from, progress, to, context);
    }
 }
 

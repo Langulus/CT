@@ -22,7 +22,7 @@ namespace Langulus::CTTI
 
    namespace Inner
    {
-      template<class T>
+      template<class>
       struct MorphismSet;
    }
 }
@@ -142,7 +142,7 @@ namespace Langulus::CT
 
 namespace Langulus
 { 
-   /// Get the reflected morphisms from T to other types, CT::Void if none    
+   /// Get the reflected morphisms from T to other types                      
    template<class T>
    using GatherMorphismsFrom = decltype(
       CT::Inner::GetMorphismsFrom<DecvqAll<Deref<T>>>(Types<>{})
