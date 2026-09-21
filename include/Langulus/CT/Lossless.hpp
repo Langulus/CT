@@ -8,8 +8,48 @@
 #pragma once
 #include "../Utils/Types.hpp"
 #include "Fundamental.hpp"
-#include "Vector.hpp"
+#include "Scalar.hpp"
+#include "Typed.hpp"
+#include "Support.hpp"
+#include "Signed.hpp"
 
+
+namespace Langulus::CT
+{
+   template<class T>
+   concept SignedInteger8  = Signed<T> and Integer<T> and sizeof(T) == 1;
+   template<class T>
+   concept SignedInteger16 = Signed<T> and Integer<T> and sizeof(T) == 2;
+   template<class T>
+   concept SignedInteger32 = Signed<T> and Integer<T> and sizeof(T) == 4;
+   template<class T>
+   concept SignedInteger64 = Signed<T> and Integer<T> and sizeof(T) == 8;
+
+   template<class T>
+   concept UnsignedInteger8  = Unsigned<T> and Integer<T> and sizeof(T) == 1;
+   template<class T>
+   concept UnsignedInteger16 = Unsigned<T> and Integer<T> and sizeof(T) == 2;
+   template<class T>
+   concept UnsignedInteger32 = Unsigned<T> and Integer<T> and sizeof(T) == 4;
+   template<class T>
+   concept UnsignedInteger64 = Unsigned<T> and Integer<T> and sizeof(T) == 8;
+
+   template<class T>
+   concept Integer8  = Integer<T> and sizeof(T) == 1;
+   template<class T>
+   concept Integer16 = Integer<T> and sizeof(T) == 2;
+   template<class T>
+   concept Integer32 = Integer<T> and sizeof(T) == 4;
+   template<class T>
+   concept Integer64 = Integer<T> and sizeof(T) == 8;
+
+   template<class T>
+   concept Real16 = Real<T> and sizeof(T) == 2;
+   template<class T>
+   concept Real32 = Real<T> and sizeof(T) == 4;
+   template<class T>
+   concept Real64 = Real<T> and sizeof(T) == 8;
+}
 
 namespace Langulus
 {
@@ -21,7 +61,7 @@ namespace Langulus
    ///   @return a reference to the underlying type                           
    template<CT::Scalar T, bool FAKE = false> LANGULUS(INLINED)
    constexpr decltype(auto) FundamentalCast(const T& a) noexcept {
-      using DT = Decay<Deint<T>>;
+      using DT = Decay<T>;
       if constexpr (CT::Fundamental<DT>) {
          // Already fundamental, just forward it                        
          return (a);
@@ -32,10 +72,10 @@ namespace Langulus
          // nest down to the fundamentals                               
          return FundamentalCast(static_cast<const TypeOf<DT>&>(DenseCast(a)));
       }
-      else if constexpr (FAKE)
-         return Unsupported {};
-      else
-         static_assert(false, "Can't perform FundamentalCast");
+      else {
+         static_assert(FAKE, "Can't perform FundamentalCast");
+         return No {};
+      }
    }
    
    /// Casts a scalar to its underlying fundamental type                      
@@ -46,7 +86,7 @@ namespace Langulus
    ///   @return a reference to the underlying type                           
    template<CT::Scalar T, bool FAKE = false> LANGULUS(INLINED)
    constexpr decltype(auto) FundamentalCast(T& a) noexcept {
-      using DT = Decay<Deint<T>>;
+      using DT = Decay<T>;
       if constexpr (CT::Fundamental<DT>) {
          // Already fundamental, just forward it                        
          return (a);
@@ -57,25 +97,22 @@ namespace Langulus
          // nest down to the fundamentals                               
          return FundamentalCast(static_cast<TypeOf<DT>&>(DenseCast(a)));
       }
-      else if constexpr (FAKE)
-         return Unsupported {};
-      else
-         static_assert(false, "Can't perform FundamentalCast");
+      else {
+         static_assert(FAKE, "Can't perform FundamentalCast");
+         return No {};
+      }
    }
 
    namespace CT
    {
-
       /// Check if an instance of T can be converted to a fundamental         
       template<class...T>
       concept CastsToFundamental = (
-         Supported<decltype(FundamentalCast<T, true>(Fake<T&>()))> and ...);
-
-   } // namespace Langulus::CT
+         Supported<decltype(FundamentalCast<T, true>(LglsFake(T&)))> and ...);
+   }
     
    namespace Inner
    {
-
       /// When given two types, choose the one that is most lossless in terms 
       /// of behavior, and capacity                                           
       ///  - if T1 or T2 is an array, an array of OverlapCount size will be   
@@ -92,10 +129,10 @@ namespace Langulus
       ///   @attention this will discard any sparseness or other modifiers    
       ///   @attention this will shed any intents                             
       template<class T1, class T2>
-      consteval auto Lossless() {
+      consteval auto PickLossless() {
          constexpr auto size = OverlapCounts<T1, T2>();
-         using LHS = Decay<TypeOf<Deint<T1>>>;
-         using RHS = Decay<TypeOf<Deint<T2>>>;
+         using LHS = Decay<TypeOf<T1>>;
+         using RHS = Decay<TypeOf<T2>>;
 
          if constexpr (CT::Fundamental<LHS, RHS>) {
             // Both types are fundamental                               
@@ -152,7 +189,7 @@ namespace Langulus
       /// Nest the above function for all types in a variadic template        
       template<class T1, class T2, class...TN>
       consteval auto LosslessNestedInner() {
-         using T1T2 = decltype(Lossless<T1, T2>());
+         using T1T2 = decltype(PickLossless<T1, T2>());
 
          if constexpr (sizeof...(TN))
             return LosslessNestedInner<T1T2, TN...>();
@@ -163,29 +200,30 @@ namespace Langulus
       /// Nest the above function for all types in a variadic template        
       template<class T1, class...TN>
       consteval auto LosslessNested() {
-         if constexpr (sizeof...(TN) == 0)
-            return ::std::array<Decay<TypeOf<T1>>, CountOf<T1>> {};
-         else
-            return LosslessNestedInner<T1, TN...>();
+         if constexpr (sizeof...(TN) == 0) {
+            if constexpr (CT::Typed<T1>)
+               return ::std::array<Decay<TypeOf<T1>>, ExtentOf<T1>> {};
+            else
+               return ::std::array<Decay<T1>, ExtentOf<T1>> {};
+         }
+         else return LosslessNestedInner<T1, TN...>();
       }
-
-   } // namespace Langulus::Inner
+   }
 
    /// Given any number of types, choose the one that is most lossless        
    /// after an arithmetic operation is performed between them. If any type   
    /// is an array, an array of OverlapCount size will be given back.         
    ///   @attention this will discard any sparseness or other modifiers       
    template<class T1, class...TN>
-   using Lossless = Conditional<
-         CountOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())> == 1,
-          TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>,
-          TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>
-               [CountOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>]
+   using Lossless = ::std::conditional_t<
+         ExtentOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())> == 1,
+           TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>,
+           TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>
+               [ExtentOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>]
       >;
 
    namespace Inner
    {
-
       template<class T, bool FORCE_SIGNED = false>
       consteval auto WiderInner() {
          if constexpr (CT::SignedInteger8<T>)
@@ -214,9 +252,9 @@ namespace Langulus
          }
          else if constexpr (CT::Integer64<T>)
             return Types<T> {};
-         else if constexpr (CT::Float<T>)
+         else if constexpr (CT::Real32<T>)
             return Types<double> {};
-         else if constexpr (CT::Double<T>)
+         else if constexpr (CT::Real64<T>)
             return Types<double> {};
          else
            static_assert(false, "Can't find a wider type");
@@ -238,15 +276,14 @@ namespace Langulus
             return Types<int32_t> {};
          else if constexpr (CT::UnsignedInteger64<T>)
             return Types<uint32_t> {};
-         else if constexpr (CT::Float<T>)
+         else if constexpr (CT::Real32<T>)
             return Types<T> {};
-         else if constexpr (CT::Double<T>)
+         else if constexpr (CT::Real64<T>)
             return Types<float> {};
          else
            static_assert(false, "Can't find a narrower type");
       }
-
-   } // namespace Langulus::Inner
+   }
 
    /// Get a wider fundamental type, if possible                              
    /// uint32_t -> uint64_t                                                   
@@ -268,5 +305,4 @@ namespace Langulus
    using Narrower = typename decltype(
          ::Langulus::Inner::NarrowerInner<Lossless<T1, TN...>>()
       )::First;
-
-} // namespace Langulus
+}

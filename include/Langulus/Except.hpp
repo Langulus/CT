@@ -25,7 +25,7 @@ namespace Langulus
    ///   General exception                                                    
    ///                                                                        
    /// It is an equivalent to std::runtime_error, but with additional info    
-   /// for debug builds, like message and location strings                    
+   /// for debug builds, like message and location strings.                   
    struct Exception {
       using CTTI_Exception = Yup;
 
@@ -35,15 +35,19 @@ namespace Langulus
 
       #if LANGULUS(DEBUG)
          // Exception message                                           
-         const char* mMessage  = DefaultMessage;
+         const char* mMessage;
          // Exception location, as a separate literal to avoid concat   
-         const char* mLocation = DefaultLocation;
+         const char* mLocation;
 
-         constexpr Exception(const char* message, const char* location) noexcept
-            : mMessage  {message}
-            , mLocation {location} {}
+         constexpr Exception(
+            const char* message = DefaultMessage,
+            const char* location = DefaultLocation
+         ) noexcept : mMessage  {message}, mLocation {location} {}
       #else
-         constexpr Exception(const char*, const char*) noexcept {}
+         constexpr Exception(
+            const char* = DefaultMessage,
+            const char* = DefaultLocation
+         ) noexcept {}
       #endif
    };
 }
