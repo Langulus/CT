@@ -24,6 +24,10 @@ namespace Langulus::CTTI
    {
       template<class>
       struct AbilitySet;
+
+      struct MakeConceptualAbility {
+         static constexpr bool Conceptual = true;
+      };   
    }
 }
 
@@ -36,9 +40,9 @@ namespace Langulus::CT::Inner
       static_assert(NotConvoluted<T>, "Strip qualifiers first");
       static_assert(NotReference<T>,  "Strip references first");
       static_assert(NotSheddable<T>,  "Strip sheddables first");
-      static_assert(Exact<DecvqAll<T>, T>,
+      static_assert(::std::is_same_v<DecvqAll<T>, T>,
          "Strip all decorations on all indirections first");
-      static_assert((Exact<DecvqAll<PREV>, PREV> and ...),
+      static_assert((::std::is_same_v<DecvqAll<PREV>, PREV> and ...),
          "Strip all decorations on all indirections first");
       
       using M = CTTI::Ability<T, PROGRESS>;
@@ -72,9 +76,9 @@ namespace Langulus::CT::Inner
       static_assert(NotConvoluted<OF, VERB>, "Strip qualifiers first");
       static_assert(NotReference<OF, VERB>,  "Strip references first");
       static_assert(NotSheddable<OF, VERB>,  "Strip sheddables first");
-      static_assert(Exact<DecvqAll<OF>, OF>,
+      static_assert(::std::is_same_v<DecvqAll<OF>, OF>,
          "Strip all decorations on all indirections first in OF");
-      static_assert(Exact<DecvqAll<VERB>, VERB>,
+      static_assert(::std::is_same_v<DecvqAll<VERB>, VERB>,
          "Strip all decorations on all indirections first in VERB");
 
       using M = CTTI::Ability<OF, PROGRESS>;
@@ -83,72 +87,32 @@ namespace Langulus::CT::Inner
             constexpr typename M::Verbs verbs;
             if constexpr (verbs.template Contains<VERB>) {
                // Prioritize concrete specializations over concept ones 
+               if constexpr (requires { typename M::Conceptual; }) {//TODO i initially forgot to add this to the implementation, but tests still passed - make sure we add more tests and evaluate if this is necessary at all
+                  constexpr int concrete = FindAbility<OF, VERB, PROGRESS + 1, UNIQUE>();
+                  if constexpr (concrete == -1)
+                     return PROGRESS;
+                  else
+                     return concrete;
+               }
+               else return PROGRESS;
+            }
+            else return FindAbility<OF, VERB, PROGRESS + 1, UNIQUE>();
+         }
+         else if constexpr (::std::is_same_v<typename M::Can, VERB>) {
+            // Prioritize concrete specializations over concept ones    
+            if constexpr (requires { typename M::Conceptual; }) {//TODO i initially forgot to add this to the implementation, but tests still passed - make sure we add more tests and evaluate if this is necessary at all
                constexpr int concrete = FindAbility<OF, VERB, PROGRESS + 1, UNIQUE>();
                if constexpr (concrete == -1)
                   return PROGRESS;
                else
                   return concrete;
             }
-            else return FindAbility<OF, VERB, PROGRESS + 1, UNIQUE>();
-         }
-         else if constexpr (::std::is_same_v<typename M::Can, VERB>) {
-            // Prioritize concrete specializations over concept ones    
-            constexpr int concrete = FindAbility<OF, VERB, PROGRESS + 1, UNIQUE>();
-            if constexpr (concrete == -1)
-               return PROGRESS;
-            else
-               return concrete;
+            else return PROGRESS;
          }
          else return FindAbility<OF, VERB, PROGRESS + 1, UNIQUE>();
       }
       else return -1;
    }
-   
-   /// Helper function to extract all associated abilities                    
-   /*template<class T>
-   consteval auto GetAllAbilities() {
-      static_assert(not ::std::is_reference_v<T>, "Strip references first");
-      static_assert(not ::std::is_const_v<T>, "Strip qualifiers first");
-      using ctti = CTTI::Ability<T>;
-
-      if constexpr (CT::Complete<ctti>) {
-         // Checked externally, T doesn't have to be complete           
-         if constexpr (CT::Void<ctti>)
-            return NoTypes {};
-         else {
-            if constexpr (CT::Typelist<ctti>) {
-               // Defined as in examples 2)                             
-               return ctti {};
-            }
-            else {
-               // Defined as in example 1)                              
-               return Types<typename ctti::ConsistentNamedVerbTypeEvenIfInherited> {};
-            }
-         }
-      }
-      else {
-         // Checked internally, T has to be a complete type             
-         static_assert(CT::Complete<T>,
-            "Can't access `CTTI_Ability` inside incomplete type");
-
-         if constexpr (requires { typename T::CTTI_Ability; }) {
-            using inner = typename T::CTTI_Ability;
-            if constexpr (CT::Void<inner>)
-               return NoTypes {};
-            else {
-               if constexpr (CT::Typelist<inner>) {
-                  // Defined as in examples 4)                          
-                  return inner {};
-               }
-               else {
-                  // Defined as in examples 3)                          
-                  return Types<inner> {};
-               }
-            }
-         }
-         else return NoTypes {};
-      }
-   };*/
 }
 
 namespace Langulus::CT
@@ -175,6 +139,44 @@ namespace Langulus
 
 #include "../Utils/StaticSet.hpp"
 
+/// Extent OF with the abilities provided by you. Example in which allow for  
+/// integers to be added to other integers:                                   
+///  LglsImplementAbilitiesFor(int) {                                         
+///     using Can = Verbs::Add;                                               
+///     static bool Default(int& lhs, Verb& verb) {                           
+///         const Many& rhs = verb.GetArgument();                             
+///         rhs.ForEach([&lhs](int const& i) { lhs += i; });                  
+///         return true;                                                      
+///     }                                                                     
+///     static bool Default(int const& lhs, Verb& verb) {                     
+///         const Many& rhs = verb.GetArgument();                             
+///         int result = lhs;                                                 
+///         rhs.ForEach([&result](int const& i) { result += i; });            
+///         verb << result;                                                   
+///         return true;                                                      
+///     }                                                                     
+///  };                                                                       
 #define LglsImplementAbilitiesFor(OF) \
    template<int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::AbilitySet<OF>, HERE()>()) \
    struct Ability<OF, UNIQUE>
+   
+/// Same as above, but uses a concept to group types. Here's a more elegant   
+/// solution to the above, that applies to all number types:                  
+///  LglsImplementAbilitiesForConcept(CT::Number) {                           
+///     using Can = Verbs::Add;                                               
+///     static bool Default(OF& lhs, Verb& verb) {                            
+///         const Many& rhs = verb.GetArgument();                             
+///         rhs.ForEach([&lhs](OF const& i) { lhs += i; });                   
+///         return true;                                                      
+///     }                                                                     
+///     static bool Default(OF const& lhs, Verb& verb) {                      
+///         const Many& rhs = verb.GetArgument();                             
+///         OF result = lhs;                                                  
+///         rhs.ForEach([&result](OF const& i) { result += i; });             
+///         verb << result;                                                   
+///         return true;                                                      
+///     }                                                                     
+///  };                                                                       
+#define LglsImplementAbilitiesForConcept(CONCEPT, OF) \
+   template<CONCEPT OF, int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::AbilitySet<OF>, HERE()>()) \
+   struct Ability<OF, UNIQUE> : Inner::MakeConceptualAbility

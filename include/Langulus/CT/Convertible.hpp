@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Akin.hpp"
+//#include "Akin.hpp"
 #include "../Typenav.hpp"
 #include "../Utils/Types.hpp"
 
@@ -51,9 +51,9 @@ namespace Langulus::CT
          static_assert(NotConvoluted<T>, "Strip qualifiers first");
          static_assert(NotReference<T>,  "Strip references first");
          static_assert(NotSheddable<T>,  "Strip sheddables first");
-         static_assert(Exact<DecvqAll<T>, T>,
+         static_assert(::std::is_same_v<DecvqAll<T>, T>,
             "Strip all decorations on all indirections first");
-         static_assert((Exact<DecvqAll<PREV>, PREV> and ...),
+         static_assert((::std::is_same_v<DecvqAll<PREV>, PREV> and ...),
             "Strip all decorations on all indirections first");
          
          using M = CTTI::Morphism<T, PROGRESS>;
@@ -81,9 +81,9 @@ namespace Langulus::CT
          static_assert(NotConvoluted<FROM, TO>, "Strip qualifiers first");
          static_assert(NotReference<FROM, TO>,  "Strip references first");
          static_assert(NotSheddable<FROM, TO>,  "Strip sheddables first");
-         static_assert(Exact<DecvqAll<FROM>, FROM>,
+         static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>,
             "Strip all decorations on all indirections first in FROM");
-         static_assert(Exact<DecvqAll<TO>, TO>,
+         static_assert(::std::is_same_v<DecvqAll<TO>, TO>,
             "Strip all decorations on all indirections first in TO");
 
          using M = CTTI::Morphism<FROM, PROGRESS>;
@@ -91,11 +91,14 @@ namespace Langulus::CT
             constexpr typename M::To to;
             if constexpr (to.template Contains<TO>) {
                // Prioritize concrete specializations over concept ones 
-               constexpr int concrete = FindMorphism<FROM, TO, PROGRESS + 1, UNIQUE>();
-               if constexpr (concrete == -1)
-                  return PROGRESS;
-               else
-                  return concrete;
+               if constexpr (requires { typename M::Conceptual; }) {//TODO i initially forgot to add this to the implementation, but tests still passed - make sure we add more tests and evaluate if this is necessary at all
+                  constexpr int concrete = FindMorphism<FROM, TO, PROGRESS + 1, UNIQUE>();
+                  if constexpr (concrete == -1)
+                     return PROGRESS;
+                  else
+                     return concrete;
+               }
+               else return PROGRESS;
             }
             else return FindMorphism<FROM, TO, PROGRESS + 1, UNIQUE>();
          }
@@ -203,7 +206,7 @@ namespace Langulus
          static constexpr bool Conceptual = true; \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
-         static_assert(Exact<DecvqAll<T>, T>, "Strip all decorations on all indirections first"); \
+         static_assert(::std::is_same_v<DecvqAll<T>, T>, "Strip all decorations on all indirections first"); \
       }; \
    }
 
@@ -218,7 +221,7 @@ namespace Langulus
          static constexpr bool Conceptual = true; \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
-         static_assert(Exact<DecvqAll<T>, T>, "Strip all decorations on all indirections first"); \
+         static_assert(::std::is_same_v<DecvqAll<T>, T>, "Strip all decorations on all indirections first"); \
          template<class TO> \
          static constexpr TO Convert(ConstAll<T&> from) BODY \
       }; \
@@ -233,7 +236,7 @@ namespace Langulus
       struct Morphism<FROM, UNIQUE> { \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
-         static_assert(Exact<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
+         static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
       }; \
    }
 
@@ -246,7 +249,7 @@ namespace Langulus
       struct Morphism<FROM, UNIQUE> { \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
-         static_assert(Exact<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
+         static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
          template<class TO> \
          static constexpr TO Convert(FROM const& from) BODY \
       }; \
