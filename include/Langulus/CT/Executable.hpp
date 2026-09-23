@@ -9,7 +9,7 @@
 #include "../Typenav.hpp"
 
 
-namespace Langulus::Flow
+namespace Langulus::Annies
 {
    /// Predeclaration of type-erased function container                       
    struct Verb;
@@ -25,7 +25,7 @@ namespace Langulus::CTTI
 
    /// Type-erased verbs are always marked executable                         
    template<>
-   struct Executable<::Langulus::Flow::Verb> {};
+   struct Executable<::Langulus::Annies::Verb> {};
 }
 
 namespace Langulus::CT
