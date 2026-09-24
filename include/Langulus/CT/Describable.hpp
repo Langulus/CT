@@ -7,14 +7,20 @@
 ///                                                                           
 #pragma once
 #include "Abstract.hpp"
+#include "DefineTag.hpp"
 
 
 namespace Langulus
 {
-   namespace Annies
+   /*namespace Annies
    {
       struct Many;
    }
+
+   namespace RTTI
+   {
+      struct DMeta;
+   }*/
 
    ///                                                                        
    /// Descriptor intermediate type, used in constructors and assignment      
@@ -23,7 +29,7 @@ namespace Langulus
    /// You should #include <Langulus/Annies/Many.hpp>                         
    ///        and #include <Langulus/CT/Describable.hpp>                      
    ///        in order to use Describe semantics                              
-   struct Describe {
+   struct Describe; /*{
       using Many = Annies::Many;
       const Many& what;
 
@@ -41,7 +47,24 @@ namespace Langulus
 
       auto& operator *  () const noexcept { return  what; }
       auto* operator -> () const noexcept { return &what; }
-   };
+
+      ///                                                                     
+      /// These are higher order services, and are implemented in Annies      
+      ///                                                                     
+      template<CT::DefineTag>
+      void Set(auto&&, bool force = false);
+
+      template<CT::DefineTag...>
+      bool ExtractTag(auto&...) const;
+      auto ExtractData(auto&) const -> size_t;
+      auto ExtractDataAs(auto&) const -> size_t;
+
+      template<CT::NotVoid>
+      auto FindType() const -> RTTI::DMeta;
+
+      template<class TYPE>
+      auto FindType(RTTI::DMeta) const -> RTTI::DMeta;
+   };*/
 }
 
 namespace Langulus::CT
@@ -51,16 +74,12 @@ namespace Langulus::CT
    template<class...T>
    concept DescribeConstructible = not Abstract<T...>
        and not Enum<T...> and not Aggregate<T...>
-       and requires (const Annies::Many& a) {
-         (T (Describe {a}), ...);
-       };
+       and requires (Describe a) { (T {a}, ...); };
    
    /// Check if all T are describe-assignable.                                
    /// It has to have the T::operator = (Describe&&) constructor.             
    template<class...T>
    concept DescribeAssignable = not Abstract<T...>
        and not Enum<T...> and not Aggregate<T...>
-       and requires (T&...lhs, const Annies::Many& rhs) {
-         ((lhs = Describe {rhs}), ...);
-       };
+       and requires (T&...lhs, Describe rhs) { ((lhs = rhs), ...); };
 }

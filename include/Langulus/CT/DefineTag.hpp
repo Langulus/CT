@@ -51,11 +51,14 @@ namespace Langulus::CT::Inner
          static_assert(CT::Complete<T>,
             "Can't access CTTI_DefineTag in incomplete type");
 
-         using inner = typename T::CTTI_DefineTag;
-         if constexpr (CT::Void<inner>)
-            return No {};
-         else 
-            return inner {};
+         if constexpr (requires { typename T::CTTI_DefineTag; }) {
+            using inner = typename T::CTTI_DefineTag;
+            if constexpr (CT::Void<inner>)
+               return No {};
+            else 
+               return inner {};
+         }
+         else return No {};
       }
       else return No {};
    }

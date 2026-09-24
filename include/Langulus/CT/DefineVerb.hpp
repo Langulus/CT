@@ -75,11 +75,14 @@ namespace Langulus::CT::Inner
          static_assert(CT::Complete<T>,
             "Can't access CTTI_DefineVerb in incomplete type");
 
-         using inner = typename T::CTTI_DefineVerb;
-         if constexpr (CT::Void<inner>)
-            return No {};
-         else 
-            return inner {};
+         if constexpr (requires { typename T::CTTI_DefineVerb; }) {
+            using inner = typename T::CTTI_DefineVerb;
+            if constexpr (CT::Void<inner>)
+               return No {};
+            else 
+               return inner {};
+         }
+         else return No {};
       }
       else return No {};
    }
@@ -102,11 +105,14 @@ namespace Langulus::CT::Inner
          static_assert(CT::Complete<T>,
             "Can't access CTTI_DefineVerbOp in incomplete type");
 
-         using inner = typename T::CTTI_DefineVerbOp;
-         if constexpr (CT::Void<inner>)
-            return No {};
-         else 
-            return inner {};
+         if constexpr (requires { typename T::CTTI_DefineVerb; }) {
+            using inner = typename T::CTTI_DefineVerbOp;
+            if constexpr (CT::Void<inner>)
+               return No {};
+            else 
+               return inner {};
+         }
+         else return No {};
       }
       else return No {};
    }

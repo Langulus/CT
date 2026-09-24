@@ -102,23 +102,26 @@ namespace Langulus::CT::Inner
             "T must be complete in order to extract named values from it");
 
          using inner = typename T::CTTI_Values;
-         if constexpr (CT::Void<inner>) {
-            // Named values are explicitly disabled for T               
-            return NoTypes {};
-         }
-         else if constexpr (CT::Typelist<inner>) {
-            // Constants are defined as a sequence of NamedValue(s)     
-            return inner {};
-         }
-         else if constexpr (CT::Valuelist<inner>) {
-            // Constants are defined as a sequence of values            
-            return ctti::Expand([]<auto...E> {
-               return Types<NamedValue<E>...> {};
-            });
-         }
-         else if constexpr (requires { inner::Constant; }) {
-            // Constant should be a single NamedValue                   
-            return Types<inner> {};
+         if constexpr (requires { typename T::CTTI_Values; }) {
+            if constexpr (CT::Void<inner>) {
+               // Named values are explicitly disabled for T            
+               return NoTypes {};
+            }
+            else if constexpr (CT::Typelist<inner>) {
+               // Constants are defined as a sequence of NamedValue(s)  
+               return inner {};
+            }
+            else if constexpr (CT::Valuelist<inner>) {
+               // Constants are defined as a sequence of values         
+               return ctti::Expand([]<auto...E> {
+                  return Types<NamedValue<E>...> {};
+               });
+            }
+            else if constexpr (requires { inner::Constant; }) {
+               // Constant should be a single NamedValue                
+               return Types<inner> {};
+            }
+            else return NoTypes {};
          }
          else return NoTypes {};
       }

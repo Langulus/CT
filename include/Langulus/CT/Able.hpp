@@ -162,7 +162,7 @@ namespace Langulus
    
 /// Same as above, but uses a concept to group types. Here's a more elegant   
 /// solution to the above, that applies to all number types:                  
-///  LglsImplementAbilitiesForConcept(CT::Number) {                           
+///  LglsImplementAbilitiesForConcept(CT::Number, OF) {                       
 ///     using Can = Verbs::Add;                                               
 ///     static bool Default(OF& lhs, Verb& verb) {                            
 ///         const Many& rhs = verb.GetArgument();                             
