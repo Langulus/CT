@@ -8,7 +8,9 @@
 #pragma once
 #include "../Utils/Types.hpp"
 #include "Fundamental.hpp"
+#include "Langulus/Typenav.hpp"
 #include "Scalar.hpp"
+#include "Sheddable.hpp"
 #include "Typed.hpp"
 #include "Support.hpp"
 #include "Signed.hpp"
@@ -113,6 +115,53 @@ namespace Langulus
     
    namespace Inner
    {
+      /// Returns the extent overlap of two arrays/non arrays                 
+      ///   @return the smaller extent, if two arrays are provided;           
+      ///           the bigger extent, if one of the arguments isn't an array;
+      ///           1 if both arguments are not arrays;                       
+      template<class LHS, class RHS>
+      consteval size_t OverlapCounts() noexcept {
+         static_assert(CT::NotSheddable<LHS, RHS>, "Shed all sheddables first");
+         static_assert(CT::NotConvoluted<LHS, RHS>, "Shed all qualifiers first");
+         constexpr auto lhs = AllExtentsOf<LHS>;
+         constexpr auto rhs = AllExtentsOf<RHS>;
+
+         if constexpr (lhs > 1 and rhs > 1)
+            return lhs < rhs ? lhs : rhs;
+         else if constexpr (lhs > 1)
+            return lhs;
+         else if constexpr (rhs > 1)
+            return rhs;
+         else
+            return 1;
+      }
+
+      /*#define OVERLAP_EXTENTS(l,r) OverlapExtents<decltype(l), decltype(r)>()
+      
+      /// Returns the count overlap of two vectors/scalars                       
+      /// This is used to decide the output array size, for containing the       
+      /// result of an arithmetic operation                                      
+      ///   @tparam LHS - left type                                              
+      ///   @tparam RHS - right type                                             
+      ///   @return the overlapping count:                                       
+      ///           the smaller extent, if two arrays are provided;              
+      ///           the bigger extent, if one of the arguments isn't a vector    
+      ///           1 if both arguments are not arrays                           
+      template<class LHS, class RHS>
+      consteval Count OverlapCounts() noexcept {
+         constexpr auto lhs = CountOf<Deint<LHS>>;
+         constexpr auto rhs = CountOf<Deint<RHS>>;
+
+         if constexpr (lhs > 1 and rhs > 1)
+            return lhs < rhs ? lhs : rhs;
+         else if constexpr (lhs > 1)
+            return lhs;
+         else if constexpr (rhs > 1)
+            return rhs;
+         else
+            return 1;
+      }*/
+      
       /// When given two types, choose the one that is most lossless in terms 
       /// of behavior, and capacity                                           
       ///  - if T1 or T2 is an array, an array of OverlapCount size will be   
@@ -125,17 +174,18 @@ namespace Langulus
       ///  - if one of the types is not CT::Fundamental type, it will always  
       ///    be preferred, as it may have custom behavior                     
       ///  - if both types are not CT::Fundamental, the first type is always  
-      ///    preferred (fallback)                                             
-      ///   @attention this will discard any sparseness or other modifiers    
-      ///   @attention this will shed any intents                             
+      ///    preferred as a deterministic fallback                            
       template<class T1, class T2>
       consteval auto PickLossless() {
+         static_assert(CT::NotSheddable<T1, T2>, "Shed all sheddables first");
+         static_assert(CT::NotConvoluted<T1, T2>, "Shed all qualifiers first");
          constexpr auto size = OverlapCounts<T1, T2>();
-         using LHS = Decay<TypeOf<T1>>;
-         using RHS = Decay<TypeOf<T2>>;
 
-         if constexpr (CT::Fundamental<LHS, RHS>) {
+         if constexpr (CT::Fundamental<DeextAll<T1>, DeextAll<T2>>) {
             // Both types are fundamental                               
+            using LHS = Decay<T1>;
+            using RHS = Decay<T2>;
+   
             if constexpr (CT::Real<LHS, RHS>) {
                // Always prefer the bigger real number                  
                if constexpr (sizeof(LHS) >= sizeof(RHS))
@@ -175,20 +225,28 @@ namespace Langulus
                   return ::std::array<::std::make_signed_t<LHS>, size> {};
             }
          }
-         else if constexpr (CT::Fundamental<LHS>) {
+         else if constexpr (CT::Fundamental<DeextAll<T1>>) {
             // RHS isn't fundamental, so always prefer it               
-            return ::std::array<RHS, size> {};
+            if constexpr (CT::Typed<T2>)
+               return ::std::array<Decay<TypeOf<T2>>, size> {};
+            else
+               return ::std::array<Decay<T2>, size> {};
          }
          else {
-            // Either both types aren't fundamental, or the RHS one is  
-            // Just fallback to LHS                                     
-            return ::std::array<LHS, size> {};
+            // Either both types aren't fundamental, or the RHS one is. 
+            // Just fallback to LHS.                                    
+            if constexpr (CT::Typed<T1>)
+               return ::std::array<Decay<TypeOf<T1>>, size> {};
+            else
+               return ::std::array<Decay<T1>, size> {};
          }
       }
 
       /// Nest the above function for all types in a variadic template        
       template<class T1, class T2, class...TN>
       consteval auto LosslessNestedInner() {
+         static_assert(CT::NotSheddable<T1, T2, TN...>, "Shed all sheddables first");
+         static_assert(CT::NotConvoluted<T1, T2, TN...>, "Shed all qualifiers first");
          using T1T2 = decltype(PickLossless<T1, T2>());
 
          if constexpr (sizeof...(TN))
@@ -198,28 +256,32 @@ namespace Langulus
       }
 
       /// Nest the above function for all types in a variadic template        
+      ///   @attention this strips all sheddables and qualifiers              
       template<class T1, class...TN>
       consteval auto LosslessNested() {
          if constexpr (sizeof...(TN) == 0) {
-            if constexpr (CT::Typed<T1>)
-               return ::std::array<Decay<TypeOf<T1>>, ExtentOf<T1>> {};
+            using T = DecvqAll<ShedDeref<T1>>;
+            if constexpr (CT::Typed<T>)
+               return ::std::array<Decay<TypeOf<T>>, AllExtentsOf<T>> {};
             else
-               return ::std::array<Decay<T1>, ExtentOf<T1>> {};
+               return ::std::array<Decay<T>, AllExtentsOf<T>> {};
          }
-         else return LosslessNestedInner<T1, TN...>();
+         else return LosslessNestedInner<DecvqAll<ShedDeref<T1>>, DecvqAll<ShedDeref<TN>>...>();
       }
    }
 
    /// Given any number of types, choose the one that is most lossless        
    /// after an arithmetic operation is performed between them. If any type   
    /// is an array, an array of OverlapCount size will be given back.         
-   ///   @attention this will discard any sparseness or other modifiers       
+   ///   @attention this will discard any sheddables and qualifiers           
+   ///   @attention this never does integer promotions - only the involved    
+   ///      types are considered!                                             
    template<class T1, class...TN>
    using Lossless = ::std::conditional_t<
-         ExtentOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())> == 1,
-           TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>,
-           TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>
-               [ExtentOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>]
+         AllExtentsOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())> == 1,
+               TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>,
+               TypeOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>
+                   [AllExtentsOf<decltype(::Langulus::Inner::LosslessNested<T1, TN...>())>]
       >;
 
    namespace Inner

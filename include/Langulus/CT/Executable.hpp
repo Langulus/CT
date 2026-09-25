@@ -12,7 +12,9 @@
 namespace Langulus::Annies
 {
    /// Predeclaration of type-erased function container                       
-   struct Verb;
+   template<class> 
+   struct TVerb;
+   using Verb = TVerb<void>;
 }
 
 namespace Langulus::CTTI
