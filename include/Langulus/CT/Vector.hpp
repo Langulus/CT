@@ -6,22 +6,21 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
+#include "Langulus/Typenav.hpp"
 #include <Langulus/CT/Typed.hpp>
-#include <Langulus/IntentOf.hpp>
-#include <Langulus/Utils/Byte.hpp>
 
 
-namespace Langulus::CT
+namespace Langulus::CTTI
 {
-   /// Check if all the provided types are considered Vector types.           
-   /// Any type that is Typed and has extent that is at least 2, and          
-   /// the T's size is exactly equal to sizeof(TypeOf<T>) * AllExtentsOf<T>.  
-   /// Additionally, all bounded arrays with more than a single element are   
-   /// also considered Vector.                                                
-   template<class...T>
-   concept Vector = (((Typed<Deint<T>>
-            and AllExtentsOf<Deint<T>> > 1
-            and sizeof(Deint<T>) == sizeof(TypeOf<Deint<T>>) * AllExtentsOf<Deint<T>>
-         ) or (::std::extent_v<Deint<T>> > 1)
-      ) and ...);
+   /// Extends T by marking it as a vector. Examples:                         
+   /// 1) template<> struct Vector<YourType> {};                              
+   /// 2) struct YourType { using CTTI_Vector = Yup; };                       
+   template<class T>
+   struct Vector;
+
+   /// Make all custom or standard arrays with extent > 1 be considered vector
+   template<class T> requires (AllExtentsOf<T> > 1 and sizeof(T) == sizeof(TypeOf<T>) * AllExtentsOf<T>)
+   struct Vector<T> {};
 }
+
+LANGULUS_CTTI_CONCEPT_DECVQ(Vector);
