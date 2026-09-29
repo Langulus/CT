@@ -12,6 +12,7 @@
 #include "CT/Derived.hpp"
 #include "CT/POD.hpp"
 #include "CT/Support.hpp"
+#include "CT/Typed.hpp"
 
 
 namespace Langulus::CTTI
@@ -219,7 +220,7 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr const T* operator -> () const noexcept { return SparseCast(what); }
+      constexpr const T* operator -> () const noexcept { return &what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -296,7 +297,7 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr const T* operator -> () const noexcept { return SparseCast(what); }
+      constexpr const T* operator -> () const noexcept { return &what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -384,7 +385,7 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr T* operator -> () const noexcept { return SparseCast(what); }
+      constexpr T* operator -> () const noexcept { return &what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -474,7 +475,7 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr T* operator -> () const noexcept { return SparseCast(what); }
+      constexpr T* operator -> () const noexcept { return &what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -548,7 +549,7 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr const T* operator -> () const noexcept { return SparseCast(what); }
+      constexpr const T* operator -> () const noexcept { return &what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -610,7 +611,7 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr const T* operator -> () const noexcept { return SparseCast(what); }
+      constexpr const T* operator -> () const noexcept { return &what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
