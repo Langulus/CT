@@ -6,13 +6,11 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Utils/Types.hpp"
+#include "../Typenav.hpp"
+#include "../IntentOf.hpp"
 #include "Fundamental.hpp"
-#include "Langulus/Typenav.hpp"
 #include "Scalar.hpp"
-#include "Sheddable.hpp"
 #include "Typed.hpp"
-#include "Support.hpp"
 #include "Signed.hpp"
 
 
@@ -55,64 +53,20 @@ namespace Langulus::CT
 
 namespace Langulus
 {
-   /// Casts a scalar to its underlying fundamental type (const)              
-   /// If non-void T::CTTI_InnerType exists, or if T is an enum, the inner    
-   /// type returns                                                           
-   ///   @tparam T - type of the scalar/enum to cast                          
-   ///   @param a - the scalar to cast                                        
+   /// Casts a scalar to its underlying fundamental type.                     
+   /// Acts like a nested TypedCast().                                        
+   ///   @param a the scalar to cast                                          
    ///   @return a reference to the underlying type                           
-   template<CT::Scalar T, bool FAKE = false> LANGULUS(INLINED)
-   constexpr decltype(auto) FundamentalCast(const T& a) noexcept {
-      using DT = Decay<T>;
-      if constexpr (CT::Fundamental<DT>) {
-         // Already fundamental, just forward it                        
-         return (a);
-      }
-      else if constexpr ((CT::Typed<DT> or CT::Enum<DT>)
-      and requires { static_cast<const TypeOf<DT>&>(DenseCast(a)); }) {
+   template<CT::Scalar T> LANGULUS(ALWAYS_INLINED)
+   constexpr decltype(auto) FundamentalCast(T&& a) noexcept {
+      if constexpr (CT::Typed<T> and requires { TypedCast(DeintCast(a)); }) {
          // Explicitly cast to a reference of the contained type, and   
          // nest down to the fundamentals                               
-         return FundamentalCast(static_cast<const TypeOf<DT>&>(DenseCast(a)));
+         return FundamentalCast(TypedCast(DeintCast(a)));
       }
-      else {
-         static_assert(FAKE, "Can't perform FundamentalCast");
-         return No {};
-      }
-   }
-   
-   /// Casts a scalar to its underlying fundamental type                      
-   /// If non-void T::CTTI_InnerType exists, or if T is an enum, the inner    
-   /// type returns                                                           
-   ///   @tparam T - type of the scalar/enum to cast                          
-   ///   @param a - the scalar to cast                                        
-   ///   @return a reference to the underlying type                           
-   template<CT::Scalar T, bool FAKE = false> LANGULUS(INLINED)
-   constexpr decltype(auto) FundamentalCast(T& a) noexcept {
-      using DT = Decay<T>;
-      if constexpr (CT::Fundamental<DT>) {
-         // Already fundamental, just forward it                        
-         return (a);
-      }
-      else if constexpr ((CT::Typed<DT> or CT::Enum<DT>)
-      and requires { static_cast<TypeOf<DT>&>(DenseCast(a)); }) {
-         // Explicitly cast to a reference of the contained type, and   
-         // nest down to the fundamentals                               
-         return FundamentalCast(static_cast<TypeOf<DT>&>(DenseCast(a)));
-      }
-      else {
-         static_assert(FAKE, "Can't perform FundamentalCast");
-         return No {};
-      }
+      else return DeintCast(a);
    }
 
-   namespace CT
-   {
-      /// Check if an instance of T can be converted to a fundamental         
-      template<class...T>
-      concept CastsToFundamental = (
-         Supported<decltype(FundamentalCast<T, true>(LglsFake(T&)))> and ...);
-   }
-    
    namespace Inner
    {
       /// Returns the extent overlap of two arrays/non arrays                 
@@ -289,35 +243,35 @@ namespace Langulus
       template<class T, bool FORCE_SIGNED = false>
       consteval auto WiderInner() {
          if constexpr (CT::SignedInteger8<T>)
-            return Types<int16_t> {};
+            return ::std::type_identity<int16_t> {};
          else if constexpr (CT::UnsignedInteger8<T>) {
             if constexpr (FORCE_SIGNED)
-               return Types<int16_t> {};
+               return ::std::type_identity<int16_t> {};
             else
-               return Types<uint16_t> {};
+               return ::std::type_identity<uint16_t> {};
          }
          else if constexpr (CT::SignedInteger16<T>)
-            return Types<int32_t> {};
+            return ::std::type_identity<int32_t> {};
          else if constexpr (CT::UnsignedInteger16<T>) {
             if constexpr (FORCE_SIGNED)
-               return Types<int32_t> {};
+               return ::std::type_identity<int32_t> {};
             else
-               return Types<uint32_t> {};
+               return ::std::type_identity<uint32_t> {};
          }
          else if constexpr (CT::SignedInteger32<T>)
-            return Types<int64_t> {};
+            return ::std::type_identity<int64_t> {};
          else if constexpr (CT::UnsignedInteger32<T>) {
             if constexpr (FORCE_SIGNED)
-               return Types<int64_t> {};
+               return ::std::type_identity<int64_t> {};
             else
-               return Types<uint64_t> {};
+               return ::std::type_identity<uint64_t> {};
          }
          else if constexpr (CT::Integer64<T>)
-            return Types<T> {};
+            return ::std::type_identity<T> {};
          else if constexpr (CT::Real32<T>)
-            return Types<double> {};
+            return ::std::type_identity<double> {};
          else if constexpr (CT::Real64<T>)
-            return Types<double> {};
+            return ::std::type_identity<double> {};
          else
            static_assert(false, "Can't find a wider type");
       }
@@ -325,23 +279,23 @@ namespace Langulus
       template<class T>
       consteval auto NarrowerInner() {
          if constexpr (CT::Integer8<T>)
-            return Types<T> {};
+            return ::std::type_identity<T> {};
          else if constexpr (CT::SignedInteger16<T>)
-            return Types<int8_t> {};
+            return ::std::type_identity<int8_t> {};
          else if constexpr (CT::UnsignedInteger16<T>)
-            return Types<uint8_t> {};
+            return ::std::type_identity<uint8_t> {};
          else if constexpr (CT::SignedInteger32<T>)
-            return Types<int16_t> {};
+            return ::std::type_identity<int16_t> {};
          else if constexpr (CT::UnsignedInteger32<T>)
-            return Types<uint16_t> {};
+            return ::std::type_identity<uint16_t> {};
          else if constexpr (CT::SignedInteger64<T>)
-            return Types<int32_t> {};
+            return ::std::type_identity<int32_t> {};
          else if constexpr (CT::UnsignedInteger64<T>)
-            return Types<uint32_t> {};
+            return ::std::type_identity<uint32_t> {};
          else if constexpr (CT::Real32<T>)
-            return Types<T> {};
+            return ::std::type_identity<T> {};
          else if constexpr (CT::Real64<T>)
-            return Types<float> {};
+            return ::std::type_identity<float> {};
          else
            static_assert(false, "Can't find a narrower type");
       }
@@ -352,19 +306,19 @@ namespace Langulus
    template<class T1, class...TN>
    using Wider = typename decltype(
          ::Langulus::Inner::WiderInner<Lossless<T1, TN...>>()
-      )::First;
+      )::type;
 
    /// Get a signed wider fundamental type, if possible                       
    /// uint32_t -> int64_t                                                    
    template<class T1, class...TN>
    using WiderSigned = typename decltype(
          ::Langulus::Inner::WiderInner<Lossless<T1, TN...>, true>()
-      )::First;
+      )::type;
 
    /// Get a smaller fundamental type, if possible                            
    /// uint32_t -> uint16_t                                                   
    template<class T1, class...TN>
    using Narrower = typename decltype(
          ::Langulus::Inner::NarrowerInner<Lossless<T1, TN...>>()
-      )::First;
+      )::type;
 }

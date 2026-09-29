@@ -48,9 +48,13 @@ namespace Langulus
    consteval auto SuffixOf() {
       using DT = Decvq<Deref<T>>;
       constexpr auto suff = LANGULUS_CTTI_CHECK_EXTRACT(DT, Suffix, Literal {});
-      static_assert(IsASCII(suff), "Suffix must be ASCII");
-      static_assert(suff == "" or IsAlphabetical(suff[0]),
-         "Suffix must begin with an alphabetical symbol");
-      return suff;
+      if constexpr (suff == "")
+         return suff;
+      else {
+         static_assert(IsASCII(suff), "Suffix must be ASCII");
+         static_assert(suff == "" or IsAlphabetical(suff[0]),
+            "Suffix must begin with an alphabetical symbol");
+         return suff;
+      }
    }
 }

@@ -7,7 +7,7 @@
 ///                                                                           
 #pragma once
 #include "Akin.hpp"
-#include "Typelist.hpp"
+#include "../Utils/Types.hpp"
 
 
 namespace Langulus::CTTI
@@ -52,7 +52,7 @@ namespace Langulus::CT::Inner
    ///   @attention involves only C++ bases, not reflected ones               
    template<class T, class BASE>
    consteval bool DerivedFrom() {
-      if constexpr (::std::same_as<T, BASE>)
+      if constexpr (::std::is_same_v<T, BASE>)
          // Neither T nor BASE have to be complete                      
          return true;
       else

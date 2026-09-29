@@ -161,6 +161,12 @@ namespace Langulus
 
          if constexpr (CT::Void<InnerT>)
             return LglsFwd(what);
+         else if constexpr (requires { what.operator InnerT&& (); })
+            return what.operator InnerT&& ();
+         else if constexpr (requires { what.operator InnerT& (); })
+            return what.operator InnerT& ();
+         else if constexpr (requires { what.operator InnerT const& (); })
+            return what.operator InnerT const& ();
          else if constexpr (requires { what.operator InnerT (); })
             return what.operator InnerT ();
          else {

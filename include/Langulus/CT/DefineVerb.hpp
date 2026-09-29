@@ -123,7 +123,7 @@ namespace Langulus::CT::Inner
    template<class T>
    consteval auto PositiveNameOfVerb() {
       constexpr auto definition = DefinitionOfVerb<T>();
-      if constexpr (::std::is_same_v<decltype(definition), No>)
+      if constexpr (::std::is_same_v<decltype(definition), No const>)
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Positive;
@@ -140,7 +140,7 @@ namespace Langulus::CT::Inner
    template<class T>
    consteval auto NegativeNameOfVerb() {
       constexpr auto definition = DefinitionOfVerb<T>();
-      if constexpr (::std::is_same_v<decltype(definition), No>)
+      if constexpr (::std::is_same_v<decltype(definition), No const>)
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Negative;
@@ -157,7 +157,7 @@ namespace Langulus::CT::Inner
    template<class T>
    consteval auto PositiveOperatorOfVerb() {
       constexpr auto definition = DefinitionOfVerbOp<T>();
-      if constexpr (::std::is_same_v<decltype(definition), No>)
+      if constexpr (::std::is_same_v<decltype(definition), No const>)
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Positive;
@@ -172,7 +172,7 @@ namespace Langulus::CT::Inner
    template<class T>
    consteval auto NegativeOperatorOfVerb() {
       constexpr auto definition = DefinitionOfVerbOp<T>();
-      if constexpr (::std::is_same_v<decltype(definition), No>)
+      if constexpr (::std::is_same_v<decltype(definition), No const>)
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Negative;

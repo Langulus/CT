@@ -315,4 +315,15 @@ namespace Langulus
       else
          return Types<T1>{};
    }
+
+   namespace Typelists
+   {
+      using Arithmetic = Types<
+         float, double,
+         uint8_t, uint16_t, uint32_t, uint64_t,
+         int8_t,  int16_t,  int32_t,  int64_t
+      >;
+
+      using Fundamental = decltype(Arithmetic{} + Types<bool>{});
+   }
 }

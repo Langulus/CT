@@ -69,7 +69,7 @@ namespace Langulus::CT::Inner
    template<class T>
    consteval auto CustomNameOfTag() {
       constexpr auto definition = DefinitionOfTag<T>();
-      if constexpr (::std::is_same_v<decltype(definition), No>)
+      if constexpr (::std::is_same_v<decltype(definition), No const>)
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Token;

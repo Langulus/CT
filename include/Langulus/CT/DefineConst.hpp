@@ -101,8 +101,8 @@ namespace Langulus::CT::Inner
          static_assert(CT::Complete<T>,
             "T must be complete in order to extract named values from it");
 
-         using inner = typename T::CTTI_Values;
          if constexpr (requires { typename T::CTTI_Values; }) {
+            using inner = typename T::CTTI_Values;
             if constexpr (CT::Void<inner>) {
                // Named values are explicitly disabled for T            
                return NoTypes {};
@@ -131,7 +131,7 @@ namespace Langulus::CT::Inner
    /// Get the definition of a constant at compile-time                       
    ///   @tparam E the value to get the info of                               
    ///   @return a NamedValue if constant was defined, or No otherwise        
-   template<auto E>
+   /*template<auto E>
    consteval auto DefinitionOfConstant() {
       using T    = decltype(E);
       static_assert(not ::std::is_reference_v<T>, "Strip references first");
@@ -203,7 +203,7 @@ namespace Langulus::CT::Inner
    template<auto E>
    consteval auto CustomNameOfConstant() {
       constexpr auto definition = DefinitionOfConstant<E>();
-      if constexpr (::std::is_same_v<decltype(definition), No>)
+      if constexpr (::std::is_same_v<decltype(definition), No const>)
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Token;
@@ -212,10 +212,10 @@ namespace Langulus::CT::Inner
             "Constant name must begin with an alphabetical symbol");
          return c;
       }
-   }
+   }*/
 }
 
-namespace Langulus::CT
+/*namespace Langulus::CT
 {
    /// Checks if all E are defined constants                                  
    template<auto...E>
@@ -224,7 +224,7 @@ namespace Langulus::CT
    /// Checks if all E are not defined constants                              
    template<auto...E>
    concept NotDefineConstant = ((not DefineConstant<E>) and ...);
-}
+}*/
 
 namespace Langulus
 {

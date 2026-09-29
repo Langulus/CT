@@ -240,9 +240,12 @@ namespace Langulus
          return _data[0];
       }
       
-      /// Implicit cast to a string view, if N > 0                            
-      constexpr operator view_type() const noexcept requires (N > 0) {
-         return {data(), size()};
+      /// Implicit cast to a string view                                      
+      constexpr operator ::std::basic_string_view<char>() const noexcept {
+         if constexpr (N > 0 and ::std::is_same_v<T, char>)
+            return {data(), size()};
+         else
+            return "";
       }
 
       /// Get a region of the string                                          
