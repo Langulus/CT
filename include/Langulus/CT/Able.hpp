@@ -135,6 +135,16 @@ namespace Langulus
    using GatherAbilitiesOf = decltype(
       CT::Inner::GetAbilitiesOf<DecvqAll<Deref<T>>>(Types<>{})
    );
+
+   /// Invoke an ability by finding it at compile-time                        
+   //TODO this can also potentially be used to run flows at compile-time      
+   template<class OF, class ABILITY>
+   bool InvokeAbility(OF& context, ABILITY& verb) {
+      constexpr int ability = CT::Inner::FindAbility<OF, ABILITY>();
+      static_assert(ability >= 0, "OF lacks ABILITY");
+      using IMPLEMENTATION = CTTI::Ability<OF, ability>;
+      return IMPLEMENTATION::Default(context, verb);
+   }
 }
 
 #include "../Utils/StaticSet.hpp"
