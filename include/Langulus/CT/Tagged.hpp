@@ -92,3 +92,14 @@ namespace Langulus
    template<class T, size_t INDEX = 0>
    using TagOf = decltype(CT::Inner::GetSpecificTag<Decvq<Deref<T>>, INDEX>());
 }
+
+namespace Langulus::CT
+{
+   /// Check if all T have at least one tag                                   
+   template<class...T>
+   concept Tagged = ((not TagsOf<T>::Empty) and ...);
+
+   /// Check if all T have no tags                                            
+   template<class...T>
+   concept NotTagged = ((TagsOf<T>::Empty) and ...);
+}

@@ -251,7 +251,7 @@ namespace Langulus
    /// A tuple with optimized layout                                          
    /// Please add it to 'std', please!                                        
    template<class...T>
-   struct compact_tuple : private Inner::OptimalStorage<T...> {
+   struct compact_tuple : /*private*/ Inner::OptimalStorage<T...> { //CANT BE PRIVATE BECAUSE IT DISALLOWS TUPLES TO BE USED AS NON-TYPE TEMPLATE VARIABLES!
       using CTTI_Tuple   = ::std::true_type;
       using storage_type = Inner::OptimalStorage<T...>;
       using to_interface = Inner::MapToInterface<T...>;
