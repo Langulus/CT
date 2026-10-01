@@ -91,112 +91,113 @@ namespace Langulus
    template<class T>
    using Deext = ::std::remove_extent_t<Deref<T>>; //TODO Deext-ing a custom CT::Array should give the inner type!!!
 
-   namespace CT
+   namespace CT::Inner
    {
-      namespace Inner
-      {
-         /// Extracts the bounded array size. Otherwise results in 1.         
-         template<class T>
-         consteval size_t GetBoundedArrayExtent() {
-            static_assert(not ::std::is_reference_v<T>,
-               "Shed all references prior to this call");
-            static_assert(not CT::Sheddable<T>,
-               "Shed all sheddables prior to this call");
+      /// Extracts the bounded array size. Otherwise results in 1.            
+      template<class T>
+      consteval size_t GetBoundedArrayExtent() {
+         static_assert(not ::std::is_reference_v<T>,
+            "Shed all references prior to this call");
+         static_assert(not CT::Sheddable<T>,
+            "Shed all sheddables prior to this call");
 
-            if constexpr (requires { CTTI::Array<T>::Default; }) {
-               if constexpr (::std::is_class_v<T>) {
-                  static_assert(Complete<T>,
-                     "Can't access `CTTI_Array` inside incomplete type");
-                  if constexpr(requires { T::CTTI_Array::Enabled; }) {
-                     if constexpr (T::CTTI_Array::Enabled)
-                        return T::CTTI_Array::Constant;
-                     else
-                        return 1;
-                  }
-                  else return CTTI::Array<T>::Count;
+         if constexpr (requires { CTTI::Array<T>::Default; }) {
+            if constexpr (::std::is_class_v<T>) {
+               static_assert(Complete<T>,
+                  "Can't access `CTTI_Array` inside incomplete type");
+               if constexpr(requires { T::CTTI_Array::Enabled; }) {
+                  if constexpr (T::CTTI_Array::Enabled)
+                     return T::CTTI_Array::Constant;
+                  else
+                     return 1;
                }
                else return CTTI::Array<T>::Count;
             }
             else return CTTI::Array<T>::Count;
-         };
+         }
+         else return CTTI::Array<T>::Count;
+      };
 
-         /// Multiplies all the nested bounded arrays' size together.         
-         /// Results in 1 if T is not an array.                               
-         template<class T>
-         consteval size_t GetBoundedArrayExtentNested() {
-            constexpr size_t result = GetBoundedArrayExtent<T>();
-            if constexpr (not ::std::is_same_v<T, Deext<T>>)
-               return result * GetBoundedArrayExtentNested<Deext<T>>();
-            else
-               return result;
-         };
+      /// Multiplies all the nested bounded arrays' size together.            
+      /// Results in 1 if T is not an array.                                  
+      template<class T>
+      consteval size_t GetBoundedArrayExtentNested() {
+         constexpr size_t result = GetBoundedArrayExtent<T>();
+         if constexpr (not ::std::is_same_v<T, Deext<T>>)
+            return result * GetBoundedArrayExtentNested<Deext<T>>();
+         else
+            return result;
+      };
 
-         /// Removes a pointer from the type. Supports custom pointers.       
-         ///   @attention if an incomplete type is reached the nesting ceases 
-         template<class T, unsigned TIMES>
-         consteval auto NestedDeptr() {
-            static_assert(not ::std::is_reference_v<T>,
-               "Shed all references prior to this call");
-            static_assert(TIMES >= 1,
-               "Can't deptr zero times");
+      /// Removes a pointer from the type. Supports custom pointers.          
+      ///   @attention if an incomplete type is reached the nesting ceases    
+      template<class T, unsigned TIMES>
+      consteval auto NestedDeptr() {
+         static_assert(not ::std::is_reference_v<T>,
+            "Shed all references prior to this call");
+         static_assert(TIMES >= 1,
+            "Can't deptr zero times");
 
-            if constexpr (not Complete<T>)
-               return ::std::type_identity<T> {};
-            else {
-               if constexpr (::std::is_pointer_v<T>) {
-                  if constexpr (::std::is_void_v<::std::remove_pointer_t<T>>)
-                     return ::std::type_identity<void> {};
-                  else {
-                     // Conventional pointer dereferencing              
-                     using deptr_once = ::std::remove_pointer_t<T>;
-                     if constexpr (TIMES == 1)
-                        return ::std::type_identity<deptr_once> {};
-                     else
-                        return NestedDeptr<deptr_once, TIMES - 1>();
-                  }
-               }
-               else if constexpr (::std::is_bounded_array_v<T>) {
-                  // Conventional bounded array dereferencing           
-                  using deptr_once = ::std::remove_extent_t<T>;
+         if constexpr (not Complete<T>)
+            return ::std::type_identity<T> {};
+         else {
+            if constexpr (::std::is_pointer_v<T>) {
+               if constexpr (::std::is_void_v<::std::remove_pointer_t<T>>)
+                  return ::std::type_identity<void> {};
+               else {
+                  // Conventional pointer dereferencing                 
+                  using deptr_once = ::std::remove_pointer_t<T>;
                   if constexpr (TIMES == 1)
                      return ::std::type_identity<deptr_once> {};
                   else
                      return NestedDeptr<deptr_once, TIMES - 1>();
                }
-               else if constexpr (LANGULUS_CTTI_CHECK(T, Sparse)) {
-                  // Custom pointer dereferencing                       
-                  static_assert(requires(T t) { *t; },
-                     "Custom pointer doesn't have unary operator*");
-                  
-                  using deptr_once = Deref<decltype(*LglsFake(T))>;
-                  if constexpr (TIMES == 1)
-                     return ::std::type_identity<deptr_once> {};
-                  else
-                     return NestedDeptr<deptr_once, TIMES - 1>();
-               }
-               else return ::std::type_identity<T> {};
             }
+            else if constexpr (::std::is_bounded_array_v<T>) {
+               // Conventional bounded array dereferencing              
+               using deptr_once = ::std::remove_extent_t<T>;
+               if constexpr (TIMES == 1)
+                  return ::std::type_identity<deptr_once> {};
+               else
+                  return NestedDeptr<deptr_once, TIMES - 1>();
+            }
+            else if constexpr (LANGULUS_CTTI_CHECK(T, Sparse)) {
+               // Custom pointer dereferencing                          
+               static_assert(requires(T t) { *t; },
+                  "Custom pointer doesn't have unary operator*");
+               
+               using deptr_once = Deref<decltype(*LglsFake(T))>;
+               if constexpr (TIMES == 1)
+                  return ::std::type_identity<deptr_once> {};
+               else
+                  return NestedDeptr<deptr_once, TIMES - 1>();
+            }
+            else return ::std::type_identity<T> {};
          }
       }
    }
 
-   /// Get the extent of a bounded array type, or 1 if T is not an array      
-   template<class T>
-   constexpr size_t ExtentOf = CT::Inner::GetBoundedArrayExtent<ShedDeref<T>>();
+   /// Get the extent of a bounded array type, or 1 if T is not an array.     
+   /// If multiple types are provided, the sum of the extents is done.        
+   template<class...T>
+   constexpr size_t ExtentOf = (CT::Inner::GetBoundedArrayExtent<ShedDeref<T>>() + ...);
 
-   /// Get the extent of an array argument, or 1 if T is not an array         
-   template<class T>
-   constexpr size_t GetExtentOf(T&&) { return ExtentOf<ShedDeref<T>>; }
+   /// Get the extent of an array argument, or 1 if T is not an array.        
+   /// If multiple arguments are provided, the sum of the extents is done.    
+   template<class...T>
+   constexpr size_t GetExtentOf(T&&...) { return ExtentOf<ShedDeref<T>...>; }
 
    /// Get all nested extents of a bounded array type, multiplied, or 1       
-   /// if T is not an array                                                   
-   template<class T>
-   constexpr size_t AllExtentsOf = CT::Inner::GetBoundedArrayExtentNested<ShedDeref<T>>();
+   /// if T is not an array. If multiple types are provided, the sum of the   
+   /// individual AllExtentsOf is done.                                       
+   template<class...T>
+   constexpr size_t AllExtentsOf = (CT::Inner::GetBoundedArrayExtentNested<ShedDeref<T>>() + ...);
 
    /// Get all nested extents of a bounded array argument, multiplied, or 1   
-   /// if T is not an array                                                   
-   template<class T>
-   constexpr size_t GetAllExtentsOf(T&&) { return AllExtentsOf<ShedDeref<T>>; }
+   /// if T is not an array. If multiple arguments are provided, the sum of   
+   /// the individual AllExtentsOf is done.                                   
+   template<class...T>
+   constexpr size_t GetAllExtentsOf(T&&...) { return AllExtentsOf<ShedDeref<T>...>; }
 
    /// Remove a number of pointers from type. Supports custom pointer types.  
    ///   @attention may result in a reference                                 

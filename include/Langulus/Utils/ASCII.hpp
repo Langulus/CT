@@ -79,7 +79,7 @@ namespace Langulus
    }
 
    /// Verify that a string literal is made of allowed ASCII symbols          
-   constexpr bool IsASCII(const Token& source) noexcept {
+   constexpr bool IsASCII(Token const& source) noexcept {
       for (char c : source) {
          if (IsAlphabetical(c) or IsOperator(c) or IsNumerical(c) or IsSpace(c))
             continue;
@@ -161,7 +161,7 @@ namespace Langulus
    ///   @param rhs end of the region                                         
    ///   @return true if a transition occurs at both points                   
    // ReSharper disable once CppDFAUnreachableFunctionCall              
-   constexpr bool IsTransition(const Token& source, size_t lhs, size_t rhs) noexcept {
+   constexpr bool IsTransition(Token const& source, size_t lhs, size_t rhs) noexcept {
       return (
             // Test left side for transition                            
             lhs == 0
@@ -181,7 +181,7 @@ namespace Langulus
    /// 3. Must not contain any operators, except <>:,                         
    ///   @param token the token to check                                      
    ///   @return true if token is a valid keyword                             
-   constexpr bool IsKeyword(const Token& token) noexcept {
+   constexpr bool IsKeyword(Token const& token) noexcept {
       if (token.empty() or not IsAlphabetical(token[0]))
          return false;
 

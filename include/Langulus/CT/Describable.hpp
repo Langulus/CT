@@ -31,7 +31,7 @@ namespace Langulus
    ///        in order to use Describe semantics                              
    struct Describe; /*{
       using Many = Annies::Many;
-      const Many& what;
+      Many const& what;
 
       using CTTI_ReflectAs     = void;
       using CTTI_Abstract      = Yup;
@@ -42,7 +42,7 @@ namespace Langulus
       constexpr Describe(const Describe&) noexcept = default;
       explicit constexpr Describe(Describe&&) noexcept = default;
 
-      explicit constexpr Describe(const Many& descriptor) noexcept
+      explicit constexpr Describe(Many const& descriptor) noexcept
          : what {descriptor} {}
 
       auto& operator *  () const noexcept { return  what; }

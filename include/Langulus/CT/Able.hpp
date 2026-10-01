@@ -154,12 +154,12 @@ namespace Langulus
 ///  LglsImplementAbilitiesFor(int) {                                         
 ///     using Can = Verbs::Add;                                               
 ///     static bool Default(int& lhs, Verb& verb) {                           
-///         const Many& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetArgument();                             
 ///         rhs.ForEach([&lhs](int const& i) { lhs += i; });                  
 ///         return true;                                                      
 ///     }                                                                     
 ///     static bool Default(int const& lhs, Verb& verb) {                     
-///         const Many& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetArgument();                             
 ///         int result = lhs;                                                 
 ///         rhs.ForEach([&result](int const& i) { result += i; });            
 ///         verb << result;                                                   
@@ -175,12 +175,12 @@ namespace Langulus
 ///  LglsImplementAbilitiesForConcept(CT::Number, OF) {                       
 ///     using Can = Verbs::Add;                                               
 ///     static bool Default(OF& lhs, Verb& verb) {                            
-///         const Many& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetArgument();                             
 ///         rhs.ForEach([&lhs](OF const& i) { lhs += i; });                   
 ///         return true;                                                      
 ///     }                                                                     
 ///     static bool Default(OF const& lhs, Verb& verb) {                      
-///         const Many& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetArgument();                             
 ///         OF result = lhs;                                                  
 ///         rhs.ForEach([&result](OF const& i) { result += i; });             
 ///         verb << result;                                                   

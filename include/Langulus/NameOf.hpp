@@ -75,7 +75,7 @@ namespace Langulus::RTTI
       };
 
       /// Check if a name is reserved                                         
-      consteval bool IsReserved(const Token& name) {
+      consteval bool IsReserved(Token const& name) {
          for (auto& reserved : ReservedKeywords) {
             if (name.size() != reserved.size())
                continue;
@@ -443,7 +443,7 @@ namespace Langulus::RTTI
       /// Normalize a type/enum/function name at runtime                      
       ///   @tparam SRC the token to normalize                                
       ///   @return new literal                                               
-      inline ::std::string NormalizeAtRuntime(const Token& SRC) {
+      inline ::std::string NormalizeAtRuntime(Token const& SRC) {
          if (not IsASCII(SRC))
             throw ::std::runtime_error {"Token isn't ASCII"};
          ::std::string result {SRC};
@@ -548,7 +548,7 @@ namespace Langulus::RTTI
    /// enclosed in a <template>, and skip forward to that.                    
    ///   @param token the token to scan                                       
    ///   @return the last token                                               
-   constexpr size_t FindLastToken(const Token& token) noexcept {
+   constexpr size_t FindLastToken(Token const& token) noexcept {
       size_t depth = 0;
       for (size_t i = token.size() - 1; i < token.size(); --i) {
          switch (token[i]) {

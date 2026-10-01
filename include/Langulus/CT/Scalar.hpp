@@ -18,14 +18,14 @@ namespace Langulus
 
 namespace Langulus::CTTI
 {
-   /// Extends T by marking it as scalar. Scalar operands tend to modify all  
-   /// elements of a CT::Vector. Examples:                                    
+   /// Extends T by marking it as scalar. Scalar is a more permissive number  
+   /// type, that also includes bytes and toher custom numbers. Examples:     
    /// 1) template<> struct Scalar<YourType> {};                              
    /// 2) struct YourType { using CTTI_Scalar = Yup; };                       
    template<class T>
    struct Scalar;
 
-   /// Any fundamental or custom number type which has AllExtentsOf == 0 is   
+   /// Any fundamental or custom number type which has AllExtentsOf == 1 is   
    /// considered scalar by default.                                          
    template<class T> requires ((AllExtentsOf<T> == 1 and (
       ::std::is_same_v<Langulus::Byte, Decvq<DeextAll<T>>>
@@ -35,3 +35,10 @@ namespace Langulus::CTTI
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Scalar);
+
+namespace Langulus::CT
+{
+   /// Integer scalar                                                         
+   template<class...T>
+   concept ScalarInt = ((Scalar<T> and Integer<DeextAll<T>>) and ...);
+}
