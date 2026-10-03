@@ -14,6 +14,15 @@
 
 namespace Langulus
 {
+   namespace Inner
+   {
+      struct absorb_another_tuple {};
+
+      template<class...T>
+      concept not_absorbing = ((not ::std::is_same_v<T, absorb_another_tuple>) and ...);
+   }
+
+
    ///                                                                        
    /// We have tuple at home                                                  
    ///                                                                        
@@ -40,6 +49,16 @@ namespace Langulus
       T first;
 
       static constexpr size_t Size = 1;
+
+      constexpr Tuple() noexcept {}
+
+      template<class K1> requires Inner::not_absorbing<K1>
+      constexpr Tuple(K1&& arg1)
+         : first {LglsFwd(arg1)} {}
+
+      template<class K1>
+      constexpr Tuple(Inner::absorb_another_tuple, Tuple<K1>&& tuple)
+         : first {LglsFwd(tuple.first)} {}
    };
 
    /// Tuple with multiple elements incorporates each new element inside      
@@ -48,7 +67,7 @@ namespace Langulus
    //TODO test if these actually affect build time and RAM usage (use percist)
    //TODO experiment with structured binding to reduce number of bases        
    //TODO - elements can be combined in the same struct                       
-   template<class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class...TN>
+   /*template<class T1, class T2, class T3, class T4, class T5, class T6, class T7, class T8, class...TN>
    requires (sizeof...(TN) > 0)
    struct Tuple<T1, T2, T3, T4, T5, T6, T7, T8, TN...> : Tuple<T2, T3, T4, T5, T6, T7, T8, TN...> {
       using CTTI_Tuple = Yup;
@@ -60,6 +79,13 @@ namespace Langulus
       using next4 = Tuple<T5, T6, T7, T8, TN...>;
       using next2 = Tuple<T3, T4, T5, T6, T7, T8, TN...>;
       using next1 = Tuple<T2, T3, T4, T5, T6, T7, T8, TN...>;
+
+      constexpr Tuple() noexcept {}
+
+      template<class...K>
+      constexpr Tuple(K&&...arguments)
+         : Tuple<T2, T3, T4, T5, T6, T7, T8, TN...> {LglsFwd(arguments)...} {}
+
    };
 
    template<class T1, class T2, class T3, class T4, class...TN>
@@ -85,10 +111,9 @@ namespace Langulus
       static constexpr size_t Size = sizeof...(TN) + 2;
       using next2 = Tuple<TN...>;
       using next1 = Tuple<T2, TN...>;
-   };
+   };*/
 
-   template<class T1, class...TN>
-   requires (sizeof...(TN) > 0)
+   template<class T1, class...TN> requires (sizeof...(TN) > 0)
    struct Tuple<T1, TN...> : Tuple<TN...> {
       using CTTI_Tuple = Yup;
 
@@ -96,6 +121,18 @@ namespace Langulus
 
       static constexpr size_t Size = sizeof...(TN) + 1;
       using next1 = Tuple<TN...>;
+
+      constexpr Tuple() noexcept {}
+
+      template<class K1, class...KN> requires Inner::not_absorbing<K1, KN...>
+      constexpr Tuple(K1&& arg1, KN&&...argn)
+         : Tuple<TN...> {LglsFwd(argn)...}
+         , first        {LglsFwd(arg1)   } {}
+
+      template<class K1, class...KN>
+      constexpr Tuple(Inner::absorb_another_tuple, Tuple<K1, KN...>&& tuple)
+         : Tuple<TN...> {Inner::absorb_another_tuple{}, ::std::forward<Tuple<KN...>>(tuple)}
+         , first        {LglsFwd(tuple.first)} {}
    };
 
    template<class...T>
@@ -112,7 +149,7 @@ namespace Langulus
       constexpr bool constant = ::std::is_const_v<::std::remove_reference_t<T>>;
       using DT = ::std::decay_t<T>;
       static_assert(I < DT::Size, "Index is out of tuple range");
-      if constexpr (I > 8) {
+      /*if constexpr (I > 8) {
          using next = ::std::conditional_t<constant, typename DT::next8 const,
                                                      typename DT::next8>;
          return TupleGet<I - 8, PURE_TYPE>(::std::forward<next>(tuple));
@@ -127,7 +164,7 @@ namespace Langulus
                                                      typename DT::next2>;
          return TupleGet<I - 2, PURE_TYPE>(::std::forward<next>(tuple));
       }
-      else if constexpr (I > 0) {
+      else*/ if constexpr (I > 0) {
          using next = ::std::conditional_t<constant, typename DT::next1 const,
                                                      typename DT::next1>;
          return TupleGet<I - 1, PURE_TYPE>(::std::forward<next>(tuple));
@@ -202,20 +239,20 @@ namespace Langulus::Inner
       } (::std::make_index_sequence<sizeof...(T)>());
    }
 
-   template<std::array INDICES, class...T>
-   consteval auto ShuffleTupleAndForward(T&&...arg) {
-      Tuple temp {LglsFwd(arg)...};
-      return [&temp]<size_t...I>(::std::index_sequence<I...>) {
-         return Tuple {LglsFwd(TupleGet<INDICES[I]>(temp))...};
-      } (::std::make_index_sequence<sizeof...(T)>());
-   }
-
    template<std::array A>
    consteval auto FlipArray() {
       std::array result = A;
       for (size_t i = 0; i < A.size(); ++i)
          result[A[i]] = i;
       return result;
+   }
+
+   template<std::array INDICES, class...T>
+   constexpr auto ShuffleTupleAndForward(T&&...arg) {
+      Tuple<T&&...> temp {LglsFwd(arg)...};
+      return [&temp]<size_t...I>(::std::index_sequence<I...>) {
+         return Tuple {LglsFwd(TupleGet<INDICES[I]>(temp))...};
+      } (::std::make_index_sequence<sizeof...(T)>());
    }
 }
 
@@ -235,7 +272,7 @@ namespace Langulus
 
       template<class...K>
       constexpr CompactTuple(K&&...arguments)
-         : storage {Inner::ShuffleTupleAndForward<to_compact>(LglsFwd(arguments)...)} {}
+         : storage {Inner::absorb_another_tuple{}, Inner::ShuffleTupleAndForward<to_compact>(LglsFwd(arguments)...)} {}
    };
 
    /// Get the value at a specific index inside the compact tuple             
