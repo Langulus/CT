@@ -188,7 +188,7 @@ namespace Langulus
          return LglsFwd(item);
    };
    
-   /// Always returns a pointer to the argument                               
+   /// Always returns a pointer to the argument, unles it is already a pointer
    ///   @param a the argument to point to                                    
    ///   @attention will shed sheddables                                      
    template<class T>

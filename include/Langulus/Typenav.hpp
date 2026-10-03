@@ -27,18 +27,6 @@
 namespace Langulus::CTTI
 {
    /// MARK: CTTI                                                             
-   /// Can be used in two ways to satisfy CT::Array<T>:                       
-   /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Array = Yes<count>;` in T                  
-   /// Optional: in many use cases, you should also make T CT::Typed          
-   ///   and make sure that sizeof(T) == TypeOf<T> * ExtentOf<T>,             
-   ///   if you want to reap the benefits of SIMD optimizations for T         
-   template<class T>
-   struct Array {
-      static constexpr bool Default = true;
-      static constexpr size_t Count = ::std::is_bounded_array_v<T> ? ::std::extent_v<T> : 1;
-   };
-   
    /// Affects CT::Sparse<T>:                                                 
    template<class T>
    struct Sparse {
@@ -86,49 +74,8 @@ namespace Langulus
    template<class T>
    using Devq = ::std::remove_volatile_t<T>;
 
-   /// Remove the topmost array extent from a type                            
-   ///   @attention will remove references as well                            
-   template<class T>
-   using Deext = ::std::remove_extent_t<Deref<T>>; //TODO Deext-ing a custom CT::Array should give the inner type!!!
-
    namespace CT::Inner
    {
-      /// Extracts the bounded array size. Otherwise results in 1.            
-      template<class T>
-      consteval size_t GetBoundedArrayExtent() {
-         static_assert(not ::std::is_reference_v<T>,
-            "Shed all references prior to this call");
-         static_assert(not CT::Sheddable<T>,
-            "Shed all sheddables prior to this call");
-
-         if constexpr (requires { CTTI::Array<T>::Default; }) {
-            if constexpr (::std::is_class_v<T>) {
-               static_assert(Complete<T>,
-                  "Can't access `CTTI_Array` inside incomplete type");
-               if constexpr(requires { T::CTTI_Array::Enabled; }) {
-                  if constexpr (T::CTTI_Array::Enabled)
-                     return T::CTTI_Array::Constant;
-                  else
-                     return 1;
-               }
-               else return CTTI::Array<T>::Count;
-            }
-            else return CTTI::Array<T>::Count;
-         }
-         else return CTTI::Array<T>::Count;
-      };
-
-      /// Multiplies all the nested bounded arrays' size together.            
-      /// Results in 1 if T is not an array.                                  
-      template<class T>
-      consteval size_t GetBoundedArrayExtentNested() {
-         constexpr size_t result = GetBoundedArrayExtent<T>();
-         if constexpr (not ::std::is_same_v<T, Deext<T>>)
-            return result * GetBoundedArrayExtentNested<Deext<T>>();
-         else
-            return result;
-      };
-
       /// Removes a pointer from the type. Supports custom pointers.          
       ///   @attention if an incomplete type is reached the nesting ceases    
       template<class T, unsigned TIMES>
@@ -177,28 +124,6 @@ namespace Langulus
       }
    }
 
-   /// Get the extent of a bounded array type, or 1 if T is not an array.     
-   /// If multiple types are provided, the sum of the extents is done.        
-   template<class...T>
-   constexpr size_t ExtentOf = (CT::Inner::GetBoundedArrayExtent<ShedDeref<T>>() + ...);
-
-   /// Get the extent of an array argument, or 1 if T is not an array.        
-   /// If multiple arguments are provided, the sum of the extents is done.    
-   template<class...T>
-   constexpr size_t GetExtentOf(T&&...) { return ExtentOf<ShedDeref<T>...>; }
-
-   /// Get all nested extents of a bounded array type, multiplied, or 1       
-   /// if T is not an array. If multiple types are provided, the sum of the   
-   /// individual AllExtentsOf is done.                                       
-   template<class...T>
-   constexpr size_t AllExtentsOf = (CT::Inner::GetBoundedArrayExtentNested<ShedDeref<T>>() + ...);
-
-   /// Get all nested extents of a bounded array argument, multiplied, or 1   
-   /// if T is not an array. If multiple arguments are provided, the sum of   
-   /// the individual AllExtentsOf is done.                                   
-   template<class...T>
-   constexpr size_t GetAllExtentsOf(T&&...) { return AllExtentsOf<ShedDeref<T>...>; }
-
    /// Remove a number of pointers from type. Supports custom pointer types.  
    ///   @attention may result in a reference                                 
    ///   @attention if an incomplete type is reached the nesting ceases       
@@ -221,23 +146,17 @@ namespace Langulus
       }
    }
 
-   /// Strip a typename to its identity, removing qualifiers, indirections    
-   /// (even custom ones), references, and sheddables. This strongly          
-   /// guarantees, that it strips EVERYTHING, including nested pointers,      
-   /// sheddables, and extents.                                               
+   /// Strip a typename to its origin, removing qualifiers, indirections      
+   /// (even custom ones), references, and sheddables. Unlike std::decay_t,   
+   /// this strongly guarantees, that it strips _everything_, including nested
+   /// pointers, sheddables, and extents.                                     
    template<class T>
    using Decay = ::std::remove_pointer_t<decltype(Inner::NestedDecay<T>())>;
    
+
    /// MARK: CT                                                               
    namespace CT
    {
-      /// Check if all T are bounded arrays                                   
-      template<class...T>
-      concept Array = PartialValidate<T...>
-          and ((::std::is_bounded_array_v<ShedDeref<T>>
-             or (ExtentOf<ShedDeref<T>>) > 1
-          ) and ...);
-
       /// Check if all T are volatile-qualified                               
       template<class...T>
       concept Volatile = PartialValidate<T...>
@@ -402,16 +321,6 @@ namespace Langulus
    
    namespace Inner
    {
-      /// Removes all extents from a bounded array.                           
-      /// Removes references.                                                 
-      template<class T>
-      consteval auto NestedDeext() {
-         if constexpr (CT::Array<T>)
-            return NestedDeext<Deext<T>>();
-         else
-            return ::std::type_identity<T> {};
-      }
-
       /// Removes all const/volatile qualifiers from all indirections.        
       /// Supports custom pointers. Preserves references.                     
       template<class T>
@@ -481,13 +390,6 @@ namespace Langulus
    ///              `void*&` becomes `void const* const&`.                    
    template<class T>
    using ConstAll = typename decltype(Inner::NestedConst<T>())::type;
-
-   /// Removes all bounded array extents from a type.                         
-   /// Removes references if type had extent.                                 
-   /// For example: `void**(&)[6][6][6]` becomes `void**`.                    
-   ///              `void*&` remains `void*&`.                                
-   template<class T>
-   using DeextAll = typename decltype(Inner::NestedDeext<T>())::type;
 
    /// Strips all cv-qualifiers from the provided argument                    
    ///   @attention this will return pointers for bounded array arguments     
