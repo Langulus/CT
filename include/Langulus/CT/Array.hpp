@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Sheddable.hpp"
+#include "Typed.hpp"
 #include <Langulus/Utils/Literal.hpp>
 
 
@@ -24,44 +24,78 @@ namespace Langulus::CTTI
    /// All bounded arrays are considered CT::Array, even those with extent 1  
    template<class T> requires ::std::is_bounded_array_v<T>
    struct Array<T> : Yes<::std::extent_v<T>> {};
+
+   /// All std::arrays are considered CT::Array                               
+   template<class T, size_t S>
+   struct Array<::std::array<T, S>> : Yes<S> {};
 }
 
 namespace Langulus::CT
 {
    namespace Inner
    {
-      /// Check if T is custom array. Returns 0 if T is not marked as an      
-      /// array, otherwise returns the extent.                                
+      /// Get the inner type of a custom array. Returns void if not array.    
+      template<class T>
+      consteval auto GetCustomArrayType() {
+         static_assert(not ::std::is_reference_v<T>,
+            "Shed all references prior to this call");
+         static_assert(not Sheddable<T>,
+            "Shed all sheddables prior to this call");
+
+         using ctti = CTTI::Array<T>;
+         if constexpr (Complete<ctti>) {
+            if constexpr (ctti::Enabled)
+               return ::std::type_identity<TypeOf<T>> {};
+            else
+               return ::std::type_identity<void> {};
+         }
+         else {
+            static_assert(Complete<T>,
+               "Can't access `CTTI_Array` inside incomplete type");
+
+            if constexpr (requires { typename T::CTTI_Array; }) {
+               using inner = typename T::CTTI_Array;
+               if constexpr (inner::Enabled)
+                  return ::std::type_identity<TypeOf<T>> {};
+               else
+                  return ::std::type_identity<void> {};
+            }
+            else return ::std::type_identity<void> {};
+         }
+      };
+
+      /// Returns 1 if T is not marked as an array, otherwise returns the     
+      /// extent.                                                             
       template<class T>
       consteval size_t GetCustomExtent() {
          static_assert(not ::std::is_reference_v<T>,
             "Shed all references prior to this call");
-         static_assert(not CT::Sheddable<T>,
+         static_assert(not Sheddable<T>,
             "Shed all sheddables prior to this call");
 
          using ctti = CTTI::Array<T>;
-         if constexpr (CT::Complete<ctti>) {
+         if constexpr (Complete<ctti>) {
             if constexpr (ctti::Enabled) {
-               static_assert(requires { ctti::Constant; },
+               static_assert(ctti::Constant >= 1,
                   "Wrongly specialized `CTTI::Array`");  
                return ctti::Constant;
             }
-            else return 0;
+            else return 1;
          }
          else {
-            static_assert(CT::Complete<T>,
+            static_assert(Complete<T>,
                "Can't access `CTTI_Array` inside incomplete type");
 
             if constexpr (requires { typename T::CTTI_Array; }) {
                using inner = typename T::CTTI_Array;
                if constexpr (inner::Enabled) {
-                  static_assert(requires { inner::Constant; },
-                     "Wrongly specialized `T::CTTI_Array`");  
+                  static_assert(inner::Constant >= 1,
+                     "Wrongly specified `T::CTTI_Array`");  
                   return inner::Constant;
                }
-               else return 0;
+               else return 1;
             }
-            else return 0;
+            else return 1;
          }
       };
 
@@ -69,21 +103,20 @@ namespace Langulus::CT
       /// Results in 1 if T is not an array.                                  
       template<class T>
       consteval size_t GetCustomExtentNested() {
-         constexpr size_t extent = GetCustomExtent<T>();
-         if constexpr (extent) {
-            // Dig deeper, check for inner type and multiply            
-            return extent * GetCustomExtentNested<Deext<T>>();
-         }
+         using InnerT = typename decltype(GetCustomArrayType<T>())::type;
+         if constexpr (not ::std::is_void_v<InnerT>)
+            return GetCustomExtent<T>() * GetCustomExtentNested<InnerT>();
          else
-            return result;
+            return GetCustomExtent<T>();
       };
 
       /// Removes all custom and bounded extents from arrays.                 
       /// Removes references as well.                                         
       template<class T>
       consteval auto NestedDeext() {
-         if constexpr (CT::Array<T>)
-            return NestedDeext<Deext<T>>();
+         using InnerT = typename decltype(GetCustomArrayType<T>())::type;
+         if constexpr (not ::std::is_void_v<InnerT>)
+            return NestedDeext<InnerT>();
          else
             return ::std::type_identity<T> {};
       }
@@ -92,9 +125,7 @@ namespace Langulus::CT
    /// Check if all T are bounded or custom arrays                            
    template<class...T>
    concept Array = PartialValidate<T...>
-         and ((::std::is_bounded_array_v<ShedDeref<T>>
-            or (ExtentOf<ShedDeref<T>>) > 1
-         ) and ...);
+       and ((not ::std::is_void_v<typename decltype(Inner::GetCustomArrayType<ShedDeref<T>>())::type>) and ...);
 }
 
 namespace Langulus
@@ -102,13 +133,12 @@ namespace Langulus
    /// Remove the topmost array extent from a type                            
    ///   @attention will remove references as well                            
    template<class T>
-   using Deext = ::std::remove_extent_t<::std::remove_reference_t<T>>; //TODO Deext-ing a custom CT::Array should give the inner type!!!
-
+   using Deext = typename decltype(CT::Inner::GetCustomArrayType<ShedDeref<T>>())::type;
 
    /// Get the extent of a bounded array type, or 1 if T is not an array.     
    /// If multiple types are provided, the sum of the extents is done.        
    template<class...T>
-   constexpr size_t ExtentOf = (Inner::GetBoundedArrayExtent<ShedDeref<T>>() + ...);
+   constexpr size_t ExtentOf = (CT::Inner::GetCustomExtent<ShedDeref<T>>() + ...);
 
    /// Get the extent of an array argument, or 1 if T is not an array.        
    /// If multiple arguments are provided, the sum of the extents is done.    
@@ -119,7 +149,7 @@ namespace Langulus
    /// if T is not an array. If multiple types are provided, the sum of the   
    /// individual AllExtentsOf is done.                                       
    template<class...T>
-   constexpr size_t AllExtentsOf = (Inner::GetBoundedArrayExtentNested<ShedDeref<T>>() + ...);
+   constexpr size_t AllExtentsOf = (CT::Inner::GetCustomExtentNested<ShedDeref<T>>() + ...);
 
    /// Get all nested extents of a bounded array argument, multiplied, or 1   
    /// if T is not an array. If multiple arguments are provided, the sum of   
@@ -132,5 +162,5 @@ namespace Langulus
    /// For example: `void**(&)[6][6][6]` becomes `void**`.                    
    ///              `void*&` remains `void*&`.                                
    template<class T>
-   using DeextAll = typename decltype(Inner::NestedDeext<T>())::type;
+   using DeextAll = typename decltype(CT::Inner::NestedDeext<ShedDeref<T>>())::type;
 }

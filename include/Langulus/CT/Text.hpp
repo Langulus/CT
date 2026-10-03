@@ -7,10 +7,9 @@
 ///                                                                           
 #pragma once
 #include "Character.hpp"
+#include "Array.hpp"
 #include "../Utils/Literal.hpp"
-#include "Typed.hpp"
 #include <ranges>
-//#include <type_traits>
 
 
 namespace Langulus::CT

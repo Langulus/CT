@@ -8,6 +8,7 @@
 #pragma once
 #include "Abstract.hpp"
 #include "Fundamental.hpp"
+#include "Array.hpp"
 #include <ranges>
 
 
@@ -17,13 +18,13 @@ namespace Langulus::CTTI
    template<class T>
    struct POD;
 
-   /// Some types can be detected as POD                                      
+   /// Some types can be auto-detected as POD                                 
    ///   @note is_trivially_destructible_v is required to strenghten the      
-   ///      is_trivial_v check on GCC/Clang due to compiler bugs; MSVC is fine
+   ///      is_trivial_v check on GCC/Clang due to compiler differences;      
    ///   @note std::array will be considered POD if containing POD elements   
    ///      so we make sure that ranges are never considered POD by default,  
    ///      otherwise an array containing one hash will result in a rehash    
-   ///      instead of a reuse                                                
+   ///      instead of a reuse.                                               
    ///   @note extents are ignored by default                                 
    template<class T> requires (
       not CT::Abstract<DeextAll<T>> and (

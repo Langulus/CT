@@ -39,7 +39,7 @@ namespace Langulus::CT::Inner
          // Get the type of a bounded array (int[5] -> int)             
          static_assert(INDEX == 0,
             "Bounded arrays have exactly one inner type");
-         return ::std::type_identity<Deext<T>> {};
+         return ::std::type_identity<::std::remove_extent_t<T>> {};
       }
       else if constexpr (Complete<CTTI::Typed<T>>) {
          // Checked externally, T doesn't have to be complete           
@@ -204,11 +204,12 @@ namespace Langulus
    ///      all indirections by default                                       
    ///   @param a the argument to dereference                                 
    ///   @attention will shed all sheddables                                  
+   ///   @attention may throw, depending on custom unary operator*            
    template<unsigned TIMES = 1000000, class T>
    constexpr decltype(auto) DenseCast(T&& a) {
       using ST = Shed<T>;
-      if constexpr (TIMES > 0 and (CT::Array<ST> or CT::Sparse<ST>))
-         // Security depends on your unary oeprator* - call can throw   
+      if constexpr (TIMES > 0 and (::std::is_bounded_array_v<ST> or CT::Sparse<ST>))
+         // Security depends on your unary operator* - call can throw   
          return DenseCast<TIMES - 1>(*ShedCast(LglsFwd(a)));
       else
          return ShedCast(LglsFwd(a));

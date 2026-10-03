@@ -17,13 +17,14 @@
 /// we have alternatives that are more flexible, using type_traits as the     
 /// ground truth and building concepts on top of them in Langulus::CT.        
 /// Read more: https://stackoverflow.com/questions/25345486                   
-///   Each of the structures in this namespace correspond to a concept in     
+///   Each of the structures in this namespace corresponds to a concept in    
 /// Langulus::CT. These concepts can be affected in two ways (unless          
 /// specified otherwise):                                                     
-///   1. Specialize the appropriate CTTI::<name> struct for a type/concept    
-///   2. Add a public `using CTTI_<Name> = Yes/No;` in the desired type       
-///   3. Some CTTI_<Name> tags might require types or values instead -        
-///      they should have additional documentation alongside them             
+///   1. Specialize the appropriate CTTI::<name> struct for a type/concept.   
+///      Some CTTI_<Name> tags might require specific way of specialization,  
+///      check the CT/<Name>.hpp file for documentation.                      
+///   2. Add a public `using CTTI_<Name> = Yup/Yes<CONST>/Maybe/No;` in the   
+///      desired type.                                                        
 namespace Langulus::CTTI
 {
    /// MARK: CTTI                                                             
@@ -264,7 +265,7 @@ namespace Langulus
             else if constexpr (CT::Sparse<T>)
                return CT::Constant<Deptr<T>> and NestedConstantEverywhere<Deptr<T>>();
             else if constexpr (::std::is_bounded_array_v<T>)
-               return CT::Constant<Deext<T>> and NestedConstantEverywhere<Deext<T>>();
+               return CT::Constant<::std::remove_extent_t<T>> and NestedConstantEverywhere<::std::remove_extent_t<T>>();
             else
                return CT::Constant<T>;
          }
@@ -404,8 +405,8 @@ namespace Langulus
    
    template<class T> requires ::std::is_bounded_array_v<T>
    LANGULUS(ALWAYS_INLINED)
-   constexpr auto DecvqAllCast(T&& what) noexcept -> DecvqAll<Deext<T>>* {
-      return const_cast<DecvqAll<Deext<T>>*>(what);
+   constexpr auto DecvqAllCast(T&& what) noexcept -> DecvqAll<::std::remove_extent_t<T>>* {
+      return const_cast<DecvqAll<::std::remove_extent_t<T>>*>(what);
    }
    
    /// Add const qualifiers to the provided argument                          
@@ -418,8 +419,8 @@ namespace Langulus
    
    template<class T> requires ::std::is_bounded_array_v<T>
    LANGULUS(ALWAYS_INLINED)
-   constexpr auto ConstAllCast(T&& what) noexcept -> ConstAll<Deext<T>> const* {
-      return const_cast<ConstAll<Deext<T>> const*>(what);
+   constexpr auto ConstAllCast(T&& what) noexcept -> ConstAll<::std::remove_extent_t<T>> const* {
+      return const_cast<ConstAll<::std::remove_extent_t<T>> const*>(what);
    }
    
    /// Count the number of indirections, including custom pointers.           
