@@ -62,7 +62,7 @@ namespace Langulus
    /// Useful for setting CTTI_Pooled                                         
    /// Instructs Fractalloc to pool to dedicated type-indexed pools           
    ///   @tparam MIN_POOL what's the minimal pool size in bytes               
-   template<unsigned MIN_POOL>
+   template<size_t MIN_POOL = MinimalPoolSize>
    struct PooledByType {
       static_assert(::std::has_single_bit(MIN_POOL),
          "MIN_POOL must be a power-of-two");

@@ -15,7 +15,6 @@ namespace Langulus
 
    /// A fully portable constexpr alphabetical character check                
    /// Only english alphabet and underline symbol are allowed                 
-   // ReSharper disable once CppDFAUnreachableFunctionCall
    constexpr bool IsAlphabetical(char c) noexcept {
       switch (c) {
       case 'A': case 'a': case 'B': case 'b': case 'C': case 'c':
@@ -34,19 +33,16 @@ namespace Langulus
    }
 
    /// A fully portable constexpr lowercase character check                   
-   // ReSharper disable once CppDFAUnreachableFunctionCall
    constexpr bool IsLowercase(char c) noexcept {
       return c != '_' and IsAlphabetical(c) and c >= 'a';
    }
 
    /// A fully portable constexpr lowercase character check                   
-   // ReSharper disable once CppDFAUnreachableFunctionCall
    constexpr bool IsUppercase(char c) noexcept {
       return c != '_' and IsAlphabetical(c) and c <= 'Z';
    }
 
    /// A fully portable constexpr operator character check                    
-   // ReSharper disable once CppDFAUnreachableFunctionCall
    constexpr bool IsOperator(char c) noexcept {
       switch (c) {
       case '<': case '>': case '[': case ']': case '(': case ')':
@@ -61,11 +57,10 @@ namespace Langulus
    }
 
    /// A fully portable constexpr number character check                      
-   // ReSharper disable once CppDFAUnreachableFunctionCall
    constexpr bool IsNumerical(char c) noexcept {
       switch (c) {
-      case '0': case '1': case '2': case '3': case '4': case '5':
-      case '6': case '7': case '8': case '9':
+      case '0': case '1': case '2': case '3': case '4': 
+      case '5': case '6': case '7': case '8': case '9':
          return true;
       default:
          return false;
@@ -73,7 +68,6 @@ namespace Langulus
    }
    
    /// A fully portable constexpr space character check                       
-   // ReSharper disable once CppDFAUnreachableFunctionCall
    constexpr bool IsSpace(char c) noexcept {
       return c == ' ';
    }
@@ -160,7 +154,6 @@ namespace Langulus
    ///   @param lhs start of the region                                       
    ///   @param rhs end of the region                                         
    ///   @return true if a transition occurs at both points                   
-   // ReSharper disable once CppDFAUnreachableFunctionCall              
    constexpr bool IsTransition(Token const& source, size_t lhs, size_t rhs) noexcept {
       return (
             // Test left side for transition                            

@@ -62,10 +62,12 @@ namespace Langulus::CTTI
    template<class>
    struct Text;
 
-   /// Literals, cstrings and character ranges are considered CT::Text        
+   /// Literals, cstrings, singular characters, and character ranges are all  
+   /// considered CT::Text                                                    
    template<class T> requires (CT::TextLiteral<T>
                             or CT::TextPointer<T>
-                            or CT::TextRange<T>)
+                            or CT::TextRange<T>
+                            or CT::Character<T>)
    struct Text<T> {};
 }
 

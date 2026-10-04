@@ -114,45 +114,83 @@ namespace Langulus
 
 namespace Langulus::Serial
 {
+   enum class Operator {
+      Noop            ,
+      OpenScope       ,
+      CloseScope      ,
+      OpenScopeAlt    ,
+      CloseScopeAlt   ,
+      OpenCode        ,
+      CloseCode       ,
+      OpenComment     ,
+      CloseComment    ,
+      OpenLineComment ,
+      CloseLineComment,
+      OpenString      ,
+      CloseString     ,
+      OpenStringAlt   ,
+      CloseStringAlt  ,
+      OpenCharacter   ,
+      CloseCharacter  ,
+      OpenByte        ,
+      CloseByte       ,
+      SelectIdea      ,
+      SelectThing     ,
+      Future          ,
+      Past            ,
+      Null            ,
+      Escape          ,
+      Mass            ,
+      Rate            ,
+      Time            ,
+      Priority        ,
+      And             ,
+      AndUnordered    ,
+      Pair            ,
+      Or              ,
+      Last              
+   };
+
    /// Helps to define an operator                                            
-   struct Operator {
-      ::std::string_view token;
-      bool is_charge = false;
+   template<Literal TOKEN, bool CHARGE = false>
+   struct OperatorDefinition {
+      static constexpr auto token     = TOKEN;
+      static constexpr bool is_charge = CHARGE;
    };
 
    /// Built-in operator properties.                                          
    /// These are tuned for Langulus::Code specification, but you can          
    /// use your own in your custom CTTI::Serializer.                          
-   constexpr Operator OpenScope       { "("    };
-   constexpr Operator CloseScope      { ")"    };
-   constexpr Operator OpenScopeAlt    { "["    };
-   constexpr Operator CloseScopeAlt   { "]"    };
-   constexpr Operator OpenCode        { "{"    };
-   constexpr Operator CloseCode       { "}"    };
-   constexpr Operator OpenComment     { "/*"   };
-   constexpr Operator CloseComment    { "*/"   };
-   constexpr Operator OpenLineComment { "//"   };
-   constexpr Operator CloseLineComment{ "\n"   };
-   constexpr Operator OpenString      { "\""   };
-   constexpr Operator CloseString     { "\""   };
-   constexpr Operator OpenStringAlt   { "`"    };
-   constexpr Operator CloseStringAlt  { "`"    };
-   constexpr Operator OpenCharacter   { "'"    };
-   constexpr Operator CloseCharacter  { "'"    };
-   constexpr Operator OpenByte        { "0x"   };
-   constexpr Operator CloseByte       { " "    };
-   constexpr Operator SelectIdea      { "##"   };
-   constexpr Operator SelectThing     { "#"    };
-   constexpr Operator Future          { "??"   };
-   constexpr Operator Past            { "?"    };
-   constexpr Operator Null            { "null" };
-   constexpr Operator Escape          { "\\"   };
-   constexpr Operator Mass            { "*", true };
-   constexpr Operator Rate            { "^", true };
-   constexpr Operator Time            { "@", true };
-   constexpr Operator Priority        { "!", true };
-   constexpr Operator And             { ", "   };
-   constexpr Operator AndUnordered    { "; "   };
-   constexpr Operator Pair            { " -> " };
-   constexpr Operator Or              { " or " };
+   constexpr auto OpenScope       = OperatorDefinition<"("      > {};
+   constexpr auto CloseScope      = OperatorDefinition<")"      > {};
+   constexpr auto OpenScopeAlt    = OperatorDefinition<"["      > {};
+   constexpr auto CloseScopeAlt   = OperatorDefinition<"]"      > {};
+   constexpr auto OpenCode        = OperatorDefinition<"{"      > {};
+   constexpr auto CloseCode       = OperatorDefinition<"}"      > {};
+   constexpr auto OpenComment     = OperatorDefinition<"/*"     > {};
+   constexpr auto CloseComment    = OperatorDefinition<"*/"     > {};
+   constexpr auto OpenLineComment = OperatorDefinition<"//"     > {};
+   constexpr auto CloseLineComment= OperatorDefinition<"\n"     > {};
+   constexpr auto OpenString      = OperatorDefinition<"\""     > {};
+   constexpr auto CloseString     = OperatorDefinition<"\""     > {};
+   constexpr auto OpenStringAlt   = OperatorDefinition<"`"      > {};
+   constexpr auto CloseStringAlt  = OperatorDefinition<"`"      > {};
+   constexpr auto OpenCharacter   = OperatorDefinition<"'"      > {};
+   constexpr auto CloseCharacter  = OperatorDefinition<"'"      > {};
+   constexpr auto OpenByte        = OperatorDefinition<"0x"     > {};
+   constexpr auto CloseByte       = OperatorDefinition<" "      > {};
+   constexpr auto SelectIdea      = OperatorDefinition<"##"     > {};
+   constexpr auto SelectThing     = OperatorDefinition<"#"      > {};
+   constexpr auto Future          = OperatorDefinition<"??"     > {};
+   constexpr auto Past            = OperatorDefinition<"?"      > {};
+   constexpr auto Null            = OperatorDefinition<"null"   > {};
+   constexpr auto Escape          = OperatorDefinition<"\\"     > {};
+   constexpr auto Mass            = OperatorDefinition<"*", true> {};
+   constexpr auto Rate            = OperatorDefinition<"^", true> {};
+   constexpr auto Time            = OperatorDefinition<"@", true> {};
+   constexpr auto Priority        = OperatorDefinition<"!", true> {};
+   constexpr auto And             = OperatorDefinition<", "     > {};
+   constexpr auto AndUnordered    = OperatorDefinition<"; "     > {};
+   constexpr auto Pair            = OperatorDefinition<" -> "   > {};
+   constexpr auto Or              = OperatorDefinition<" or "   > {};
 }
