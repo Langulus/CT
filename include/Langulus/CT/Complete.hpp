@@ -25,6 +25,10 @@ namespace Langulus::CT
    template<class T, bool PROBE = requires(T) { sizeof(T); }>
    constexpr bool Complete = PROBE;
 
+   /// Checks if T is incomplete, but also not void                           
+   template<class T>
+   constexpr bool IncompleteNonVoid = not Complete<T> and not ::std::is_void_v<T>;
+
    namespace Inner
    {
       template<class...T>

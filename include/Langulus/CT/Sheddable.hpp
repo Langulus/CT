@@ -47,7 +47,7 @@ namespace Langulus::CT::Inner
             // Internal check                                           
             using DT = ::std::remove_cvref_t<T>;
             static_assert(Complete<DT>,
-               "Can't access `CTTI_Sheddable` inside incomplete type");
+               "Can't access `CTTI_Sheddable` inside incomplete type ");
 
             if constexpr (requires { typename DT::CTTI_Sheddable; }) {
                using InnerT = typename DT::CTTI_Sheddable;

@@ -116,6 +116,7 @@ namespace Langulus::Serial
 {
    enum class Operator {
       Noop            ,
+      CustomOp        ,
       OpenScope       ,
       CloseScope      ,
       OpenScopeAlt    ,

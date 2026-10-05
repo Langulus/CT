@@ -36,7 +36,8 @@ namespace Langulus::CT::Inner
       static_assert(not ::std::is_reference_v<T>, "Strip references first");
 
       if constexpr (::std::is_bounded_array_v<T>) {
-         // Get the type of a bounded array (int[5] -> int)             
+         // Get the type of a bounded array: int[5]    -> int           
+         //                                  int[5][5] -> int[5]        
          static_assert(INDEX == 0,
             "Bounded arrays have exactly one inner type");
          return ::std::type_identity<::std::remove_extent_t<T>> {};
@@ -48,9 +49,18 @@ namespace Langulus::CT::Inner
             "Pick a type to shed to, or void, instead of using Yes/Yup/No"
             "for CTTI::Typed::Type");
 
-         if constexpr (Typelist<InnerT>)
+         if constexpr (IncompleteNonVoid<InnerT>) {
+            // Incomplete inner type is assumed to not be typelist      
+            static_assert(INDEX == 0,
+               "Outer type has exactly one inner type");
+            return ::std::type_identity<InnerT> {};
+         }
+         else if constexpr (Typelist<InnerT>) {
+            // Inner type is typelist, which means multidimensional     
             return ::std::type_identity<typename InnerT::template At<INDEX>> {};
+         }
          else {
+            // Just a single complete type                              
             static_assert(INDEX == 0,
                "Outer type has exactly one inner type");
             return ::std::type_identity<InnerT> {};
@@ -68,9 +78,16 @@ namespace Langulus::CT::Inner
             "Can't get inner type of an incomplete outer type");
 
          if constexpr (requires { typename T::CTTI_Typed; }) {
-            // Inner type defined by a langulus protocol (CTTI_Typed)   
+            // Inner type defined by T::CTTI_Typed = type(s);           
             using InnerT = typename T::CTTI_Typed;
-            if constexpr (Void<InnerT>)
+
+            if constexpr (IncompleteNonVoid<InnerT>) {
+               // Incomplete inner type is assumed to not be typelist   
+               static_assert(INDEX == 0,
+                  "Outer type has exactly one inner type");
+               return ::std::type_identity<InnerT> {};
+            }
+            else if constexpr (Void<InnerT>)
                return ::std::type_identity<void> {};
             else {
                static_assert(not requires { InnerT::Enabled; },
@@ -89,7 +106,14 @@ namespace Langulus::CT::Inner
          else if constexpr (requires { typename T::value_type; }) {
             // Inner type defined by a std protocol (value_type)        
             using InnerT = typename T::value_type;
-            if constexpr (Typelist<InnerT>)
+
+            if constexpr (IncompleteNonVoid<InnerT>) {
+               // Incomplete inner type is assumed to not be typelist   
+               static_assert(INDEX == 0,
+                  "Outer type has exactly one inner type");
+               return ::std::type_identity<InnerT> {};
+            }
+            else if constexpr (Typelist<InnerT>)
                return ::std::type_identity<typename InnerT::template At<INDEX>> {};
             else {
                static_assert(INDEX == 0,

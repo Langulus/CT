@@ -199,12 +199,14 @@ namespace Langulus
       concept NotConvoluted = PartialValidate<T...>
           and ((not Convoluted<T>) and ...);
 
-      /// Check if all T are reference types                                  
+      /// Check if all T are reference types after shedding, which requires   
+      /// all T to be complete. You can always just use std::is_reference_v.  
       template<class...T>
       concept Reference = PartialValidate<T...>
           and (::std::is_reference_v<Shed<T>> and ...);
 
-      /// Check if all T are not reference types                              
+      /// Check if all T aren't reference types after shedding, which requires
+      /// all T to be complete. You can always just use std::is_reference_v.  
       template<class...T>
       concept NotReference = PartialValidate<T...>
           and ((not ::std::is_reference_v<Shed<T>>) and ...);
