@@ -143,7 +143,7 @@ namespace Langulus::Serial
       Mass            ,
       Rate            ,
       Time            ,
-      Priority        ,
+      Precedence      ,
       And             ,
       AndUnordered    ,
       Pair            ,
@@ -154,8 +154,8 @@ namespace Langulus::Serial
    /// Helps to define an operator                                            
    template<Literal TOKEN, bool CHARGE = false>
    struct OperatorDefinition {
-      static constexpr auto token     = TOKEN;
-      static constexpr bool is_charge = CHARGE;
+      static constexpr auto Token    = TOKEN;
+      static constexpr bool IsCharge = CHARGE;
    };
 
    /// Built-in operator properties.                                          
@@ -188,7 +188,7 @@ namespace Langulus::Serial
    constexpr auto Mass            = OperatorDefinition<"*", true> {};
    constexpr auto Rate            = OperatorDefinition<"^", true> {};
    constexpr auto Time            = OperatorDefinition<"@", true> {};
-   constexpr auto Priority        = OperatorDefinition<"!", true> {};
+   constexpr auto Precedence      = OperatorDefinition<"!", true> {};
    constexpr auto And             = OperatorDefinition<", "     > {};
    constexpr auto AndUnordered    = OperatorDefinition<"; "     > {};
    constexpr auto Pair            = OperatorDefinition<" -> "   > {};

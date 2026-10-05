@@ -171,7 +171,7 @@ namespace Langulus
    /// Check if a token satisfies all requirements for being a keyword:       
    /// 1. Must be a continuous string of ASCII characters, no spaces          
    /// 2. Must start with an alphabetical symbol                              
-   /// 3. Must not contain any operators, except <>:,                         
+   /// 3. Must not contain any operators, except <> : ,                       
    ///   @param token the token to check                                      
    ///   @return true if token is a valid keyword                             
    constexpr bool IsKeyword(Token const& token) noexcept {
@@ -192,6 +192,10 @@ namespace Langulus
             case ':':
                ++namespace_separator;
                if (namespace_separator > 2)
+                  return false;
+               break;
+            case ',': case ' ':
+               if (template_depth == 0)
                   return false;
                break;
             default:

@@ -102,6 +102,13 @@ namespace Langulus
          _data[M] = 0;
       }
 
+      template<size_t M> requires (M <= N)
+      constexpr Literal(const ::std::array<T, M>& other) noexcept {
+         for (size_t i = 0; i < M; i++)
+            _data[i] = other[i];
+         _data[M] = 0;
+      }
+
       template<size_t M> requires (M <= N + 1)
       constexpr Literal(const value_type(&array)[M]) noexcept {
          for (size_t i = 0; i < M; i++)
@@ -467,10 +474,13 @@ namespace Langulus
    Literal() -> Literal<>;
 
    template<class T>
-   Literal(const T&) -> Literal<T, 0>;
+   Literal(T const&) -> Literal<T, 0>;
    
    template<class T, size_t N>
    Literal(const T(&)[N]) -> Literal<T, ::std::bit_ceil(N)>;
+   
+   template<class T, size_t N>
+   Literal(::std::array<T, N> const&) -> Literal<T, ::std::bit_ceil(N)>;
 
 
    /// Swap two strings                                                       

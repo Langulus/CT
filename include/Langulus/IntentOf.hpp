@@ -171,7 +171,7 @@ namespace Langulus
       template<class ALT>
       using Retype = Refer<Decq<Deref<Deint<ALT>>>>;
 
-      Refer() = delete;
+      Refer() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr Refer(Decvq<T>& value) noexcept : what {value} {
@@ -253,7 +253,7 @@ namespace Langulus
       template<class ALT>
       using Retype = Copy<Decq<Deref<Deint<ALT>>>>;
 
-      Copy() = delete;
+      Copy() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr Copy(const T& value) noexcept : what {value} {
@@ -331,7 +331,7 @@ namespace Langulus
       template<class ALT>
       using Retype = Move<Decq<Deref<Deint<ALT>>>>;
 
-      Move() = delete;
+      Move() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr Move(T& value) noexcept : what {LglsMov(value)} {
@@ -421,7 +421,7 @@ namespace Langulus
       template<class ALT>
       using Retype = Abandon<Decq<Deref<Deint<ALT>>>>;
 
-      Abandon() = delete;
+      Abandon() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr Abandon(T& value) noexcept : what {LglsMov(value)} {
@@ -505,7 +505,7 @@ namespace Langulus
       template<class ALT>
       using Retype = Disown<Decq<Deref<Deint<ALT>>>>;
 
-      Disown() = delete;
+      Disown() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr Disown(const T& value) noexcept : what {value} {
@@ -582,7 +582,7 @@ namespace Langulus
       template<class ALT>
       using Retype = Clone<Decq<Deref<Deint<ALT>>>>;
 
-      Clone() = delete;
+      Clone() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr Clone(const T& value) noexcept : what {value} {

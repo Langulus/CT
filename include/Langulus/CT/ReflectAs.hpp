@@ -62,7 +62,7 @@ namespace Langulus::CT::Inner
       }
       else if constexpr (::std::is_const_v<T>) {
          // Let's make sure constness is preserved                      
-         using AS = decltype(IsReflectable<::std::remove_reference_t<T>>());
+         using AS = decltype(IsReflectable<::std::remove_const_t<T>>());
          if constexpr (Void<AS>)
             return ::std::type_identity<void> {};
          else

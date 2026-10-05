@@ -6,7 +6,6 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-//#include "Akin.hpp"
 #include "../Typenav.hpp"
 #include "../Utils/Types.hpp"
 
@@ -181,12 +180,14 @@ namespace Langulus
       else if constexpr (CT::ConvertibleExplicit<DFROM, DTO>)
          return DTO{static_cast<DTO>(DecvqAllCast(from))};
       else {
+         constexpr auto FROMname = NameOf<FROM>();
+         constexpr auto TOname   = NameOf<TO>();
          static_assert(false,
             "Despite the appropriate CTTI::Morphism being defined, "
-            "FROM can't be converted to TO - "
-            "either define custom CTTI::Morphism<FROM>::Convert<TO>, "
-            "an implicit constructor in TO, "
-            "or an implicit/explicit cast operator in FROM"
+            + FROMname + " can't be converted to " + TOname + " - "
+            "either define custom CTTI::Morphism<" + FROMname + ">::Convert<" + TOname + ">, "
+            "an implicit constructor in " + TOname + ", "
+            "or an implicit/explicit cast operator in " + FROMname
          );
          return {};
       }

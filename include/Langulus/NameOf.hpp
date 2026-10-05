@@ -576,6 +576,8 @@ namespace Langulus::RTTI
 
 namespace Langulus
 {
+   //TODO just use variables for these?
+
    /// MARK: CppNameOf                                                        
    /// Get the name of a type, templated or not, with consistently named      
    /// template arguments, even if nested, at compile-time                    
