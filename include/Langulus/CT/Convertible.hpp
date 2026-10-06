@@ -9,6 +9,11 @@
 #include "../Typenav.hpp"
 #include "../Utils/Types.hpp"
 
+#if LANGULUS(DEBUG)
+   /// Using NameOf all over the place can be costly to build time            
+   #include "../NameOf.hpp"
+#endif
+
 
 namespace Langulus::CTTI
 {
@@ -166,11 +171,31 @@ namespace Langulus
       using DFROM = DecvqAll<FROM>;
       using DTO   = DecvqAll<TO>;
 
+      #if LANGULUS(DEBUG)
+         constexpr auto FROMname = NameOf<FROM>();
+         constexpr auto TOname   = NameOf<TO>();
+      #endif   
+
       constexpr int found = CT::Inner::FindMorphism<DFROM, DTO, 0>();
-      static_assert(found != -1,
-         "FROM can't be converted to TO - "
-         "define CTTI::Morphism<FROM> that converts it"
-      );
+      #if LANGULUS(DEBUG)
+         static_assert(found != -1,
+            FROMname + " can't be converted to " + TOname + " - "
+            "use LANGULUS_MORPHISM, LANGULUS_MORPHISM_CUSTOM, "
+            "LANGULUS_MORPHISM_CONCEPT, or LANGULUS_MORPHISM_CONCEPT_CUSTOM "
+            "to define the morphism. Langulus requires this even if "
+            "cast operators and constructors already exist, to avoid "
+            "asymmetries between scripted and coded behavior."
+         );
+      #else
+         static_assert(found != -1,
+            "FROM can't be converted to TO - "
+            "use LANGULUS_MORPHISM, LANGULUS_MORPHISM_CUSTOM, "
+            "LANGULUS_MORPHISM_CONCEPT, or LANGULUS_MORPHISM_CONCEPT_CUSTOM "
+            "to define the morphism. Langulus requires this even if "
+            "cast operators and constructors already exist, to avoid "
+            "asymmetries between scripted and coded behavior."
+         );
+      #endif
 
       using M = CTTI::Morphism<DFROM, found>;
       if constexpr (requires { {M::template Convert<DTO>(from)} -> ::std::same_as<DTO>; })
@@ -180,15 +205,29 @@ namespace Langulus
       else if constexpr (CT::ConvertibleExplicit<DFROM, DTO>)
          return DTO{static_cast<DTO>(DecvqAllCast(from))};
       else {
-         constexpr auto FROMname = NameOf<FROM>();
-         constexpr auto TOname   = NameOf<TO>();
-         static_assert(false,
-            "Despite the appropriate CTTI::Morphism being defined, "
-            + FROMname + " can't be converted to " + TOname + " - "
-            "either define custom CTTI::Morphism<" + FROMname + ">::Convert<" + TOname + ">, "
-            "an implicit constructor in " + TOname + ", "
-            "or an implicit/explicit cast operator in " + FROMname
-         );
+         #if LANGULUS(DEBUG)
+            static_assert(false,
+               "Despite the appropriate morphism being defined, "
+               + FROMname + " can't be converted to " + TOname + ", "
+               "because it lacks the functionality to do so. Either use "
+               "LANGULUS_MORPHISM_CUSTOM(" + FROMname + ", " + TOname + ", {<custom conversion logic>}), "
+               "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes " + FROMname + 
+               ">, " + TOname + ", {<custom conversion logic>}), "
+               "or, if possible, define an implicit constructor in " + TOname + ", "
+               "or an implicit/explicit cast operator in " + FROMname
+            );
+         #else
+            static_assert(false,
+               "Despite the appropriate morphism being defined, "
+               "FROM can't be converted to TO, "
+               "because it lacks the functionality to do so. Either use "
+               "LANGULUS_MORPHISM_CUSTOM(FROM, TO, {<custom conversion logic>}), "
+               "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes FROM"
+               ">, TO, {<custom conversion logic>}), "
+               "or, if possible, define an implicit constructor in TO, "
+               "or an implicit/explicit cast operator in FROM"
+            );
+         #endif
          return {};
       }
    }

@@ -139,11 +139,12 @@ namespace Langulus
    /// Invoke an ability by finding it at compile-time                        
    //TODO this can also potentially be used to run flows at compile-time      
    template<class OF, class ABILITY>
-   bool InvokeAbility(OF& context, ABILITY& verb) {
-      constexpr int ability = CT::Inner::FindAbility<OF, ABILITY>();
-      static_assert(ability >= 0, "OF lacks ABILITY");
-      using IMPLEMENTATION = CTTI::Ability<OF, ability>;
-      return IMPLEMENTATION::Default(context, verb);
+   bool InvokeAbility(OF&& context, ABILITY& verb) {
+      using D_OF = DecvqAll<Deref<OF>>;
+      constexpr int definition_index = CT::Inner::FindAbility<D_OF, ABILITY>();
+      static_assert(definition_index >= 0, "OF lacks ABILITY");
+      using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
+      return IMPLEMENTATION::Default(LglsFwd(context), verb);
    }
 }
 

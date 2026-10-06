@@ -155,6 +155,7 @@ namespace Langulus::Serial
    /// Helps to define an operator                                            
    template<Literal TOKEN, bool CHARGE = false>
    struct OperatorDefinition {
+      using CTTI_ReflectAs = void;
       static constexpr auto Token    = TOKEN;
       static constexpr bool IsCharge = CHARGE;
    };

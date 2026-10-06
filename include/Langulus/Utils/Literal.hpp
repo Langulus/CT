@@ -9,7 +9,7 @@
 #include <Langulus/Core.hpp>
 #include <array>
 #include <string_view>
-#include <bit>
+//#include <bit>
 
 #if LANGULUS(SAFE)
    #include <stdexcept>
@@ -66,8 +66,13 @@ namespace Langulus
    ///                                                                        
    template<class T = No, size_t N = 0>
    struct Literal {
-      static_assert(N == 0 or ::std::has_single_bit(N),
-         "Modify N to minimize the number of templates");
+      //static_assert(N == 0 or ::std::has_single_bit(N),
+      //   "Modify N to minimize the number of templates");
+      //TODO turns out that's a really bad idea, especially if we have many consecutive small
+      //TODO literal additions - the size doubles with each concatenation
+      //TODO and quickly becomes huge
+      //TODO we should add LiteralCompact (as temporary maybe/), which gets produced by resizing, and
+      //TODO switches to a more optimized representation to avoid clogging compilation
       static constexpr bool   CTTI_Literal = true;
       static constexpr bool   Undefined = ::std::same_as<T, No>;
       static constexpr size_t ArraySize = N;
@@ -226,7 +231,7 @@ namespace Langulus
       ///                                                                     
       /// Get a resized Literal with the same properties                      
       template<size_t M>
-      using Resized = Literal<value_type, ::std::bit_ceil(M)>;
+      using Resized = Literal<value_type, M/*::std::bit_ceil(M)*/>;
 
    protected:
       template<class, size_t>
@@ -477,10 +482,10 @@ namespace Langulus
    Literal(T const&) -> Literal<T, 0>;
    
    template<class T, size_t N>
-   Literal(const T(&)[N]) -> Literal<T, ::std::bit_ceil(N)>;
+   Literal(const T(&)[N]) -> Literal<T, N/*::std::bit_ceil(N)*/>;
    
    template<class T, size_t N>
-   Literal(::std::array<T, N> const&) -> Literal<T, ::std::bit_ceil(N)>;
+   Literal(::std::array<T, N> const&) -> Literal<T, N/*::std::bit_ceil(N)*/>;
 
 
    /// Swap two strings                                                       

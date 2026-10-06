@@ -222,7 +222,7 @@ namespace Langulus::RTTI
          }
          else if constexpr (::std::is_bounded_array_v<T>) {
             // Append extent                                            
-            auto deext = IsolateTypename<Deext<T>, NORMALIZE, NAMED>();
+            auto deext = IsolateTypename<::std::remove_extent_t<T>, NORMALIZE, NAMED>();
             constexpr auto ext = ::std::extent_v<T>;
             static_assert(ext < 1000000, "Extent is too big");
             if constexpr (ext > 99999) {

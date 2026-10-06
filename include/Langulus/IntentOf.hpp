@@ -647,7 +647,7 @@ namespace Langulus
       concept HasIntentConstructor = Intent<S<T>...> and not Aggregate<T...>
           and requires (S<T>&&...arg) { (T {LglsFwd(arg)}, ...); };
 
-      /// Check if all TypeOf<S> have a dedicated intent constructor for S    
+      /// Check if all Deint<S> have a dedicated intent constructor for S     
       ///   @tparam S the intents and types                                   
       template<class...S>
       concept HasIntentConstructorAlt = Intent<S...> and not Aggregate<Deint<S>...>
@@ -699,7 +699,7 @@ namespace Langulus
           and requires (T& lhs, S<T>&& rhs) { lhs = LglsFwd(rhs); }
          ) and ...);
 
-      /// Check if all TypeOf<S> habe a dedicated intent-assigner for S       
+      /// Check if all Deint<S> have a dedicated intent-assigner for S        
       ///   @tparam S - the intent and type                                   
       template<class...S>
       concept HasIntentAssignAlt = Validate<S...> and ((Intent<S>

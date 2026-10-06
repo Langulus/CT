@@ -234,18 +234,7 @@ namespace Langulus
       static_assert(not CT::Sheddable<T, MORE...>,
          "Shed all sheddables before hashing");
 
-      if constexpr (CT::Unsupported<T, MORE...>) {
-         // If any of the types isn't supported abort the entire hash   
-         return No {};
-      }
-      else if constexpr (sizeof...(MORE)) {
-         // Combine all data into a single array of hashes, and then    
-         // hash that array as a whole                                  
-         const Hash coal[1 + sizeof...(MORE)] {
-            HashOf<FORCE_RUNTIME, SEED>(head),
-            HashOf<FORCE_RUNTIME, SEED>(rest)...
-         };
-
+      const auto batch_array = [](auto&& coal) {
          if consteval {
             if constexpr (FORCE_RUNTIME)
                return HashBytes({reinterpret_cast<const uint8_t*>(coal), sizeof(coal)}, SEED);
@@ -257,8 +246,37 @@ namespace Langulus
          else {
             return HashBytes({reinterpret_cast<const uint8_t*>(coal), sizeof(coal)}, SEED);
          }
+      };
+
+      const auto batch_ptr = []<size_t S>(auto&& head) {
+         if consteval {
+            if constexpr (FORCE_RUNTIME)
+               return HashBytes({reinterpret_cast<const uint8_t*>(&head), S}, SEED);
+            else {
+               auto as_bytes = ::std::bit_cast<::std::array<uint8_t, S>>(head);
+               return HashBytes(as_bytes, SEED);
+            }
+         }
+         else {
+            return HashBytes({reinterpret_cast<const uint8_t*>(&head), S}, SEED);
+         }
+      };
+
+      if constexpr (CT::Unsupported<T, MORE...>) {
+         // If any of the types isn't supported abort the entire hash   
+         return No {};
       }
-      else if constexpr (CT::Array<T>) {
+      else if constexpr (sizeof...(MORE)) {
+         // Combine all data into a single array of hashes, and then    
+         // hash that array as a whole                                  
+         const Hash coal[1 + sizeof...(MORE)] {
+            HashOf<FORCE_RUNTIME, SEED>(head),
+            HashOf<FORCE_RUNTIME, SEED>(rest)...
+         };
+         return batch_array(coal);
+      }
+      else if constexpr (::std::is_bounded_array_v<T>) {
+         // Built-in arrays                                             
          using InnerT = Deext<T>;
 
          // Combine the hashes of each element inside an array          
@@ -276,33 +294,34 @@ namespace Langulus
             Hash coal[ExtentOf<T>];
             for (size_t i = 0; i < ExtentOf<T>; ++i)
                coal[i] = HashOf<FORCE_RUNTIME, SEED>(head[i]);
+            return batch_array(coal);
+         }
+      }
+      else if constexpr (CT::Array<T> and not CT::HasGetHashMethod<T>) {
+         // Custom arrays without custom hashing                        
+         using InnerT = Deext<T>;
 
-            if consteval {
-               if constexpr (FORCE_RUNTIME)
-                  return HashBytes({reinterpret_cast<const uint8_t*>(coal), sizeof(coal)}, SEED);
-               else {
-                  auto as_bytes = ::std::bit_cast<::std::array<uint8_t, sizeof(coal)>>(coal);
-                  return HashBytes(as_bytes, SEED);
-               }
-            }
-            else {
-               return HashBytes({reinterpret_cast<const uint8_t*>(coal), sizeof(coal)}, SEED);
-            }
+         // Combine the hashes of each element inside an array          
+         if constexpr (ExtentOf<T> == 1) {
+            // Only one element in array, just use the first element    
+            return HashOf<FORCE_RUNTIME, SEED>(head[0]);
+         }
+         else if constexpr (CT::POD<InnerT> and not CT::HasGetHashMethod<InnerT>) {
+            // Array is made of POD elements, batch-hash the array      
+            return batch_ptr.template operator ()<sizeof(head)>(head);
+         }
+         else {
+            // Hash each element of the array individually, and then    
+            // hash that array of hashes as a whole                     
+            Hash coal[ExtentOf<T>];
+            for (size_t i = 0; i < ExtentOf<T>; ++i)
+               coal[i] = HashOf<FORCE_RUNTIME, SEED>(head[i]);
+            return batch_array(coal);
          }
       }
       else if constexpr (CT::Sparse<T>) {
          // Hash pointer, never dereference it                          
-         if consteval {
-            if constexpr (FORCE_RUNTIME)
-               return HashBytes({reinterpret_cast<const uint8_t*>(&head), sizeof(T)}, SEED);
-            else {
-               auto as_bytes = ::std::bit_cast<::std::array<uint8_t, sizeof(T)>>(head);
-               return HashBytes(as_bytes, SEED);
-            }
-         }
-         else {
-            return HashBytes({reinterpret_cast<const uint8_t*>(&head), sizeof(T)}, SEED);
-         }
+         return batch_ptr.template operator ()<sizeof(T)>(head);
       }
       else if constexpr (Same<T, Hash>) {
          // Provided type is already a hash, just propagate it          
@@ -320,17 +339,7 @@ namespace Langulus
          // hashes where the same hashes should be produced. In such    
          // cases it is recommended you add a custom GetHash() method   
          // to your type, or #pragma pack, in order to circumvent issue 
-         if consteval {
-            if constexpr (FORCE_RUNTIME)
-               return HashBytes({reinterpret_cast<const uint8_t*>(&head), sizeof(T)}, SEED);
-            else {
-               auto as_bytes = ::std::bit_cast<::std::array<uint8_t, sizeof(T)>>(head);
-               return HashBytes(as_bytes, SEED);
-            }
-         }
-         else {
-            return HashBytes({reinterpret_cast<const uint8_t*>(&head), sizeof(T)}, SEED);
-         }
+         return batch_ptr.template operator ()<sizeof(T)>(head);
       }
       else if constexpr (::std::ranges::range<T> and CT::Hashable<TypeOf<T>>) {
          // Anything that is range-iteratable and typed is carried      
