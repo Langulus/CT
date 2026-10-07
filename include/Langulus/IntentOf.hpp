@@ -164,7 +164,7 @@ namespace Langulus
    ///   @tparam T the type to refer                                          
    template<class T> requires (not ::std::is_reference_v<T>)
    struct Refer final : Inner::CommonIntent<0, true, false> {
-      const T& what;
+      T const& what;
 
       using CTTI_Sheddable = decltype(what);
 
@@ -179,7 +179,7 @@ namespace Langulus
       }
       
       LANGULUS(ALWAYS_INLINED)
-      explicit constexpr Refer(const T& value) noexcept : what {value} {
+      explicit constexpr Refer(T const& value) noexcept : what {value} {
          static_assert(CT::NoIntent<T>, "Can't nest intents");
       }
       
@@ -246,7 +246,7 @@ namespace Langulus
    ///   @tparam T the type to copy                                           
    template<class T> requires (not ::std::is_reference_v<T>)
    struct Copy final : Inner::CommonIntent<1, true, false> {
-      const T& what;
+      T const& what;
       
       using CTTI_Sheddable = decltype(what);
 
@@ -256,7 +256,7 @@ namespace Langulus
       Copy() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
-      explicit constexpr Copy(const T& value) noexcept : what {value} {
+      explicit constexpr Copy(T const& value) noexcept : what {value} {
          static_assert(CT::NoIntent<T>, "Can't nest intents");
       }
       
@@ -498,7 +498,7 @@ namespace Langulus
    ///   @tparam T the type to disown                                         
    template<class T> requires (not ::std::is_reference_v<T>)
    struct Disown final : Inner::CommonIntent<0, false, false> {
-      const T& what;
+      T const& what;
 
       using CTTI_Sheddable = decltype(what);
 
@@ -508,7 +508,7 @@ namespace Langulus
       Disown() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
-      explicit constexpr Disown(const T& value) noexcept : what {value} {
+      explicit constexpr Disown(T const& value) noexcept : what {value} {
          static_assert(CT::NoIntent<T>, "Can't nest intents");
       }
       
@@ -575,7 +575,7 @@ namespace Langulus
    ///   @tparam T the type to clone                                          
    template<class T> requires (not ::std::is_reference_v<T>)
    struct Clone final : Inner::CommonIntent<static_cast<unsigned>(-1), true, false> {
-      const T& what;
+      T const& what;
       
       using CTTI_Sheddable = decltype(what);
 
@@ -585,7 +585,7 @@ namespace Langulus
       Clone() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
-      explicit constexpr Clone(const T& value) noexcept : what {value} {
+      explicit constexpr Clone(T const& value) noexcept : what {value} {
          static_assert(CT::NoIntent<T>, "Can't nest intents");
       }
       
