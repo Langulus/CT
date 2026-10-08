@@ -1,12 +1,10 @@
-/// Optimal layout tuple                                                      
-/// Written in 2012 by Martinho Fernandes <martinho.fernandes@gmail.com>      
-/// Modified and modernized for C++23 in 2025 by Dimo Markov                  
-/// <team@langulus.com>. Changes made:                                        
-///  - making tuple fully constexpr                                           
-///  - using 'requires' instead of 'std::enable_if' patterns                  
-///  - using concepts for some require checks                                 
 ///                                                                           
-/// SPDX-License-Identifier: CC0-1.0                                          
+/// Langulus::Core                                                            
+/// Copyright (c) 2012 Dimo Markov <team@langulus.com>                        
+/// Part of the Langulus framework, see https://langulus.com                  
+///                                                                           
+/// SPDX-License-Identifier: MIT                                              
+///                                                                           
 #pragma once
 #include <Langulus/Core.hpp>
 #include <type_traits>
@@ -59,6 +57,10 @@ namespace Langulus
       template<class K1>
       constexpr Tuple(Inner::absorb_another_tuple, Tuple<K1>&& tuple)
          : first {LglsFwd(tuple.first)} {}
+
+      void Swap(Tuple<T>& other) {
+         ::std::swap(first, other.first);
+      }
    };
 
    /// Tuple with multiple elements incorporates each new element inside      
@@ -133,6 +135,11 @@ namespace Langulus
       constexpr Tuple(Inner::absorb_another_tuple, Tuple<K1, KN...>&& tuple)
          : Tuple<TN...> {Inner::absorb_another_tuple{}, ::std::forward<Tuple<KN...>>(tuple)}
          , first        {LglsFwd(tuple.first)} {}
+
+      void Swap(Tuple<T1, TN...>& other) {
+         ::std::swap(first, other.first);
+         Tuple<TN...>::Swap(static_cast<Tuple<TN...>&>(other));
+      }
    };
 
    template<class...T>
@@ -273,6 +280,10 @@ namespace Langulus
       template<class...K>
       constexpr CompactTuple(K&&...arguments)
          : storage {Inner::absorb_another_tuple{}, Inner::ShuffleTupleAndForward<to_compact>(LglsFwd(arguments)...)} {}
+
+      void Swap(CompactTuple<T...>& other) {
+         storage.Swap(other.storage);
+      }
    };
 
    /// Get the value at a specific index inside the compact tuple             
