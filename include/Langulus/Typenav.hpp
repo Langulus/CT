@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include "CT/Sheddable.hpp"
+#include "CT/Sparse.hpp"
 #include "CT/Macros.hpp"
 
 
@@ -28,13 +29,6 @@
 namespace Langulus::CTTI
 {
    /// MARK: CTTI                                                             
-   /// Affects CT::Sparse<T>:                                                 
-   template<class T>
-   struct Sparse {
-      static constexpr bool Default = true;
-      static constexpr bool Enabled = ::std::is_pointer_v<T>;
-   };
-   
    /// Affects CT::Null<T>:                                                   
    template<class T>
    struct Null {
@@ -75,68 +69,13 @@ namespace Langulus
    template<class T>
    using Devq = ::std::remove_volatile_t<T>;
 
-   namespace CT::Inner
-   {
-      /// Removes a pointer from the type. Supports custom pointers.          
-      ///   @attention if an incomplete type is reached the nesting ceases    
-      template<class T, unsigned TIMES>
-      consteval auto NestedDeptr() {
-         static_assert(not ::std::is_reference_v<T>,
-            "Shed all references prior to this call");
-         static_assert(TIMES >= 1,
-            "Can't deptr zero times");
-
-         if constexpr (not Complete<T>)
-            return ::std::type_identity<T> {};
-         else {
-            if constexpr (::std::is_pointer_v<T>) {
-               if constexpr (::std::is_void_v<::std::remove_pointer_t<T>>)
-                  return ::std::type_identity<void> {};
-               else {
-                  // Conventional pointer dereferencing                 
-                  using deptr_once = ::std::remove_pointer_t<T>;
-                  if constexpr (TIMES == 1)
-                     return ::std::type_identity<deptr_once> {};
-                  else
-                     return NestedDeptr<deptr_once, TIMES - 1>();
-               }
-            }
-            else if constexpr (::std::is_bounded_array_v<T>) {
-               // Conventional bounded array dereferencing              
-               using deptr_once = ::std::remove_extent_t<T>;
-               if constexpr (TIMES == 1)
-                  return ::std::type_identity<deptr_once> {};
-               else
-                  return NestedDeptr<deptr_once, TIMES - 1>();
-            }
-            else if constexpr (LANGULUS_CTTI_CHECK(T, Sparse)) {
-               // Custom pointer dereferencing                          
-               static_assert(requires(T t) { *t; },
-                  "Custom pointer doesn't have unary operator*");
-               
-               using deptr_once = Deref<decltype(*LglsFake(T))>;
-               if constexpr (TIMES == 1)
-                  return ::std::type_identity<deptr_once> {};
-               else
-                  return NestedDeptr<deptr_once, TIMES - 1>();
-            }
-            else return ::std::type_identity<T> {};
-         }
-      }
-   }
-
-   /// Remove a number of pointers from type. Supports custom pointer types.  
-   ///   @attention may result in a reference                                 
-   ///   @attention if an incomplete type is reached the nesting ceases       
-   template<class T, unsigned TIMES = 1>
-   using Deptr = typename decltype(CT::Inner::NestedDeptr<ShedDeref<T>, TIMES>())::type;
-
    namespace Inner
    {
       /// Nest-strip any qualifiers, extents, references, sheddables, and     
       /// indirections (including custom pointers).                           
       ///   @return a pointer to the stripped T                               
-      ///   @attention if an incomplete type is reached, the nesting ceases   
+      ///   @attention if an incomplete type is reached, the nesting ceases,  
+      ///      and the decayed incomplete type is returned.                   
       template<class T>
       consteval auto NestedDecay() {
          using Stripped = Decvq<Deref<Deptr<T>>>;
@@ -149,8 +88,8 @@ namespace Langulus
 
    /// Strip a typename to its origin, removing qualifiers, indirections      
    /// (even custom ones), references, and sheddables. Unlike std::decay_t,   
-   /// this strongly guarantees, that it strips _everything_, including nested
-   /// pointers, sheddables, and extents.                                     
+   /// this strongly guarantees, that it strips _everything_, including       
+   /// nested pointers, sheddables, and extents.                              
    template<class T>
    using Decay = ::std::remove_pointer_t<decltype(Inner::NestedDecay<T>())>;
    
@@ -162,20 +101,6 @@ namespace Langulus
       template<class...T>
       concept Volatile = PartialValidate<T...>
           and (::std::is_volatile_v<ShedDeref<T>> and ...);
-
-      /// Check if all T are sparse. Supports custom pointer types.           
-      template<class...T>
-      concept Sparse = PartialValidate<T...>
-          and (LANGULUS_CTTI_CHECK(Decvq<ShedDeref<T>>, Sparse) and ...);
-
-      /// Check if all T are custom pointer types.                            
-      template<class...T>
-      concept CustomPointer = PartialValidate<T...> and Sparse<T...>
-          and ((not ::std::is_pointer_v<ShedDeref<T>>) and ...);
-
-      /// Check if all T are dense. Detects custom pointer types.             
-      template<class...T>
-      concept Dense = PartialValidate<T...> and ((not Sparse<T>) and ...);
 
       /// Check if all T are constant-qualified                               
       template<class...T>
@@ -235,7 +160,7 @@ namespace Langulus
       /// with [] and isn't a reference.                                      
       ///   @attention still allowed to be cv-qualified                       
       template<class...T>
-      concept Slab = PartialValidate<T...> and [] {
+      concept Slab = PartialValidate<T...> and [] {//TODO is this ever used?
          if constexpr (((::std::is_reference_v<T> or ::std::is_array_v<T>) or ...))
             return false;
          else
@@ -298,30 +223,6 @@ namespace Langulus
           and ((not ConstantEverywhere<T>) and ...);
    }
 
-   ///                                                                        
-   /// Structure for describing custom packed pointers.                       
-   /// The default PointerSpecification with all members initialized to zero  
-   /// corresponds to a pointer with sizeof(void*) and thus not packed.       
-   struct PointerSpecification {
-      unsigned PoolBits = 0;
-      unsigned EntryBits = 0;
-      unsigned OffsetBits = 0;
-
-      constexpr unsigned GetTotalBits() const noexcept {
-         const auto total = PoolBits + EntryBits + OffsetBits;
-         return total ? total : sizeof(void*)*8;
-      }
-      
-      constexpr unsigned GetTotalBytes() const noexcept {
-         const auto total = PoolBits + EntryBits + OffsetBits;
-         return total ? total/8u : sizeof(void*);
-      }
-      
-      constexpr bool IsPacked() const noexcept {
-         return (PoolBits + EntryBits + OffsetBits) != 0;
-      }
-   };
-   
    namespace Inner
    {
       /// Removes all const/volatile qualifiers from all indirections.        
@@ -364,18 +265,6 @@ namespace Langulus
                return ::std::type_identity<T> {};
          }
          else return ::std::type_identity<T> {};
-      }
-
-      /// Count the number of indirections, including custom pointers.        
-      ///   @return the number of pointers in a type                          
-      template<class T>
-      consteval size_t CountIndirections() {
-         if constexpr (not CT::Complete<T>)
-            return 0;
-         else if constexpr (CT::Sparse<T>)
-            return 1 + CountIndirections<Deptr<T>>();
-         else
-            return 0;
       }
    }
 
@@ -424,11 +313,6 @@ namespace Langulus
    constexpr auto ConstAllCast(T&& what) noexcept -> ConstAll<::std::remove_extent_t<T>> const* {
       return const_cast<ConstAll<::std::remove_extent_t<T>> const*>(what);
    }
-   
-   /// Count the number of indirections, including custom pointers.           
-   ///   @attention ignores sheddable layers                                  
-   template<class T>
-   constexpr size_t IndirectsOf = Inner::CountIndirections<T>();
 
    template<class T, class YES, class NO>
    using Tmut = typename ::std::conditional_t<CT::Mutable<T>,
@@ -437,32 +321,6 @@ namespace Langulus
       >::type;
 
    #define LglsMutIf(CONDITION_TYPE, ...) Tmut<CONDITION_TYPE, __VA_ARGS__, ConstAll<__VA_ARGS__>>
-
-   /// Execute a lambda for each indirection inside a type T                  
-   /// The provided lambda must be of the form: [whatever]<class C>{...},     
-   /// so that if you provide T as void***, three lambdas will be generated   
-   /// and executed, with C being void***, void** and void*.                  
-   template<class T>
-   void ForEachIndirection(auto&& lambda) {
-      if constexpr (CT::Sparse<T>) {
-         lambda();
-         if constexpr (CT::Sparse<Deptr<T>>)
-            ForEachIndirection<Deptr<T>>(LglsFwd(lambda));
-      }
-   }
-
-   /// Execute a lambda for each indirection inside a type T by dereferencing 
-   /// The provided lambda must be of the form: [whatever](auto ptr){...},    
-   /// so that if you provide argument as void***, three lambdas will be      
-   /// generated and executed, with 'ptr' being void***, void** and void*.    
-   template<class T>
-   void ForEachIndirection(T& pointer, auto&& lambda) {
-      if constexpr (CT::Sparse<T>) {
-         lambda(pointer);
-         if constexpr (CT::Sparse<Deptr<T>>)
-            ForEachIndirection((*pointer), LglsFwd(lambda));
-      }
-   }
 }
 
 LANGULUS_CTTI_CONCEPT(Null);

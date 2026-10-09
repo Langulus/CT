@@ -27,10 +27,12 @@ LANGULUS_CTTI_CONCEPT_DECVQ(Number);
 namespace Langulus::CT
 {
    /// C++ is notorious with its ambiguity between int8_t and char. You can   
-   /// never derive clear intent from using those, because the are declared   
+   /// never derive clear intent from using those, because they are declared  
    /// the same way: are we talking about number semantics, or character      
-   /// semantics? Who knows! So you can use this concept to exclude `char`    
-   /// from the set of number types.                                          
+   /// semantics? Who knows! No idea who decided that's a good ontological    
+   /// commitment, but we bear that load on our shoulders since the dawn of   
+   /// time. So you can use this concept to exclude `char` from the set of    
+   /// number types.                                                          
    template<class...T>
    concept NumberUnambiguously = ((Number<T>
        and not ::std::is_same_v<ShedDeref<T>, char>) and ...);
