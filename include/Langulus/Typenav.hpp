@@ -78,7 +78,7 @@ namespace Langulus
       ///      and the decayed incomplete type is returned.                   
       template<class T>
       consteval auto NestedDecay() {
-         using Stripped = Decvq<Deref<Deptr<T>>>;
+         using Stripped = ::std::remove_extent_t<Decvq<Deref<Deptr<T>>>>;
          if constexpr (::std::is_same_v<T, Stripped>)
             return static_cast<Stripped*>(nullptr);
          else

@@ -34,7 +34,8 @@ namespace Langulus::CT
 {
    namespace Inner
    {
-      /// Get the inner type of a custom array. Returns void if not array.    
+      /// Get the inner type of a custom array.                               
+      /// Returns ::std::type_identity<T> if not array.                       
       template<class T>
       consteval auto GetCustomArrayType() {
          static_assert(not ::std::is_reference_v<T>,
@@ -47,7 +48,7 @@ namespace Langulus::CT
             if constexpr (ctti::Enabled)
                return ::std::type_identity<TypeOf<T>> {};
             else
-               return ::std::type_identity<void> {};
+               return ::std::type_identity<T> {};
          }
          else {
             static_assert(Complete<T>,
@@ -58,9 +59,9 @@ namespace Langulus::CT
                if constexpr (inner::Enabled)
                   return ::std::type_identity<TypeOf<T>> {};
                else
-                  return ::std::type_identity<void> {};
+                  return ::std::type_identity<T> {};
             }
-            else return ::std::type_identity<void> {};
+            else return ::std::type_identity<T> {};
          }
       };
 
@@ -104,7 +105,7 @@ namespace Langulus::CT
       template<class T>
       consteval size_t GetCustomExtentNested() {
          using InnerT = typename decltype(GetCustomArrayType<T>())::type;
-         if constexpr (not ::std::is_void_v<InnerT>)
+         if constexpr (not ::std::is_same_v<T, InnerT>)
             return GetCustomExtent<T>() * GetCustomExtentNested<InnerT>();
          else
             return GetCustomExtent<T>();
@@ -115,7 +116,7 @@ namespace Langulus::CT
       template<class T>
       consteval auto NestedDeext() {
          using InnerT = typename decltype(GetCustomArrayType<T>())::type;
-         if constexpr (not ::std::is_void_v<InnerT>)
+         if constexpr (not ::std::is_same_v<T, InnerT>)
             return NestedDeext<InnerT>();
          else
             return ::std::type_identity<T> {};
@@ -124,14 +125,16 @@ namespace Langulus::CT
 
    /// Check if all T are bounded or custom arrays                            
    template<class...T>
-   concept Array = PartialValidate<T...>
-       and ((not ::std::is_void_v<typename decltype(Inner::GetCustomArrayType<ShedDeref<T>>())::type>) and ...);
+   concept Array = PartialValidate<T...> and ((not ::std::is_same_v<
+      ShedDeref<T>,
+      typename decltype(Inner::GetCustomArrayType<ShedDeref<T>>())::type
+   >) and ...);
 }
 
 namespace Langulus
 {
    /// Remove the topmost array extent from a type                            
-   ///   @attention will remove references as well                            
+   ///   @attention will remove references and sheddables as well             
    template<class T>
    using Deext = typename decltype(CT::Inner::GetCustomArrayType<ShedDeref<T>>())::type;
 

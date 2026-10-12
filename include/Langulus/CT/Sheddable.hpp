@@ -22,7 +22,11 @@ namespace Langulus::CT::Inner
    ///   @attention doesn't strip any references                              
    template<class T>
    consteval auto GetSheddedType() {
-      if constexpr (Void<T>) {
+      if constexpr (not Complete<T>) {
+         // Incomplete types are never sheddable                        
+         return ::std::type_identity<T> {};
+      }
+      else if constexpr (Void<T>) {
          // Void types are never sheddable                              
          return ::std::type_identity<T> {};
       }
@@ -88,6 +92,8 @@ namespace Langulus::CT
    /// Marking types as sheddable means that they don't interfere with most   
    /// other CT concepts - most will act as if sheddable types don't          
    /// exist at all.                                                          
+   ///   @attention incomplete types are assumed no sheddable. Make sure      
+   ///      you include your sheddables before using them.                    
    template<class...T>
    concept Sheddable = ((not ::std::is_same_v<::std::type_identity<T>, decltype(Inner::GetSheddedType<T>())>) and ...);
 
