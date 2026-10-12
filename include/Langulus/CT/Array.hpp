@@ -45,10 +45,11 @@ namespace Langulus::CT
 
          using ctti = CTTI::Array<T>;
          if constexpr (Complete<ctti>) {
-            if constexpr (ctti::Enabled)
+            if constexpr (ctti::Enabled) {
+               static_assert(CT::Typed<T>, "Array specified without type");
                return ::std::type_identity<TypeOf<T>> {};
-            else
-               return ::std::type_identity<T> {};
+            }
+            else return ::std::type_identity<T> {};
          }
          else {
             static_assert(Complete<T>,
@@ -56,10 +57,11 @@ namespace Langulus::CT
 
             if constexpr (requires { typename T::CTTI_Array; }) {
                using inner = typename T::CTTI_Array;
-               if constexpr (inner::Enabled)
+               if constexpr (inner::Enabled) {
+                  static_assert(CT::Typed<T>, "Array specified without type");
                   return ::std::type_identity<TypeOf<T>> {};
-               else
-                  return ::std::type_identity<T> {};
+               }
+               else return ::std::type_identity<T> {};
             }
             else return ::std::type_identity<T> {};
          }
@@ -166,4 +168,32 @@ namespace Langulus
    ///              `void*&` remains `void*&`.                                
    template<class T>
    using DeextAll = typename decltype(CT::Inner::NestedDeext<ShedDeref<T>>())::type;
+
+   namespace Inner
+   {
+      /// Returns the extent overlap of two arrays/non arrays                 
+      ///   @return the smaller extent, if two arrays are provided;           
+      ///           the bigger extent, if one of the arguments isn't an array;
+      ///           1 if both arguments are not arrays;                       
+      template<class LHS, class RHS>
+      consteval size_t OverlapExtents() noexcept {
+         static_assert(CT::NotSheddable<LHS, RHS>, "Shed all sheddables first");
+         static_assert(CT::NotConvoluted<LHS, RHS>, "Shed all qualifiers first");
+         constexpr auto lhs = AllExtentsOf<LHS>;
+         constexpr auto rhs = AllExtentsOf<RHS>;
+
+         if constexpr (lhs > 1 and rhs > 1)
+            return lhs < rhs ? lhs : rhs;
+         else if constexpr (lhs > 1)
+            return lhs;
+         else if constexpr (rhs > 1)
+            return rhs;
+         else
+            return 1;
+      }
+   }
 }
+
+#define LglsOverlapExtents(a, b)  ::Langulus::Inner::OverlapExtents< \
+   Decvq<ShedDeref<decltype(a)>>, \
+   Decvq<ShedDeref<decltype(b)>>>()

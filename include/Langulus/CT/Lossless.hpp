@@ -69,56 +69,9 @@ namespace Langulus
 
    namespace Inner
    {
-      /// Returns the extent overlap of two arrays/non arrays                 
-      ///   @return the smaller extent, if two arrays are provided;           
-      ///           the bigger extent, if one of the arguments isn't an array;
-      ///           1 if both arguments are not arrays;                       
-      template<class LHS, class RHS>
-      consteval size_t OverlapCounts() noexcept {
-         static_assert(CT::NotSheddable<LHS, RHS>, "Shed all sheddables first");
-         static_assert(CT::NotConvoluted<LHS, RHS>, "Shed all qualifiers first");
-         constexpr auto lhs = AllExtentsOf<LHS>;
-         constexpr auto rhs = AllExtentsOf<RHS>;
-
-         if constexpr (lhs > 1 and rhs > 1)
-            return lhs < rhs ? lhs : rhs;
-         else if constexpr (lhs > 1)
-            return lhs;
-         else if constexpr (rhs > 1)
-            return rhs;
-         else
-            return 1;
-      }
-
-      /*#define OVERLAP_EXTENTS(l,r) OverlapExtents<decltype(l), decltype(r)>()
-      
-      /// Returns the count overlap of two vectors/scalars                       
-      /// This is used to decide the output array size, for containing the       
-      /// result of an arithmetic operation                                      
-      ///   @tparam LHS - left type                                              
-      ///   @tparam RHS - right type                                             
-      ///   @return the overlapping count:                                       
-      ///           the smaller extent, if two arrays are provided;              
-      ///           the bigger extent, if one of the arguments isn't a vector    
-      ///           1 if both arguments are not arrays                           
-      template<class LHS, class RHS>
-      consteval Count OverlapCounts() noexcept {
-         constexpr auto lhs = CountOf<Deint<LHS>>;
-         constexpr auto rhs = CountOf<Deint<RHS>>;
-
-         if constexpr (lhs > 1 and rhs > 1)
-            return lhs < rhs ? lhs : rhs;
-         else if constexpr (lhs > 1)
-            return lhs;
-         else if constexpr (rhs > 1)
-            return rhs;
-         else
-            return 1;
-      }*/
-      
       /// When given two types, choose the one that is most lossless in terms 
       /// of behavior, and capacity                                           
-      ///  - if T1 or T2 is an array, an array of OverlapCount size will be   
+      ///  - if T1 or T2 is an array, an array of overlapped size will be     
       ///    given back. The array will be of the lossless decayed type       
       ///  - if both types are reals, the bigger real will be returned        
       ///  - if one of the type is a real, and the other an integer, the real 
@@ -133,7 +86,7 @@ namespace Langulus
       consteval auto PickLossless() {
          static_assert(CT::NotSheddable<T1, T2>, "Shed all sheddables first");
          static_assert(CT::NotConvoluted<T1, T2>, "Shed all qualifiers first");
-         constexpr auto size = OverlapCounts<T1, T2>();
+         constexpr size_t size = OverlapExtents<T1, T2>();
 
          if constexpr (CT::Fundamental<DeextAll<T1>, DeextAll<T2>>) {
             // Both types are fundamental                               

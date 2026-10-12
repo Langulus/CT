@@ -30,6 +30,7 @@ namespace Langulus::CT
       /// Removes a pointer from the type. Supports custom pointers.          
       ///   @attention if an incomplete type is reached the nesting ceases,   
       ///      as incomplete types are always considered dense                
+      ///   @attention std::nullptr_t is considered a pointer to void*        
       template<class T, unsigned TIMES = 1>
       consteval auto NestedDeptr() {
          static_assert(not ::std::is_reference_v<T>,
@@ -37,31 +38,44 @@ namespace Langulus::CT
          static_assert(TIMES >= 1,
             "Can't deptr zero times");
 
-         if constexpr (not Complete<T>)
+         if constexpr (::std::is_null_pointer_v<T>)
+            return ::std::type_identity<void> {};
+         else if constexpr (not Complete<T>)
             return ::std::type_identity<T> {};
-         else {
-            if constexpr (::std::is_pointer_v<T>) {
-               if constexpr (::std::is_void_v<::std::remove_pointer_t<T>>)
-                  return ::std::type_identity<void> {};
-               else {
-                  // Conventional pointer dereferencing                 
-                  using deptr_once = ::std::remove_pointer_t<T>;
-                  if constexpr (TIMES == 1)
-                     return ::std::type_identity<deptr_once> {};
-                  else
-                     return NestedDeptr<deptr_once, TIMES - 1>();
-               }
-            }
-            /*else if constexpr (::std::is_bounded_array_v<T>) { //TODO hmmmm, should arrays be considered sparse? there's no real indirection?
-               // Conventional bounded array dereferencing              
-               using deptr_once = ::std::remove_extent_t<T>;
+         else if constexpr (::std::is_pointer_v<T>) {
+            if constexpr (::std::is_void_v<::std::remove_pointer_t<T>>)
+               return ::std::type_identity<void> {};
+            else {
+               // Conventional pointer dereferencing                    
+               using deptr_once = ::std::remove_pointer_t<T>;
                if constexpr (TIMES == 1)
                   return ::std::type_identity<deptr_once> {};
                else
                   return NestedDeptr<deptr_once, TIMES - 1>();
-            }*/
-            else if constexpr (Complete<CTTI::Sparse<T>>) {
-               // Custom pointer (externally defined) dereferencing     
+            }
+         }
+         /*else if constexpr (::std::is_bounded_array_v<T>) { //TODO hmmmm, should arrays be considered sparse? there's no real indirection?
+            // Conventional bounded array dereferencing                 
+            using deptr_once = ::std::remove_extent_t<T>;
+            if constexpr (TIMES == 1)
+               return ::std::type_identity<deptr_once> {};
+            else
+               return NestedDeptr<deptr_once, TIMES - 1>();
+         }*/
+         else if constexpr (Complete<CTTI::Sparse<T>>) {
+            // Custom pointer (externally defined) dereferencing        
+            static_assert(requires(T t) { *t; },
+               "Custom pointer doesn't have unary operator*");
+            
+            using deptr_once = ::std::remove_reference_t<decltype(*LglsFake(T))>;
+            if constexpr (TIMES == 1)
+               return ::std::type_identity<deptr_once> {};
+            else
+               return NestedDeptr<deptr_once, TIMES - 1>();
+         }
+         else if constexpr (requires { typename T::CTTI_Sparse; }) {
+            if constexpr (T::CTTI_Sparse::Enabled) {
+               // Custom pointer (internally defined) dereferencing     
                static_assert(requires(T t) { *t; },
                   "Custom pointer doesn't have unary operator*");
                
@@ -71,22 +85,9 @@ namespace Langulus::CT
                else
                   return NestedDeptr<deptr_once, TIMES - 1>();
             }
-            else if constexpr (requires { typename T::CTTI_Sparse; }) {
-               if constexpr (T::CTTI_Sparse::Enabled) {
-                  // Custom pointer (internally defined) dereferencing  
-                  static_assert(requires(T t) { *t; },
-                     "Custom pointer doesn't have unary operator*");
-                  
-                  using deptr_once = ::std::remove_reference_t<decltype(*LglsFake(T))>;
-                  if constexpr (TIMES == 1)
-                     return ::std::type_identity<deptr_once> {};
-                  else
-                     return NestedDeptr<deptr_once, TIMES - 1>();
-               }
-               else return ::std::type_identity<T> {};
-            }
             else return ::std::type_identity<T> {};
          }
+         else return ::std::type_identity<T> {};
       }
    }
 
@@ -95,9 +96,10 @@ namespace Langulus::CT
    ///      it is assumed, that pointers are simple types that are always     
    ///      complete. Make sure you define your custom pointers!              
    template<class...T>
-   concept Sparse = PartialValidate<T...> and ((not
-      ::std::is_same_v<::std::type_identity<ShedDeref<T>>, 
-                       decltype(CT::Inner::NestedDeptr<ShedDeref<T>>())>) and ...);
+   concept Sparse = PartialValidate<T...> and ((not ::std::is_same_v<
+         ::std::type_identity<ShedDeref<T>>, 
+         decltype(CT::Inner::NestedDeptr<ShedDeref<T>>())
+      >) and ...);
 
    /// Check if all T are dense. Supports custom pointer types.               
    ///   @attention incomplete types are always considered dense              
