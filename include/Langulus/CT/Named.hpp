@@ -7,7 +7,7 @@
 ///                                                                           
 #pragma once
 #include "../Typenav.hpp"
-//#include "../Utils/Literal.hpp"
+#include "../Utils/Literal.hpp"
 
 
 namespace Langulus::CTTI
@@ -22,27 +22,6 @@ namespace Langulus::CTTI
    /// 2. Add a public `using CTTI_Named = Yes<"DataID">;` in T               
    template<class T>
    struct Named;
-
-   //template<auto E>
-   //struct NamedValue;
-
-   ///   @important                                                           
-   /// When reflecting enums inside your classes/structs, it is recommended   
-   /// to use <Langulus/Values.hpp> instead, as it is two levels above this.  
-   /// the Named pattern instructs how NameOf works, which is in turn used by 
-   /// NamedValues to instruct how such constants are reflected.              
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Named);
-
-/*namespace Langulus::CT
-{
-   /// Check if a constant has a name associate with it                       
-   template<auto E>
-   concept NamedValue = Complete<CTTI::NamedValue<E>>;
-
-   /// Check if a constant doesn't have a name associate with it              
-   template<auto E>
-   concept NotNamedValue = not Complete<CTTI::NamedValue<E>>;
-}
-*/

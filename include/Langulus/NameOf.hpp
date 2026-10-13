@@ -317,9 +317,9 @@ namespace Langulus::RTTI
       ///   @return a compile-time string                                     
       template<auto E, bool NORMALIZE = true, bool NAMED = true>
       consteval auto IsolateConstant() {
-         /*constexpr auto custom_token = CT::Inner::CustomNameOfConstant<E>();
-         if constexpr (NAMED and custom_token != "") {
+         if constexpr (NAMED) {
             // Custom name by specializing CTTI::DefineConstant found   
+            constexpr auto custom_token = CT::Inner::GetCustomNameOfConstant<E>();
             static_assert(IsKeyword(custom_token),
                "Not a valid CTTI::NamedValue - "
                "must be ASCII, starting with an alphabetical symbol, "
@@ -330,7 +330,7 @@ namespace Langulus::RTTI
             );
             return custom_token;
          }
-         else {*/
+         else {
             // Extract the C++ name and normalize it if required        
             constexpr auto name = WrappedEnumName<E>();
             constexpr auto size = name.size();
@@ -347,7 +347,7 @@ namespace Langulus::RTTI
                return Normalize<isolated>();
             else
                return isolated;
-         //}
+         }
       }
 
       constexpr Literal uint8_t_token  = IsolateTypename<uint8_t,  false, false>();

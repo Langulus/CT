@@ -291,6 +291,6 @@ namespace Langulus
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
          static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
          template<class TO> \
-         static constexpr TO Convert(FROM const& from) BODY \
+         static constexpr TO Convert(ConstAll<FROM&> from) BODY \
       }; \
    }

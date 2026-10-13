@@ -80,18 +80,18 @@ namespace Langulus::CT::Inner
          //                                                             
          // Constants were defined externally                           
          if constexpr (CT::Typelist<ctti>) {
-            // Constants are defined as a sequence of NamedValue(s)     
+            // Constants are defined as a sequence of NamedValue(s)     //TODO might need to be static_cast<T>(E) in order to be properly resolved later
             return ctti {};
          }
          else if constexpr (CT::Valuelist<ctti>) {
             // Constants are defined as a sequence of values            
             return ctti::Expand([]<auto...E> {
-               return Types<NamedValue<E>...> {};
+               return Types<NamedValue<E>...> {};//TODO might need to be static_cast<T>(E) in order to be properly resolved later
             });
          }
          else if constexpr (requires { ctti::Constant; }) {
             // Constant should be a single NamedValue                   
-            return Types<ctti> {};
+            return Types<ctti> {};//TODO might need to be static_cast<T>(E) in order to be properly resolved later
          }
          else return NoTypes {};
       }
@@ -109,17 +109,17 @@ namespace Langulus::CT::Inner
             }
             else if constexpr (CT::Typelist<inner>) {
                // Constants are defined as a sequence of NamedValue(s)  
-               return inner {};
+               return inner {};//TODO might need to be static_cast<T>(E) in order to be properly resolved later
             }
             else if constexpr (CT::Valuelist<inner>) {
                // Constants are defined as a sequence of values         
                return ctti::Expand([]<auto...E> {
-                  return Types<NamedValue<E>...> {};
+                  return Types<NamedValue<E>...> {};//TODO might need to be static_cast<T>(E) in order to be properly resolved later
                });
             }
             else if constexpr (requires { inner::Constant; }) {
                // Constant should be a single NamedValue                
-               return Types<inner> {};
+               return Types<inner> {};//TODO might need to be static_cast<T>(E) in order to be properly resolved later
             }
             else return NoTypes {};
          }
@@ -131,78 +131,21 @@ namespace Langulus::CT::Inner
    /// Get the definition of a constant at compile-time                       
    ///   @tparam E the value to get the info of                               
    ///   @return a NamedValue if constant was defined, or No otherwise        
-   /*template<auto E>
-   consteval auto DefinitionOfConstant() {
-      using T    = decltype(E);
-      static_assert(not ::std::is_reference_v<T>, "Strip references first");
-      static_assert(not ::std::is_const_v<T>, "Strip constness first");
-      using ctti = CTTI::DefineConstant<T>;
-
-      if constexpr (CT::Complete<ctti>) {
-         //                                                             
-         // Constants were defined externally                           
-         if constexpr (CT::Typelist<ctti>) {
-            // Constants are defined as a sequence of NamedValue(s)     
-            return ctti::ForEachConstOr([]<class V> {
-               if constexpr (V::Constant == E)
-                  return V {};
-               else
-                  return No {};
-            });
-         }
-         else if constexpr (CT::Valuelist<ctti>) {
-            // Constants are defined as a sequence of values            
-            if constexpr (ctti::template Contains<E>)
-               return NamedValue<E> {};
-            else
-               return No {};
-         }
-         else if constexpr (ctti::Constant == E) {
-            // Constant should be a single NamedValue                   
-            return ctti {};
-         }
+   template<auto E>
+   consteval auto GetDefinitionOfConstant() {
+      constexpr auto named_values = GetNamedValueList<decltype(E)>();
+      return ForEachConstOr(named_values, []<class V> {
+         if constexpr (V::Constant == E) return V {};
          else return No {};
-      }
-      else if constexpr (::std::is_class_v<T>) {
-         //                                                             
-         // Constants were defined internally.                          
-         // We have a guarantee T is complete. E is here, after all.    
-         using inner = typename T::CTTI_Values;
-         if constexpr (CT::Void<inner>) {
-            // Named values are explicitly disabled for T               
-            return No {};
-         }
-         else if constexpr (CT::Typelist<inner>) {
-            // Constants are defined as a sequence of NamedValue(s)     
-            return inner::ForEachConstOr([]<class V> {
-               if constexpr (V::Constant == E)
-                  return V {};
-               else
-                  return No {};
-            });
-         }
-         else if constexpr (CT::Valuelist<inner>) {
-            // Constants are defined as a sequence of values            
-            if constexpr (inner::template Contains<E>)
-               return NamedValue<E> {};
-            else
-               return No {};
-         }
-         else if constexpr (inner::Constant == E) {
-            // Constant should be a single NamedValue                   
-            return inner {};
-         }
-         else return No {};
-      }
-      else return No {};
+      });
    }
    
    /// Get a custom token of a constant at compile-time, if such was defined  
    ///   @tparam E the constant to get the token of                           
    ///   @return a compile-time string                                        
    template<auto E>
-   consteval auto CustomNameOfConstant() {
-      constexpr auto definition = DefinitionOfConstant<E>();
+   consteval auto GetCustomNameOfConstant() {
+      constexpr auto definition = GetDefinitionOfConstant<E>();
       if constexpr (::std::is_same_v<decltype(definition), No const>)
          return Langulus::Literal {};
       else {
@@ -212,19 +155,23 @@ namespace Langulus::CT::Inner
             "Constant name must begin with an alphabetical symbol");
          return c;
       }
-   }*/
+   }
 }
 
-/*namespace Langulus::CT
+namespace Langulus::CT
 {
    /// Checks if all E are defined constants                                  
    template<auto...E>
-   concept DefineConstant = ((not ::std::is_same_v<No, decltype(Inner::DefinitionOfConstant<E>())>) and ...);
+   concept DefineConstant = ((not ::std::is_same_v<No, decltype(Inner::GetDefinitionOfConstant<E>())>) and ...);
 
    /// Checks if all E are not defined constants                              
    template<auto...E>
    concept NotDefineConstant = ((not DefineConstant<E>) and ...);
-}*/
+
+   /// Check if T has named values associated with it                         
+   template<class T>
+   concept HasNamedValues = not decltype(CT::Inner::GetNamedValueList<Decvq<Deref<T>>>())::Empty;
+}
 
 namespace Langulus
 {
