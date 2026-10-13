@@ -25,9 +25,9 @@ namespace Langulus::CTTI
    template<class T>
    struct Executable;
 
-   /// Type-erased verbs are always marked executable                         
-   template<>
-   struct Executable<::Langulus::Annies::Verb> {};
+   /// All verbs are always marked executable                                 
+   template<class T>
+   struct Executable<::Langulus::Annies::TVerb<T>> {};
 }
 
 namespace Langulus::CT

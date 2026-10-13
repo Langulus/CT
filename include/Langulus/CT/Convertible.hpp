@@ -207,7 +207,7 @@ namespace Langulus
       else {
          #if LANGULUS(DEBUG)
             static_assert(false,
-               "Despite the appropriate morphism being defined, "
+               "Despite the appropriate morphism being declared, "
                + FROMname + " can't be converted to " + TOname + ", "
                "because it lacks the functionality to do so. Either use "
                "LANGULUS_MORPHISM_CUSTOM(" + FROMname + ", " + TOname + ", {<custom conversion logic>}), "
@@ -218,7 +218,7 @@ namespace Langulus
             );
          #else
             static_assert(false,
-               "Despite the appropriate morphism being defined, "
+               "Despite the appropriate morphism being declared, "
                "FROM can't be converted to TO, "
                "because it lacks the functionality to do so. Either use "
                "LANGULUS_MORPHISM_CUSTOM(FROM, TO, {<custom conversion logic>}), "

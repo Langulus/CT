@@ -6,20 +6,27 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Typenav.hpp"
+#include "Number.hpp"
 
 
 namespace Langulus::CTTI
 {
    namespace Inner
    {
-      /// Test if T is initializable with a signed fundamental                
+      /// Test if T is initializable with a signed custom/built-in number     
+      ///   @attention CT::Number check is required, because many container   
+      ///      possess constructors compatible with F {-1}, and will attempt  
+      ///      to construct themselves at compile-time, resulting in errors   
+      ///      and false positives.                                           
       template<class T, class F>
       consteval bool SignedInner() {
-         if constexpr (requires { T {F {-1}} < T {F {0}}; })
-            return T {F {-1}} < T {F {0}};
-         else
-            return false;
+         if constexpr (CT::Number<T, F>) {
+            if constexpr (requires { T {F {-1}} < T {F {0}}; })
+               return T {F {-1}} < T {F {0}};
+            else
+               return false;
+         }
+         else return false;
       }
    }
 
