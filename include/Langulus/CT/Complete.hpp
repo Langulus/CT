@@ -22,7 +22,7 @@ namespace Langulus::CT
    //concept Complete = (sizeof...(T) > 0) and ((sizeof(T) == sizeof(T)) and ...);
 
    /// This is a slightly improved version, that doesn't do ODR violations    
-   template<class T, bool PROBE = requires(T) { sizeof(T); }>
+   template<class T, bool PROBE = requires { sizeof(T); }>
    constexpr bool Complete = PROBE;
 
    /// Checks if T is incomplete, but also not void                           

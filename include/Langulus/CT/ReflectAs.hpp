@@ -70,15 +70,16 @@ namespace Langulus::CT::Inner
       }
       else if constexpr (::std::is_pointer_v<T>) {
          // Let's make sure indirections are preserved                  
-         if constexpr (not Complete<::std::remove_pointer_t<T>>)
+         //if constexpr (not Complete<::std::remove_pointer_t<T>>)
+         // POINTERS (EVEN CUSTOM ONES) ARE ALWAYS REFLECTABLE, unless you explicitly specialize CTTI::ReflectAs<T>
             return ::std::type_identity<T> {};
-         else {
+         /*else {
             using AS = decltype(IsReflectable<::std::remove_pointer_t<T>>());
             if constexpr (Void<AS>)
                return ::std::type_identity<void>{};
             else
                return ::std::type_identity<typename AS::type*> {};
-         }
+         }*/
       }
       else if constexpr (requires { typename T::CTTI_ReflectAs; }) {
          // Substitution through internal type                          

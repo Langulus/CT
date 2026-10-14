@@ -140,7 +140,7 @@ namespace Langulus
    ///   - if T has CTTI_Typed/value_type -> return the inner type(s)         
    ///   - otherwise just return a void type                                  
    template<class T, int INDEX = 0>
-   using TypeOf = typename decltype(CT::Inner::GetUnderlyingType<Decvq<Deref<T>>, INDEX>())::type;
+   using TypeOf = typename decltype(CT::Inner::GetUnderlyingType<Decvq<ShedDeref<T>>, INDEX>())::type;
 
    namespace CT
    {

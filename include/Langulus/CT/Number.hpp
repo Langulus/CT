@@ -12,7 +12,9 @@
 
 namespace Langulus::CTTI
 {
-   /// Affects CT::Number<T>                                                  
+   /// Extends T by marking it as a number. Examples:                         
+   /// 1) template<> struct Number<YourType> {};                              
+   /// 2) struct YourType { using CTTI_Number = Yup; };                       
    /// @attention bool types are not considered numbers                       
    template<class T>
    struct Number;
@@ -20,9 +22,17 @@ namespace Langulus::CTTI
    /// All custom/built-in integers and real numbers are CT::Number           
    template<class T> requires (CT::Integer<T> or CT::Real<T>)
    struct Number<T> {};
+
+   /// Extends T by marking it as a custom number. CT::CustomNumber is proper 
+   /// subset of CT::Number. Examples:                                        
+   /// 1) template<> struct CustomNumber<YourType> {};                        
+   /// 2) struct YourType { using CTTI_CustomNumber = Yup; };                 
+   template<class T>
+   struct CustomNumber;
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Number);
+LANGULUS_CTTI_CONCEPT_DECVQ(CustomNumber);
 
 namespace Langulus::CT
 {
@@ -36,4 +46,12 @@ namespace Langulus::CT
    template<class...T>
    concept NumberUnambiguously = ((Number<T>
        and not ::std::is_same_v<ShedDeref<T>, char>) and ...);
+
+   /// Built-in number                                                        
+   template<class...T>
+   concept BuiltinNumber = ((Number<T> and not CustomNumber<T>) and ...);
+
+   /// Unambiguous built-in number                                            
+   template<class...T>
+   concept BuiltinNumberUnambiguously = ((NumberUnambiguously<T> and not CustomNumber<T>) and ...);
 }
