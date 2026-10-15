@@ -19,6 +19,7 @@ namespace Langulus
    ///                                                                        
    template<>
    struct Values<> {
+      using CTTI_Valuelist = Yup;
       using FirstType = void;
       static constexpr bool Empty = true;
       static constexpr size_t Count = 0;
@@ -61,6 +62,7 @@ namespace Langulus
    ///                                                                        
    template<auto E1>
    struct Values<E1> {
+      using CTTI_Valuelist = Yup;
       using FirstType = decltype(E1);
       static constexpr auto First   = E1;
       static constexpr auto Last    = E1;
@@ -135,6 +137,7 @@ namespace Langulus
    ///                                                                        
    template<auto E1, auto E2, auto...EN>
    struct Values<E1, E2, EN...> {
+      using CTTI_Valuelist = Yup;
       using FirstType = decltype(E1);
       static constexpr auto First   = E1;
       static constexpr auto Second  = E2;

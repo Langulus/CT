@@ -28,6 +28,12 @@ namespace Langulus::CTTI
    /// All verbs are always marked executable                                 
    template<class T>
    struct Executable<::Langulus::Annies::TVerb<T>> {};
+
+   /// Same applies to verb pointers                                          
+   template<class T>
+   struct Executable<::Langulus::Annies::TVerb<T>*> {};
+   template<class T>
+   struct Executable<::Langulus::Annies::TVerb<T> const*> {};
 }
 
 namespace Langulus::CT

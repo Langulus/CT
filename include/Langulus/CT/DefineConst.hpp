@@ -113,7 +113,7 @@ namespace Langulus::CT::Inner
             }
             else if constexpr (CT::Valuelist<inner>) {
                // Constants are defined as a sequence of values         
-               return ctti::Expand([]<auto...E> {
+               return inner::Expand([]<auto...E> {
                   return Types<NamedValue<E>...> {};//TODO might need to be static_cast<T>(E) in order to be properly resolved later
                });
             }

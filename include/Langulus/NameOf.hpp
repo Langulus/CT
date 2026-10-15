@@ -409,7 +409,7 @@ namespace Langulus::RTTI
       constexpr size_t DecideBufferSize(const CT::Literal auto& SRC) {
          const size_t src_size = SRC.size();
          size_t result = 0;
-         for (const auto& pattern : ReplacePatterns) {
+         for (auto const& pattern : ReplacePatterns) {
             size_t occurences = 0;
             size_t cookie = 0;
             while (cookie + pattern.what.size() <= src_size) {
@@ -448,7 +448,7 @@ namespace Langulus::RTTI
             throw ::std::runtime_error {"Token isn't ASCII"};
          ::std::string result {SRC};
    
-         for (const auto& pattern : ReplacePatterns) {
+         for (auto const& pattern : ReplacePatterns) {
             size_t fill = 0;
             size_t prev = 0;
             size_t curr = result.find(pattern.what, 0);
@@ -500,7 +500,7 @@ namespace Langulus::RTTI
          static_assert(IsASCII(SRC), "Literal isn't ASCII");
          Literal<char, DecideBufferSize(SRC)> result {SRC};
          
-         for (const auto& pattern : ReplacePatterns) {
+         for (auto const& pattern : ReplacePatterns) {
             size_t fill = 0;
             size_t prev = 0;
             size_t curr = result.find(pattern.what, 0);

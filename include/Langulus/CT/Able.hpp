@@ -6,8 +6,8 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Typenav.hpp"
-#include "../Utils/Types.hpp"
+#include "DefineVerb.hpp"
+//#include "../Utils/Types.hpp"
 
 
 namespace Langulus::CTTI
@@ -138,11 +138,11 @@ namespace Langulus
 
    /// Invoke an ability by finding it at compile-time                        
    //TODO this can also potentially be used to run flows at compile-time      
-   template<class OF, class ABILITY>
+   template<class OF, CT::DefineVerb ABILITY>
    bool InvokeAbility(OF&& context, ABILITY& verb) {
       using D_OF = DecvqAll<Deref<OF>>;
       constexpr int definition_index = CT::Inner::FindAbility<D_OF, ABILITY>();
-      static_assert(definition_index >= 0, "OF lacks ABILITY");
+      static_assert(definition_index >= 0, CppNameOf<D_OF>() + " can't " + PositiveNameOfVerb<ABILITY>);
       using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
       return IMPLEMENTATION::Default(LglsFwd(context), verb);
    }
