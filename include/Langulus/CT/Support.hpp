@@ -14,7 +14,7 @@ namespace Langulus::CT
 {
    /// Check if any T is the built-in `No`, which signifies lack of support   
    template<class...T>
-   concept Unsupported = (::std::is_same_v<T, No> or ...);
+   concept Unsupported = (::std::is_same_v<::std::decay_t<T>, No> or ...);
 
    /// Check if all T are supported                                           
    template<class...T>

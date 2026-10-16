@@ -129,12 +129,13 @@ namespace Langulus
    ///   @param mn additional information to log                              
    template<bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssertInner(
-      [[maybe_unused]] const char* location, bool condition,
+      [[maybe_unused]] const char* location,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) {
       if not consteval {
-         if (not condition) {
+         if (not static_cast<bool>(condition)) {
             #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
                // Log error message                                     
                auto s = Logger::ErrorScoped("Assertion failure: ");
@@ -168,13 +169,13 @@ namespace Langulus
    template<class...MORE>
    constexpr void AssertWarnInner(
       [[maybe_unused]] const char* location, 
-      [[maybe_unused]] bool condition,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
       #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
          if not consteval {
-            if (not condition) {
+            if (not static_cast<bool>(condition)) {
                // Log error message                                     
                auto s = Logger::WarningScoped("Assertion failure: ");
                Logger::Append(m1);
@@ -199,12 +200,12 @@ namespace Langulus
    template<bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssumeUserInner(
       [[maybe_unused]] const char* location, 
-      [[maybe_unused]] bool condition,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown user assumption failure>",
       [[maybe_unused]] MORE&&...mn
    ) {
       if not consteval {
-         if (not condition) {
+         if (not static_cast<bool>(condition)) {
             #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
                // Log error message                                     
                auto s = Logger::ErrorScoped("User assumption failure: ");
@@ -236,13 +237,13 @@ namespace Langulus
    template<class...MORE>
    constexpr void AssumeUserWarnInner(
       [[maybe_unused]] const char* location, 
-      [[maybe_unused]] bool condition,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
       #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
          if not consteval {
-            if (not condition) {
+            if (not static_cast<bool>(condition)) {
                // Log error message                                     
                auto s = Logger::WarningScoped("User assumption failure: ");
                Logger::Append(m1);
@@ -282,12 +283,12 @@ namespace Langulus
    template<bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssumeDevInner(
       [[maybe_unused]] const char* location, 
-      [[maybe_unused]] bool condition,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown dev assumption failure>",
       [[maybe_unused]] MORE&&...mn
    ) {
       if not consteval {
-         if (not condition) {
+         if (not static_cast<bool>(condition)) {
             #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
                // Log error message                                     
                auto s = Logger::ErrorScoped("Dev assumption failure: ");
@@ -318,13 +319,13 @@ namespace Langulus
    template<class...MORE>
    constexpr void AssumeDevWarnInner(
       [[maybe_unused]] const char* location, 
-      [[maybe_unused]] bool condition,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
       #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
          if not consteval {
-            if (not condition) {
+            if (not static_cast<bool>(condition)) {
                // Log error message                                     
                auto s = Logger::WarningScoped("Dev assumption failure: ");
                Logger::Append(m1);
@@ -363,13 +364,13 @@ namespace Langulus
    template<unsigned LEVEL, bool BREAK = false, class E = Exception, class...MORE>
    constexpr void AssumeInner(
       [[maybe_unused]] const char* location, 
-      [[maybe_unused]] bool condition,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown assumption failure>",
       [[maybe_unused]] MORE&&...mn
    ) {
       if constexpr (LANGULUS(SAFE) >= LEVEL) {
          if not consteval {
-            if (not condition) {
+            if (not static_cast<bool>(condition)) {
                #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
                   // Log error message                                  
                   auto s = Logger::ErrorScoped("Assumption level ", LEVEL, " failure: ");
@@ -411,14 +412,14 @@ namespace Langulus
    template<unsigned LEVEL, class...MORE>
    constexpr void AssumeWarnInner(
       [[maybe_unused]] const char* location, 
-      [[maybe_unused]] bool condition,
+      [[maybe_unused]] auto const& condition,
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
       #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
          if constexpr (LANGULUS(SAFE) >= LEVEL) {
             if not consteval {
-               if (not condition) {
+               if (not static_cast<bool>(condition)) {
                   // Log error message                                  
                   auto s = Logger::WarningScoped("Assumption level ", LEVEL, " failure: ");
                   Logger::Append(m1);

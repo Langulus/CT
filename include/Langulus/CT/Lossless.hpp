@@ -90,8 +90,8 @@ namespace Langulus
 
          if constexpr (CT::Fundamental<DeextAll<T1>, DeextAll<T2>>) {
             // Both types are fundamental                               
-            using LHS = Decay<T1>;
-            using RHS = Decay<T2>;
+            using LHS = Decay<DeextAll<T1>>;
+            using RHS = Decay<DeextAll<T2>>;
    
             if constexpr (CT::Real<LHS, RHS>) {
                // Always prefer the bigger real number                  

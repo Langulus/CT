@@ -48,7 +48,7 @@ namespace Langulus
 
       static constexpr size_t Size = 1;
 
-      constexpr Tuple() noexcept {}
+      constexpr Tuple() noexcept = default;
 
       template<class K1> requires Inner::not_absorbing<K1>
       constexpr Tuple(K1&& arg1)
@@ -124,7 +124,7 @@ namespace Langulus
       static constexpr size_t Size = sizeof...(TN) + 1;
       using next1 = Tuple<TN...>;
 
-      constexpr Tuple() noexcept {}
+      constexpr Tuple() noexcept = default;
 
       template<class K1, class...KN> requires Inner::not_absorbing<K1, KN...>
       constexpr Tuple(K1&& arg1, KN&&...argn)
@@ -275,7 +275,7 @@ namespace Langulus
       static constexpr std::array to_compact = Inner::SortTupleByAlignmentInner<T...>();
       static constexpr std::array to_simple = Inner::FlipArray<to_compact>();
 
-      constexpr CompactTuple() noexcept {}
+      constexpr CompactTuple() noexcept = default;
 
       template<class...K>
       constexpr CompactTuple(K&&...arguments)
