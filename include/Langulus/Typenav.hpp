@@ -1,6 +1,6 @@
 ///                                                                           
-/// Langulus::Core                                                            
-/// Copyright (c) 2012 Dimo Markov <team@langulus.com>                        
+/// Langulus::CT                                                              
+/// Copyright (c) 2024 Dimo Markov <team@langulus.com>                        
 /// Part of the Langulus framework, see https://langulus.com                  
 ///                                                                           
 /// SPDX-License-Identifier: MIT                                              
@@ -12,7 +12,7 @@
 
 
 ///                                                                           
-///   A namespace for defining compile-time type information tags.            
+///   A namespace for defining compile-time type information traits.          
 ///                                                                           
 ///   Specializing <type_traits> is generally undefined behavior, but here    
 /// we have alternatives that are more flexible, using type_traits as the     

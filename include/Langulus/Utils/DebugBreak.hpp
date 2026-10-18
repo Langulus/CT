@@ -23,6 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+ //TODO C++26 introduces <debugging> which makes this obsolete, but it's still not supported by clang. make sure to incorporate it when done
 #pragma once
 
 #ifdef _MSC_VER
