@@ -67,14 +67,20 @@ namespace Langulus
    template<class F>
    using ArgumentOf = typename decltype(Inner::GetFunctionArguments(LglsFake(F)))::First;
 
+   #define LglsArgumentOf(...) ::Langulus::ArgumentOf<Deref<decltype(__VA_ARGS__)>>
+
    /// Get a type list corresponding to the function arguments                
    ///   @attention will give an empty type list if no arguments              
    ///   @tparam F anything invokable, like functor/member function/lambda    
    template<class F>
    using ArgumentsOf = decltype(Inner::GetFunctionArguments(LglsFake(F)));
 
+   #define LglsArgumentsOf(...) ::Langulus::ArgumentsOf<Deref<decltype(__VA_ARGS__)>>
+
    /// Get the return type of a function                                      
    ///   @tparam F anything invokable, like functor/member function/lambda    
    template<class F>
    using ReturnOf = decltype(Inner::GetFunctionReturn(LglsFake(F)));
+
+   #define LglsReturnOf(...) ::Langulus::ReturnOf<Deref<decltype(__VA_ARGS__)>>
 }

@@ -107,10 +107,14 @@ namespace Langulus
       concept Constant = PartialValidate<T...>
           and (::std::is_const_v<ShedDeref<T>> and ...);
 
+      #define LglsConstant(...) ::Langulus::CT::Constant<decltype(__VA_ARGS__)>
+
       /// Check if all T are not constant-qualified                           
       template<class...T>
       concept Mutable = PartialValidate<T...>
          and ((not Constant<T>) and ...);
+
+      #define LglsMutable(...) ::Langulus::CT::Mutable<decltype(__VA_ARGS__)>
 
       /// Check if all T are either const- and/or volatile-qualified          
       template<class...T>
@@ -160,7 +164,7 @@ namespace Langulus
       /// with [] and isn't a reference.                                      
       ///   @attention still allowed to be cv-qualified                       
       template<class...T>
-      concept Slab = PartialValidate<T...> and [] {//TODO is this ever used?
+      concept Slab = PartialValidate<T...> and [] {
          if constexpr (((::std::is_reference_v<T> or ::std::is_array_v<T>) or ...))
             return false;
          else
