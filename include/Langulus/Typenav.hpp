@@ -53,6 +53,15 @@ namespace Langulus::CTTI
 
 namespace Langulus
 {
+   /// I don't like how long ::std::conditional_t is to write.                
+   /// Also, std::conditional_t must instantiate both paths, which is a big   
+   /// design flaw.                                                           
+   template<bool CONDITION, class YES, class NO>
+   using Tif = typename ::std::conditional_t<CONDITION,
+         ::std::type_identity<YES>,
+         ::std::type_identity<NO>
+      >::type;
+
    /// Remove a reference from type                                           
    template<class T>
    using Deref = ::std::remove_reference_t<T>;
