@@ -221,6 +221,8 @@ namespace Langulus
 
       LANGULUS(ALWAYS_INLINED)
       constexpr const T* operator -> () const noexcept { return &what; }
+      LANGULUS(ALWAYS_INLINED)
+      constexpr const T& operator *  () const noexcept { return  what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -298,6 +300,8 @@ namespace Langulus
 
       LANGULUS(ALWAYS_INLINED)
       constexpr const T* operator -> () const noexcept { return &what; }
+      LANGULUS(ALWAYS_INLINED)
+      constexpr const T& operator *  () const noexcept { return  what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -385,7 +389,9 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr T* operator -> () const noexcept { return &what; }
+      constexpr T*  operator -> () const noexcept { return &what; }
+      LANGULUS(ALWAYS_INLINED)
+      constexpr T&& operator *  () const noexcept { return LglsFwd(what); }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -475,7 +481,9 @@ namespace Langulus
       }
 
       LANGULUS(ALWAYS_INLINED)
-      constexpr T* operator -> () const noexcept { return &what; }
+      constexpr T*  operator -> () const noexcept { return &what; }
+      LANGULUS(ALWAYS_INLINED)
+      constexpr T&& operator *  () const noexcept { return LglsFwd(what); }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -550,6 +558,8 @@ namespace Langulus
 
       LANGULUS(ALWAYS_INLINED)
       constexpr const T* operator -> () const noexcept { return &what; }
+      LANGULUS(ALWAYS_INLINED)
+      constexpr const T& operator *  () const noexcept { return  what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept
@@ -612,6 +622,8 @@ namespace Langulus
 
       LANGULUS(ALWAYS_INLINED)
       constexpr const T* operator -> () const noexcept { return &what; }
+      LANGULUS(ALWAYS_INLINED)
+      constexpr const T& operator *  () const noexcept { return  what; }
       
       LANGULUS(ALWAYS_INLINED)
       explicit constexpr operator bool () const noexcept

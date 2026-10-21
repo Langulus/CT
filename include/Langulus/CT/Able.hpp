@@ -150,7 +150,7 @@ namespace Langulus
 
 #include "../Utils/StaticSet.hpp"
 
-/// Extent OF with the abilities provided by you. Example in which allow for  
+/// Extend OF with the abilities provided by you. Example in which allow for  
 /// integers to be added to other integers:                                   
 ///  LglsImplementAbilitiesFor(int) {                                         
 ///     using Can = Verbs::Add;                                               

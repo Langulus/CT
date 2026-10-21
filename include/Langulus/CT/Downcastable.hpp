@@ -16,13 +16,14 @@ namespace Langulus::Annies
 
 namespace Langulus::CTTI
 {
-   /// Can be used in two ways to satisfy CT::Resolvable<T>:                  
+   /// Can be used in two ways to satisfy CT::Downcastable<T>:                
    /// 1. Specialize for T/concept                                            
-   /// 2. Add a public `using CTTI_Resolvable = Yup;` in T                    
+   /// 2. Add a public `using CTTI_Downcastable = Yup;` in T                  
    /// Either way, the type also has to have the required interface for this  
-   /// to work. By default, all types are not CT::Resolvable.                 
+   /// to work, so just inherit from Langulus::Downcastable. By default, all  
+   /// types are not CT::Downcastable.                                        
    template<class T>
-   struct Resolvable;
+   struct Downcastable;
 }
 
-LANGULUS_CTTI_CONCEPT_DECVQ(Resolvable);
+LANGULUS_CTTI_CONCEPT_DECVQ(Downcastable);
