@@ -20,3 +20,5 @@ namespace Langulus::CT
    template<class...T>
    concept Supported = ((not Unsupported<T>) and ...);
 }
+
+#define LglsSupported(...) ::Langulus::CT::Supported<decltype(__VA_ARGS__)>

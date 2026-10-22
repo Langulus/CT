@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include "DefineVerb.hpp"
+#include "Support.hpp"
 //#include "../Utils/Types.hpp"
 
 
@@ -114,20 +115,6 @@ namespace Langulus::CT::Inner
       else return -1;
    }
 }
-
-namespace Langulus::CT
-{
-   /// Check if 'T' had the ability to do all 'VERB'                          
-   ///   @attention this concept might change at compile-time! This should be 
-   ///      detected by the compiler, so don't worry! If it happens, you can  
-   ///      fix it by including the same headers everywhere it is used.       
-   template<class T, class...VERB>
-   concept Able = PartialValidate<VERB...> and (
-      (Inner::FindAbility<DecvqAll<ShedDeref<T>>,
-                          DecvqAll<ShedDeref<VERB>>, 0>() >= 0
-      ) and ...);
-}
-
 namespace Langulus
 {
    /// Get the reflected abilities from T to other types                      
@@ -137,32 +124,51 @@ namespace Langulus
    );
 
    /// Invoke an ability by finding it at compile-time                        
+   ///   @return No if the binary ability doesn't exist, bool otherwise       
    //TODO this can also potentially be used to run flows at compile-time      
    template<class OF, CT::DefineVerb ABILITY>
-   bool InvokeAbility(OF&& context, ABILITY& verb) {
+   auto InvokeAbility(OF&& context, ABILITY& verb) {
       using D_OF = DecvqAll<Deref<OF>>;
       constexpr int definition_index = CT::Inner::FindAbility<D_OF, ABILITY>();
-      static_assert(definition_index >= 0,
-         CppNameOf<D_OF>() + " can't " + PositiveNameOfVerb<ABILITY>);
-
-      using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
-      return IMPLEMENTATION::Default(LglsFwd(context), verb);
+      if constexpr(definition_index < 0)
+         return No {};
+      else {
+         using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
+         if constexpr(requires { IMPLEMENTATION::Default(LglsFwd(context), verb); })
+            return IMPLEMENTATION::Default(LglsFwd(context), verb);
+         else
+            return No {};
+      }
    }
 
    /// Invoke an ability by finding it at compile-time (unary)                
+   ///   @return No if the unary ability doesn't exist, bool otherwise        
    //TODO this can also potentially be used to run flows at compile-time      
    template<class OF, CT::DefineVerb ABILITY>
-   bool InvokeAbilityUnary(OF&&, ABILITY& verb) {
+   auto InvokeAbilityUnary(ABILITY& verb) {
       using D_OF = DecvqAll<Deref<OF>>;
       constexpr int definition_index = CT::Inner::FindAbility<D_OF, ABILITY>();
-      static_assert(definition_index >= 0,
-         CppNameOf<D_OF>() + " can't " + PositiveNameOfVerb<ABILITY>);
-
-      using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
-      static_assert(requires { IMPLEMENTATION::Default(verb); },
-         PositiveNameOfVerb<ABILITY> + " doesn't support unary execution with argument " + CppNameOf<D_OF>());
-      return IMPLEMENTATION::Default(verb);
+      if constexpr(definition_index < 0)
+         return No {};
+      else {
+         using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
+         if constexpr(requires { IMPLEMENTATION::Default(verb); })
+            return IMPLEMENTATION::Default(verb);
+         else
+            return No {};
+      }
    }
+}
+
+namespace Langulus::CT
+{
+   /// Check if 'T' had the ability to do all binary 'VERB'                   
+   template<class T, class...VERB>
+   concept AbleBinary = (LglsSupported(Langulus::InvokeAbility(Fake<T>(), Fake<VERB&>())) and ...);
+
+   /// Check if 'T' had the ability to do all unary 'VERB'                    
+   template<class T, class...VERB>
+   concept AbleUnary = (LglsSupported(Langulus::InvokeAbilityUnary<T>(Fake<VERB&>())) and ...);
 }
 
 #include "../Utils/StaticSet.hpp"
@@ -172,12 +178,12 @@ namespace Langulus
 ///  LglsImplementAbilitiesFor(int) {                                         
 ///     using Can = Verbs::Add;                                               
 ///     static bool Default(int& lhs, Verb& verb) {                           
-///         Many const& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetRHS();                             
 ///         rhs.ForEach([&lhs](int const& i) { lhs += i; });                  
 ///         return true;                                                      
 ///     }                                                                     
 ///     static bool Default(int const& lhs, Verb& verb) {                     
-///         Many const& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetRHS();                             
 ///         int result = lhs;                                                 
 ///         rhs.ForEach([&result](int const& i) { result += i; });            
 ///         verb << result;                                                   
@@ -193,12 +199,12 @@ namespace Langulus
 ///  LglsImplementAbilitiesForConcept(CT::Number, OF) {                       
 ///     using Can = Verbs::Add;                                               
 ///     static bool Default(OF& lhs, Verb& verb) {                            
-///         Many const& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetRHS();                             
 ///         rhs.ForEach([&lhs](OF const& i) { lhs += i; });                   
 ///         return true;                                                      
 ///     }                                                                     
 ///     static bool Default(OF const& lhs, Verb& verb) {                      
-///         Many const& rhs = verb.GetArgument();                             
+///         Many const& rhs = verb.GetRHS();                             
 ///         OF result = lhs;                                                  
 ///         rhs.ForEach([&result](OF const& i) { result += i; });             
 ///         verb << result;                                                   

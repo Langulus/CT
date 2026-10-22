@@ -29,8 +29,8 @@ namespace Langulus::CT::Inner
    ///      should generally be enough and works as it should on MSVC,        
    ///      however it doesn't make unique template instantiations on         
    ///      Clang and causes very nasty bugs. So, we're forced to add         
-   ///      a couple more template parameters, to ensure proper templating    
-   ///      We compensate by using CTAD to deduce those parameters            
+   ///      a couple more template parameters, to ensure proper templating.   
+   ///      We compensate by using CTAD to deduce those parameters.           
    template<auto HANDLE, class OWNER, class TYPE>
    struct MemberReflector {
       using Member = decltype(HANDLE);

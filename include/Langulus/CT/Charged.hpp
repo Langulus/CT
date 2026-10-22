@@ -84,36 +84,41 @@ namespace Langulus
          Real p = DefaultPrecedence
       ) noexcept : mass{m}, rate{r}, time{t}, precedence{p} {}*/
 
-      constexpr bool operator == (const Charge& rhs) const noexcept = default; /*{
+      constexpr bool operator == (Charge const& rhs) const noexcept = default; /*{
          return mass == rhs.mass
             and rate == rhs.rate
             and time == rhs.time
             and precedence == rhs.precedence;
       }*/
 
+      /// Return a new charge with reversed mass                              
+      constexpr auto operator - () const noexcept -> Charge {
+         return {-mass, rate, time, precedence};
+      }
+
       /// Return a new charge with scaled mass                                
-      constexpr auto operator *  (const Real& scalar) const noexcept -> Charge {
+      constexpr auto operator *  (Real const& scalar) const noexcept -> Charge {
          return {mass * scalar, rate, time, precedence};
       }
 
       /// Return a new charge with scaled rate                                
-      constexpr auto operator ^  (const Real& scalar) const noexcept -> Charge {
+      constexpr auto operator ^  (Real const& scalar) const noexcept -> Charge {
          return {mass, rate * scalar, time, precedence};
       }
 
       /// Scale mass only                                                     
-      constexpr auto operator *= (const Real& scalar) noexcept -> Charge {
+      constexpr auto operator *= (Real const& scalar) noexcept -> Charge {
          mass *= scalar;
          return *this;
       }
 
       /// Scale frequency only                                                
-      constexpr auto operator ^= (const Real& scalar) noexcept -> Charge {
+      constexpr auto operator ^= (Real const& scalar) noexcept -> Charge {
          rate *= scalar;
          return *this;
       }
 
-      /// Check if charge is default-constructed                              
+      /// Check if charge is not default-constructed                          
       constexpr bool IsCharged() const noexcept {
          return *this != Charge {};
       }
