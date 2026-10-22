@@ -142,9 +142,26 @@ namespace Langulus
    bool InvokeAbility(OF&& context, ABILITY& verb) {
       using D_OF = DecvqAll<Deref<OF>>;
       constexpr int definition_index = CT::Inner::FindAbility<D_OF, ABILITY>();
-      static_assert(definition_index >= 0, CppNameOf<D_OF>() + " can't " + PositiveNameOfVerb<ABILITY>);
+      static_assert(definition_index >= 0,
+         CppNameOf<D_OF>() + " can't " + PositiveNameOfVerb<ABILITY>);
+
       using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
       return IMPLEMENTATION::Default(LglsFwd(context), verb);
+   }
+
+   /// Invoke an ability by finding it at compile-time (unary)                
+   //TODO this can also potentially be used to run flows at compile-time      
+   template<class OF, CT::DefineVerb ABILITY>
+   bool InvokeAbilityUnary(OF&&, ABILITY& verb) {
+      using D_OF = DecvqAll<Deref<OF>>;
+      constexpr int definition_index = CT::Inner::FindAbility<D_OF, ABILITY>();
+      static_assert(definition_index >= 0,
+         CppNameOf<D_OF>() + " can't " + PositiveNameOfVerb<ABILITY>);
+
+      using IMPLEMENTATION = CTTI::Ability<D_OF, definition_index>;
+      static_assert(requires { IMPLEMENTATION::Default(verb); },
+         PositiveNameOfVerb<ABILITY> + " doesn't support unary execution with argument " + CppNameOf<D_OF>());
+      return IMPLEMENTATION::Default(verb);
    }
 }
 
