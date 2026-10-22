@@ -18,11 +18,13 @@ namespace Langulus::CTTI
    template<class T>
    struct ReflectAs;
 
+   /// void is not reflectable                                                
+   template<>
+   struct ReflectAs<void> { using Type = void; };
+
    /// nullptr_t is not reflectable                                           
    template<>
-   struct ReflectAs<nullptr_t> {
-      using Type = void;
-   };
+   struct ReflectAs<nullptr_t> { using Type = void; };
 }
 
 namespace Langulus::CT::Inner
@@ -36,7 +38,7 @@ namespace Langulus::CT::Inner
       static_assert(not ::std::is_reference_v<T>, "Strip references first");
       static_assert(not ::std::is_bounded_array_v<T>, "Strip extents first");
 
-      if constexpr (not Complete<T>) {
+      /*if constexpr (not Complete<T>) {
          // Incomplete types are never reflectable                      
          return ::std::type_identity<void> {};
       }
@@ -44,7 +46,7 @@ namespace Langulus::CT::Inner
          // Void types are never reflectable                            
          return ::std::type_identity<void> {};
       }
-      else if constexpr (Complete<CTTI::ReflectAs<T>>) {
+      else*/if constexpr (Complete<CTTI::ReflectAs<T>>) {
          // Substitution through external template.                     
          // Despite this, all participating types must be complete      
          // because their `sizeof` and `alignof` are checked.           
