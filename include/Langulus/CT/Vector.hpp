@@ -8,6 +8,7 @@
 #pragma once
 #include "Langulus/Typenav.hpp"
 #include <Langulus/CT/Typed.hpp>
+//#include <array>
 
 
 namespace Langulus::CTTI
@@ -21,6 +22,10 @@ namespace Langulus::CTTI
    /// Make all custom or standard arrays with extent > 1 be considered vector
    template<class T> requires (AllExtentsOf<T> > 1 and sizeof(T) == sizeof(TypeOf<T>) * AllExtentsOf<T>)
    struct Vector<T> {};
+
+   /// Make ::std::array with extent > 1 be considered vector                 
+   template<class T, size_t N> requires (N > 1 and sizeof(T)*N == sizeof(::std::array<T, N>))
+   struct Vector<::std::array<T, N>> {};
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Vector);

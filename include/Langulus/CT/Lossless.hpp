@@ -54,7 +54,7 @@ namespace Langulus::CT
 namespace Langulus
 {
    /// Casts a scalar to its underlying fundamental type.                     
-   /// Acts like a nested TypedCast().                                        
+   /// Acts like a nested TypedCast(). Strips intents.                        
    ///   @param a the scalar to cast                                          
    ///   @return a reference to the underlying type                           
    template<CT::Scalar T> LANGULUS(ALWAYS_INLINED)

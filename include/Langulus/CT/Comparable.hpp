@@ -135,14 +135,14 @@ namespace Langulus::CT
    /// Equality comparison check for any LHS and RHS                          
    template<class LHS, class...RHS>
    concept ComparableEqual = PartialValidate<RHS...>
-      and requires (const LHS& lhs, const RHS&...rhs) {
+      and requires (LHS const& lhs, RHS const&...rhs) {
          { ((lhs == rhs), ...) } -> ::std::same_as<bool>;
       };
 
    /// Three-way comparison check for any LHS and RHS                         
    template<class LHS, class...RHS>
    concept Comparable = PartialValidate<RHS...>
-      and requires (const LHS& lhs, const RHS&...rhs) {
+      and requires (LHS const& lhs, RHS const&...rhs) {
          { ((lhs <=> rhs), ...) } -> SameAsOneOf<::std::strong_ordering, ::std::partial_ordering, Compared>;
       };
 
@@ -151,7 +151,7 @@ namespace Langulus::CT
    /// https://en.cppreference.com/w/cpp/utility/compare/strong_ordering.html 
    template<class LHS, class...RHS>
    concept ComparableStrong = PartialValidate<RHS...>
-      and requires (const LHS& lhs, const RHS&...rhs) {
+      and requires (LHS const& lhs, RHS const&...rhs) {
          { ((lhs <=> rhs), ...) } -> ::std::same_as<::std::strong_ordering>;
       };
 
@@ -160,7 +160,7 @@ namespace Langulus::CT
    /// https://en.cppreference.com/w/cpp/utility/compare/weak_ordering.html   
    template<class LHS, class...RHS>
    concept ComparableWeak = PartialValidate<RHS...>
-      and requires (const LHS& lhs, const RHS&...rhs) {
+      and requires (LHS const& lhs, RHS const&...rhs) {
          { ((lhs <=> rhs), ...) } -> ::std::same_as<::std::weak_ordering>;
       };
 
@@ -169,7 +169,7 @@ namespace Langulus::CT
    /// https://en.cppreference.com/w/cpp/utility/compare/partial_ordering.html
    template<class LHS, class...RHS>
    concept ComparablePartial = PartialValidate<RHS...>
-      and requires (const LHS& lhs, const RHS&...rhs) {
+      and requires (LHS const& lhs, RHS const&...rhs) {
          { ((lhs <=> rhs), ...) } -> ::std::same_as<::std::partial_ordering>;
       };
 }

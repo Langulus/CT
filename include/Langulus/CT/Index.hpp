@@ -7,6 +7,8 @@
 ///                                                                           
 #pragma once
 #include "Integer.hpp"
+#include "Signed.hpp"
+#include <limits>
 
 
 namespace Langulus::CTTI
@@ -32,6 +34,10 @@ namespace Langulus::Index
 
          constexpr explicit operator bool() const noexcept {
             return VALID;
+         }
+
+         constexpr bool IsSpecial() const noexcept {
+            return true;
          }
       };
 
@@ -103,6 +109,15 @@ namespace Langulus::Index
 
       constexpr explicit operator bool() const noexcept {
          return index != ::std::numeric_limits<T>::max();
+      }
+
+      constexpr bool IsSpecial() const noexcept {
+         if constexpr (CT::Signed<T>) {
+            if (index < 0)
+               return true;
+         }
+
+         return index == ::std::numeric_limits<T>::max();
       }
    };
 

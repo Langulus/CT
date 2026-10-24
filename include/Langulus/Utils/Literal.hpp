@@ -498,7 +498,7 @@ namespace Langulus
    /// MARK: Comparison                                                       
    /// Literal == Literal                                                     
    template<CT::Literal LHS, CT::Literal RHS>
-   constexpr bool operator == (const LHS& lhs, const RHS& rhs) {
+   constexpr bool operator == (LHS const& lhs, RHS const& rhs) {
       if constexpr (CT::LiteralString<LHS, RHS>) {
          // Both are strings                                            
          if (lhs.size() != rhs.size())
@@ -634,35 +634,35 @@ namespace Langulus
 
    /// MARK: Concatenation                                                    
    template<CT::LiteralString LHS, CT::LiteralString RHS>
-   constexpr auto operator + (const LHS& lhs, const RHS& rhs) {
+   constexpr auto operator + (LHS const& lhs, RHS const& rhs) {
       typename LHS::template Resized<LHS::ArraySize + RHS::ArraySize> result {lhs};
       result += rhs;
       return result;
    }
 
    template<CT::LiteralChar C, size_t N, CT::LiteralString RHS>
-   constexpr auto operator + (const C(&lhs)[N], const RHS& rhs) {
+   constexpr auto operator + (const C(&lhs)[N], RHS const& rhs) {
       typename RHS::template Resized<N + RHS::ArraySize> result {lhs};
       result += rhs;
       return result;
    }
 
    template<CT::LiteralChar C, size_t N, CT::LiteralString LHS>
-   constexpr auto operator + (const LHS& lhs, const C(&rhs)[N]) {
+   constexpr auto operator + (LHS const& lhs, const C(&rhs)[N]) {
       typename LHS::template Resized<LHS::ArraySize + N> result {lhs};
       result += rhs;
       return result;
    }
 
    template<CT::LiteralChar C, CT::LiteralString RHS>
-   constexpr auto operator + (C lhs, const RHS& rhs) {
+   constexpr auto operator + (C lhs, RHS const& rhs) {
       typename RHS::template Resized<1 + RHS::ArraySize> result {lhs};
       result += rhs;
       return result;
    }
 
    template<CT::LiteralChar C, CT::LiteralString LHS>
-   constexpr auto operator + (const LHS& lhs, C rhs) {
+   constexpr auto operator + (LHS const& lhs, C rhs) {
       typename LHS::template Resized<1 + LHS::ArraySize> result {lhs};
       result += rhs;
       return result;
