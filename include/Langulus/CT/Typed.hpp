@@ -196,7 +196,7 @@ namespace Langulus
          else {
             static_assert(false,
                "No cast operator or TypedCast method available for casting to inner type. "
-               "Check the constness of your TypedCast() or cast operators? "
+               "Check the constness of your TypedCast() or cast operators (if any)? "
                "Is it compatible with the contained type?"
             );
          }
