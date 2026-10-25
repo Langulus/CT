@@ -28,6 +28,8 @@ namespace Langulus::CT::Inner
          "Strip references first");
       static_assert(not CT::Convoluted<T>,
          "Strip constness/volatility first");
+      static_assert(not CT::Sheddable<T>,
+         "Strip sheddables first");
 
       if constexpr (Complete<CTTI::Bases<T>>) {
          // Checked externally, T doesn't have to be complete           
@@ -48,16 +50,26 @@ namespace Langulus::CT::Inner
       else return NoTypes {};
    };
 
-   /// Check if T has BASE                                                    
-   ///   @attention involves only C++ bases, not reflected ones               
+   /// Check if T has BASE. Considers both built-in bases and custom ones.    
    template<class T, class BASE>
    consteval bool DerivedFrom() {
-      if constexpr (::std::is_same_v<T, BASE>)
+      if constexpr (::std::is_same_v<T, BASE>) {
          // Neither T nor BASE have to be complete                      
          return true;
-      else
+      }
+      else if constexpr (Complete<CTTI::Bases<T>>) {
+         // Neither T nor BASE have to be complete                      
+         return GetBaseTypes<T>().template Contains<BASE>;
+      }
+      else {
          // T has to be complete                                        
-         return ::std::derived_from<Decay<T>, Decay<BASE>>;
+         using DT = Decay<T>;
+         using DB = Decay<BASE>;
+         if constexpr (::std::derived_from<DT, DB>)
+            return ::std::derived_from<DT, DB>;
+         else
+            return GetBaseTypes<DT>().template Contains<DB>;
+      }
    }
 }
 
@@ -66,19 +78,19 @@ namespace Langulus::CT
    /// Check if the origin T publicly inherits (or is) all the BASE(s).       
    /// Compensates for std::derived_from not returning true for the same      
    /// primitive types...                                                     
-   ///   @attention involves only C++ bases, not reflected ones               
+   /// Considers both built-in bases and custom ones.                         
    template<class T, class...BASE>
    concept DerivedFrom = PartialValidate<BASE...>
        and (Inner::DerivedFrom<T, BASE>() and ...);
    
-   /// Check if T1 is somehow related to all of the provided types            
-   ///   @attention involves only C++ bases, not reflected ones               
+   /// Check if T1 is somehow related to all of the provided types.           
+   /// Considers both built-in bases and custom ones.                         
    template<class T1, class...TN>
    concept Related = PartialValidate<TN...>
        and ((DerivedFrom<T1, TN> or DerivedFrom<TN, T1>) and ...);
 
-   /// Check if a type is virtually derived from all the provided BASE(s)     
-   ///   @attention involves only C++ bases, not reflected ones               
+   /// Check if a type is virtually derived from all the provided BASE(s).    
+   /// Considers both built-in bases and custom ones.                         
    template<class T, class...BASE>
    concept VirtuallyDerivedFrom = PartialValidate<BASE...>
        and ((::std::is_base_of_v<Decay<BASE>, Decay<T>>

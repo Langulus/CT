@@ -9,6 +9,7 @@
 #include "Integer.hpp"
 #include "Signed.hpp"
 #include <limits>
+#include <stdexcept>
 
 
 namespace Langulus::CTTI
@@ -101,25 +102,30 @@ namespace Langulus::Index
    /// An arithmetic index that is evaluated to false if equal to npos        
    /// in order to easily use it in if statements, instead of constantly      
    /// comparing against npos like a chump.                                   
-   template<class T>
+   //TODO some values should be reserved and mapped to the special indices above
    struct At {
       using CTTI_Index = Yup;
 
-      T index;
+      int64_t index;
+
+      constexpr At(Inner::None) noexcept
+         : index {::std::numeric_limits<int64_t>::max()} {}
+
+      explicit constexpr At(Real r)
+         : index {static_cast<int64_t>(r)} {
+         if (IsSpecial())
+            throw std::runtime_error{"Invalid arithmetic index"};
+      }
 
       constexpr explicit operator bool() const noexcept {
-         return index != ::std::numeric_limits<T>::max();
+         return index != ::std::numeric_limits<int64_t>::max();
       }
 
       constexpr bool IsSpecial() const noexcept {
-         if constexpr (CT::Signed<T>) {
-            if (index < 0)
-               return true;
-         }
+         if (index < 0)
+            return true;
 
-         return index == ::std::numeric_limits<T>::max();
+         return index == ::std::numeric_limits<int64_t>::max();
       }
    };
-
-   template<class T> At(T&&) -> At<T>;
 }
