@@ -13,6 +13,7 @@
 #include "CT/Typed.hpp"
 #include "Assume.hpp"
 #include <vector>
+#include <utility>
 //#include "Typenav.hpp"
 //#include "Assume.hpp"
 
@@ -211,11 +212,10 @@ namespace Langulus
          { (a.GetHash(), ...) } -> Same<Hash>;
       };
       
-      /// Check if T has a GetHash() method                                   
-      /// It is always preferred when hashing data                            
+      /// Check if an std::hash exists                                        
       template<class...T>
       concept HasStdHasher = Validate<T...>
-          and requires (::std::hash<Shed<T>>...h, Shed<T>...a) { (h(a), ...); };
+          and requires (::std::hash<T>...h, T...a) { (h(a), ...); };
    }
 
 
@@ -398,6 +398,19 @@ namespace Langulus
          static_assert(FORCE_RUNTIME, "Can't hash data");
          return No {};
       }
+   }
+
+   /// To this day and age, std still hasn't figured out how to hash pairs    
+   /// https://bajamircea.github.io/coding/cpp/2017/06/09/unordered-hash.html 
+   template<bool FORCE_RUNTIME, Hash SEED, class K, class V>
+   constexpr auto HashOf(::std::pair<K,V> const& p) {
+      // Hash each element of the pair individually, and then           
+      // hash that array of hashes as a whole                           
+      Hash coal[2] {
+         HashOf<FORCE_RUNTIME, SEED>(p.first),
+         HashOf<FORCE_RUNTIME, SEED>(p.second)
+      };
+      return HashBytes(coal, SEED);
    }
 }
 
