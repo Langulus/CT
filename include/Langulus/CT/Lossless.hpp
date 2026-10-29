@@ -14,43 +14,6 @@
 #include "Signed.hpp"
 
 
-namespace Langulus::CT
-{
-   template<class T>
-   concept SignedInteger8  = Signed<T> and Integer<T> and sizeof(T) == 1;
-   template<class T>
-   concept SignedInteger16 = Signed<T> and Integer<T> and sizeof(T) == 2;
-   template<class T>
-   concept SignedInteger32 = Signed<T> and Integer<T> and sizeof(T) == 4;
-   template<class T>
-   concept SignedInteger64 = Signed<T> and Integer<T> and sizeof(T) == 8;
-
-   template<class T>
-   concept UnsignedInteger8  = Unsigned<T> and Integer<T> and sizeof(T) == 1;
-   template<class T>
-   concept UnsignedInteger16 = Unsigned<T> and Integer<T> and sizeof(T) == 2;
-   template<class T>
-   concept UnsignedInteger32 = Unsigned<T> and Integer<T> and sizeof(T) == 4;
-   template<class T>
-   concept UnsignedInteger64 = Unsigned<T> and Integer<T> and sizeof(T) == 8;
-
-   template<class T>
-   concept Integer8  = Integer<T> and sizeof(T) == 1;
-   template<class T>
-   concept Integer16 = Integer<T> and sizeof(T) == 2;
-   template<class T>
-   concept Integer32 = Integer<T> and sizeof(T) == 4;
-   template<class T>
-   concept Integer64 = Integer<T> and sizeof(T) == 8;
-
-   template<class T>
-   concept Real16 = Real<T> and sizeof(T) == 2;
-   template<class T>
-   concept Real32 = Real<T> and sizeof(T) == 4;
-   template<class T>
-   concept Real64 = Real<T> and sizeof(T) == 8;
-}
-
 namespace Langulus
 {
    /// Casts a scalar to its underlying fundamental type.                     

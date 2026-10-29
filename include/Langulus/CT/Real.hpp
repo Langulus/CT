@@ -21,3 +21,13 @@ namespace Langulus::CTTI
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQ(Real);
+
+namespace Langulus::CT
+{
+   template<class T>
+   concept Real16 = Real<T> and sizeof(T) == 2;
+   template<class T>
+   concept Real32 = Real<T> and sizeof(T) == 4;
+   template<class T>
+   concept Real64 = Real<T> and sizeof(T) == 8;
+}
