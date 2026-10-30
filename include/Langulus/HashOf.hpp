@@ -341,6 +341,17 @@ namespace Langulus
          // to your type, or #pragma pack, in order to circumvent issue 
          return batch_ptr.template operator ()<sizeof(T)>(head);
       }
+      else if constexpr (requires(T pair) { pair.first; pair.second; }) {
+         // To this day and age, std still hasn't figured out how to hash pairs    
+         // https://bajamircea.github.io/coding/cpp/2017/06/09/unordered-hash.html 
+         // Hash each element of the pair individually, and then        
+         // hash that array of hashes as a whole                        
+         Hash coal[2] {
+            HashOf<FORCE_RUNTIME, SEED>(head.first),
+            HashOf<FORCE_RUNTIME, SEED>(head.second)
+         };
+         return HashOf(coal, SEED);
+      }
       else if constexpr (::std::ranges::range<T> and CT::Hashable<TypeOf<T>>) {
          // Anything that is range-iteratable and typed is carried      
          // through HashOf for consistency, because different std       
@@ -398,19 +409,6 @@ namespace Langulus
          static_assert(FORCE_RUNTIME, "Can't hash data");
          return No {};
       }
-   }
-
-   /// To this day and age, std still hasn't figured out how to hash pairs    
-   /// https://bajamircea.github.io/coding/cpp/2017/06/09/unordered-hash.html 
-   template<bool FORCE_RUNTIME, Hash SEED, class K, class V>
-   constexpr auto HashOf(::std::pair<K,V> const& p) {
-      // Hash each element of the pair individually, and then           
-      // hash that array of hashes as a whole                           
-      Hash coal[2] {
-         HashOf<FORCE_RUNTIME, SEED>(p.first),
-         HashOf<FORCE_RUNTIME, SEED>(p.second)
-      };
-      return HashBytes(coal, SEED);
    }
 }
 
