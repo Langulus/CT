@@ -110,6 +110,8 @@ namespace Langulus::Index
 
       constexpr At(Inner::None) noexcept
          : index {::std::numeric_limits<int64_t>::max()} {}
+      constexpr At(Inner::Last) noexcept
+         : index {::std::numeric_limits<int64_t>::min()} {}
 
       explicit constexpr At(Real r)
          : index {static_cast<int64_t>(r)} {
