@@ -816,7 +816,7 @@ namespace Langulus
          // Refer                                                       
          if constexpr (CT::HasReferConstructor<T>)
             return new (placement) T {LglsFwd(intent)};
-         else if constexpr (::std::copy_constructible<T>)
+         else if constexpr (requires { new (placement) T {intent.what}; }/*::std::copy_constructible<T>*/)
             return new (placement) T {intent.what};
          else {
             static_assert(FAKE, "Can't refer-construct type");
@@ -827,7 +827,7 @@ namespace Langulus
          // Move                                                        
          if constexpr (CT::HasMoveConstructor<T>)
             return new (placement) T {LglsFwd(intent)};
-         else if constexpr (::std::move_constructible<T>)
+         else if constexpr (requires { new (placement) T {LglsFwd(intent.what)}; } /*::std::move_constructible<T>*/)
             return new (placement) T {LglsFwd(intent.what)};
          else {
             static_assert(FAKE, "Can't move-construct type");
@@ -840,7 +840,7 @@ namespace Langulus
             return new (placement) T {LglsFwd(intent)};
          else if constexpr (CT::HasMoveConstructor<T>)
             return new (placement) T {Move(intent.what)};
-         else if constexpr (::std::move_constructible<T>)
+         else if constexpr (requires { new (placement) T {LglsFwd(intent.what)}; }/*::std::move_constructible<T>*/)
             return new (placement) T {LglsFwd(intent.what)};
          else {
             static_assert(FAKE,
