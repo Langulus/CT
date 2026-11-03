@@ -6,8 +6,9 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Langulus/Typenav.hpp"
-#include <Langulus/CT/Typed.hpp>
+#include "Array.hpp"
+//#include <Langulus/CT/Typed.hpp>
+//#include <Langulus/CT/Typed.hpp>
 //#include <array>
 
 

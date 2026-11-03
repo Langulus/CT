@@ -121,7 +121,7 @@
 ///      qualifiers, and extents after that                                   
 ///   @attention use this macro in the global namespace                       
 #define LANGULUS_CTTI_CONCEPT_DECVQE(NAME) \
-   LANGULUS_CTTI_CONCEPT_INNER(NAME, Decvq<DeextAll<ShedDeref<T>>>)
+   LANGULUS_CTTI_CONCEPT_INNER(NAME, Decvq<::std::remove_all_extents_t<ShedDeref<T>>>)
 
 /// Automatically populates the Langulus::CT namespace with the appropriate   
 /// concepts, based on the provided Langulus::CTTI::<structure name>.         

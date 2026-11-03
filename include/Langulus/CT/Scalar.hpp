@@ -6,7 +6,8 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "../Typenav.hpp"
+#include "Array.hpp"
+//#include "../Typenav.hpp"
 #include "Character.hpp"
 #include "Number.hpp"
 
