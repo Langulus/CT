@@ -121,6 +121,13 @@ namespace Langulus
    template<class T, unsigned TIMES = 1>
    using Deptr = typename decltype(CT::Inner::NestedDeptr<ShedDeref<T>, TIMES>())::type;
 
+   /// Remove all pointers from type. Supports custom pointer types.          
+   ///   @attention may result in a reference                                 
+   ///   @attention if an incomplete type is reached the nesting ceases, as   
+   ///      incomplete types are always considered dense                      
+   template<class T>
+   using DeptrAll = typename decltype(CT::Inner::NestedDeptr<ShedDeref<T>, 1000>())::type;
+
    ///                                                                        
    /// Structure for describing custom packed pointers.                       
    /// The default PointerSpecification with all members initialized to zero  
