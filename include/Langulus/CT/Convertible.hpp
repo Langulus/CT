@@ -71,7 +71,7 @@ namespace Langulus::CT
                   constexpr auto debug_redef = []<int...P_DEBUG>(::std::integer_sequence<int, P_DEBUG...>) {
                      auto find_offender = []<class M_DEBUG>(M_DEBUG) {
                         if constexpr (M_DEBUG::To::template Contains<TO>)
-                           return " - " + CppNameOf<M_DEBUG>();
+                           return ": " + CppNameOf<M_DEBUG>();
                         else
                            return Langulus::Literal {""};
                      };
@@ -81,7 +81,7 @@ namespace Langulus::CT
                   static_assert(not Types<PREV...>::template Contains<TO>,
                      "Morphism redefinition: conversion to " + NameOf<TO>() + 
                      " in morphism declaration " + CppNameOf<M>() + 
-                     " was already mentioned in one of the previous declarations: \n"
+                     " was already mentioned in one of the previous declarations"
                      + debug_redef(::std::make_integer_sequence<int, PROGRESS>{})
                   );
                #else
