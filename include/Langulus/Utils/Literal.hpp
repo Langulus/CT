@@ -263,7 +263,7 @@ namespace Langulus
       /// Get a region of the string                                          
       constexpr Literal substr(size_t pos = 0, size_t count = npos) const noexcept {
          Literal result;
-         const size_t s = size();
+         size_t const s = size();
          if (pos >= s)
             return result;
          

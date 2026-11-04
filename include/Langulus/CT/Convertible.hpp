@@ -67,9 +67,26 @@ namespace Langulus::CT
                static_assert(NotConvoluted<TO>, "Strip qualifiers first");
                static_assert(NotReference<TO>,  "Strip references first");
                static_assert(NotSheddable<TO>,  "Strip sheddables first");
-               static_assert(not Types<PREV...>::template Contains<TO>,
-                  "Morphism redefinition"
-               );
+               #if LANGULUS(DEBUG)
+                  static_assert(not Types<PREV...>::template Contains<TO>,
+                     "Morphism redefinition: conversion to " + NameOf<TO>() + 
+                     " in morphism declaration " + CppNameOf<M>() + 
+                     " was already mentioned in one of the previous declarations: \n"
+                     /*+ ([]<auto...P_DEBUG>(::std::integer_sequence<int, P_DEBUG...>) {
+                        auto find_offender = []<class M_DEBUG>(M_DEBUG) {
+                           if constexpr (M_DEBUG::To::template Contains<TO>)
+                              return " - " + CppNameOf<M_DEBUG>();
+                           else
+                              return Langulus::Literal {""};
+                        };
+                        return (find_offender(CTTI::Morphism<T, PROGRESS - P_DEBUG - 1>{}) + ...);
+                     }(::std::make_integer_sequence<int, PROGRESS>{}))*/
+                  );
+               #else
+                  static_assert(not Types<PREV...>::template Contains<TO>,
+                     "Morphism redefinition"
+                  );
+               #endif
             });
             return GetMorphismsFrom<T, PROGRESS + 1>(prev + to);
          }
