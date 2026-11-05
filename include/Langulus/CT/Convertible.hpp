@@ -71,7 +71,7 @@ namespace Langulus::CT
                   constexpr auto debug_redef = []<int...P_DEBUG>(::std::integer_sequence<int, P_DEBUG...>) {
                      auto find_offender = []<class M_DEBUG>(M_DEBUG) {
                         if constexpr (M_DEBUG::To::template Contains<TO>)
-                           return ": " + CppNameOf<M_DEBUG>();
+                           return ": " + CppNameOf<M_DEBUG>() + " at " + M_DEBUG::Where;
                         else
                            return Langulus::Literal {""};
                      };
@@ -80,7 +80,7 @@ namespace Langulus::CT
 
                   static_assert(not Types<PREV...>::template Contains<TO>,
                      "Morphism redefinition: conversion to " + NameOf<TO>() + 
-                     " in morphism declaration " + CppNameOf<M>() + 
+                     " in morphism declaration " + CppNameOf<M>() + " at " + M::Where + 
                      " was already mentioned in one of the previous declarations"
                      + debug_redef(::std::make_integer_sequence<int, PROGRESS>{})
                   );
@@ -226,7 +226,7 @@ namespace Langulus
       else {
          #if LANGULUS(DEBUG)
             static_assert(false,
-               "Despite the appropriate morphism being declared, "
+               "Despite the appropriate morphism being declared at " + M::Where + ", "
                + FROMname + " can't be converted to " + TOname + ", "
                "because it lacks the functionality to do so. Either use "
                "LANGULUS_MORPHISM_CUSTOM(" + FROMname + ", " + TOname + ", {<custom conversion logic>}), "
@@ -262,6 +262,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<FROM T, int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<T>, HERE()>()) \
       struct Morphism<T, UNIQUE> { \
+         static constexpr Literal Where = HERE(); \
          static constexpr bool Conceptual = true; \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
@@ -277,6 +278,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<FROM T, int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<T>, HERE()>()) \
       struct Morphism<T, UNIQUE> { \
+         static constexpr Literal Where = HERE(); \
          static constexpr bool Conceptual = true; \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
@@ -293,6 +295,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<FROM>, HERE()>()) \
       struct Morphism<FROM, UNIQUE> { \
+         static constexpr Literal Where = HERE(); \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
          static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
@@ -306,6 +309,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<FROM>, HERE()>()) \
       struct Morphism<FROM, UNIQUE> { \
+         static constexpr Literal Where = HERE(); \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
          static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
