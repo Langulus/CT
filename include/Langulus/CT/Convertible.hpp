@@ -6,6 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
+#include "Akin.hpp"
 #include "../Typenav.hpp"
 #include "../Utils/Types.hpp"
 
@@ -187,67 +188,72 @@ namespace Langulus
    constexpr auto Convert(FROM const& from) -> TO {
       static_assert(CT::NotReference<TO, FROM>, "Strip references first");
       static_assert(CT::NotSheddable<TO, FROM>, "Strip sheddables first");
-      using DFROM = DecvqAll<FROM>;
-      using DTO   = DecvqAll<TO>;
 
-      #if LANGULUS(DEBUG)
-         constexpr auto FROMname = NameOf<FROM>();
-         constexpr auto TOname   = NameOf<TO>();
-      #endif   
-
-      constexpr int found = CT::Inner::FindMorphism<DFROM, DTO, 0>();
-      #if LANGULUS(DEBUG)
-         static_assert(found != -1,
-            FROMname + " can't be converted to " + TOname + " - "
-            "use LANGULUS_MORPHISM, LANGULUS_MORPHISM_CUSTOM, "
-            "LANGULUS_MORPHISM_CONCEPT, or LANGULUS_MORPHISM_CONCEPT_CUSTOM "
-            "to define the morphism. Langulus requires this even if "
-            "cast operators and constructors already exist, to avoid "
-            "asymmetries between scripted and coded behavior."
-         );
-      #else
-         static_assert(found != -1,
-            "FROM can't be converted to TO - "
-            "use LANGULUS_MORPHISM, LANGULUS_MORPHISM_CUSTOM, "
-            "LANGULUS_MORPHISM_CONCEPT, or LANGULUS_MORPHISM_CONCEPT_CUSTOM "
-            "to define the morphism. Langulus requires this even if "
-            "cast operators and constructors already exist, to avoid "
-            "asymmetries between scripted and coded behavior."
-         );
-      #endif
-
-      using M = CTTI::Morphism<DFROM, found>;
-      if constexpr (requires { {M::template Convert<DTO>(from)} -> ::std::same_as<DTO>; })
-         return M::template Convert<DTO>(from);
-      else if constexpr (CT::ConvertibleImplicit<DFROM, DTO>)
-         return DTO(from);
-      else if constexpr (CT::ConvertibleExplicit<DFROM, DTO>)
-         return DTO{static_cast<DTO>(DecvqAllCast(from))};
+      if constexpr (Same<TO, FROM>)
+         return from;
       else {
+         using DFROM = DecvqAll<FROM>;
+         using DTO   = DecvqAll<TO>;
+
          #if LANGULUS(DEBUG)
-            static_assert(false,
-               "Despite the appropriate morphism being declared at " + M::Where + ", "
-               + FROMname + " can't be converted to " + TOname + ", "
-               "because it lacks the functionality to do so. Either use "
-               "LANGULUS_MORPHISM_CUSTOM(" + FROMname + ", " + TOname + ", {<custom conversion logic>}), "
-               "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes " + FROMname + 
-               ">, " + TOname + ", {<custom conversion logic>}), "
-               "or, if possible, define an implicit constructor in " + TOname + ", "
-               "or an implicit/explicit cast operator in " + FROMname
+            constexpr auto FROMname = NameOf<FROM>();
+            constexpr auto TOname   = NameOf<TO>();
+         #endif   
+
+         constexpr int found = CT::Inner::FindMorphism<DFROM, DTO, 0>();
+         #if LANGULUS(DEBUG)
+            static_assert(found != -1,
+               FROMname + " can't be converted to " + TOname + " - "
+               "use LANGULUS_MORPHISM, LANGULUS_MORPHISM_CUSTOM, "
+               "LANGULUS_MORPHISM_CONCEPT, or LANGULUS_MORPHISM_CONCEPT_CUSTOM "
+               "to define the morphism. Langulus requires this even if "
+               "cast operators and constructors already exist, to avoid "
+               "asymmetries between scripted and coded behavior."
             );
          #else
-            static_assert(false,
-               "Despite the appropriate morphism being declared, "
-               "FROM can't be converted to TO, "
-               "because it lacks the functionality to do so. Either use "
-               "LANGULUS_MORPHISM_CUSTOM(FROM, TO, {<custom conversion logic>}), "
-               "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes FROM"
-               ">, TO, {<custom conversion logic>}), "
-               "or, if possible, define an implicit constructor in TO, "
-               "or an implicit/explicit cast operator in FROM"
+            static_assert(found != -1,
+               "FROM can't be converted to TO - "
+               "use LANGULUS_MORPHISM, LANGULUS_MORPHISM_CUSTOM, "
+               "LANGULUS_MORPHISM_CONCEPT, or LANGULUS_MORPHISM_CONCEPT_CUSTOM "
+               "to define the morphism. Langulus requires this even if "
+               "cast operators and constructors already exist, to avoid "
+               "asymmetries between scripted and coded behavior."
             );
          #endif
-         return {};
+
+         using M = CTTI::Morphism<DFROM, found>;
+         if constexpr (requires { {M::template Convert<DTO>(from)} -> ::std::same_as<DTO>; })
+            return M::template Convert<DTO>(from);
+         else if constexpr (CT::ConvertibleImplicit<DFROM, DTO>)
+            return DTO(from);
+         else if constexpr (CT::ConvertibleExplicit<DFROM, DTO>)
+            return DTO{static_cast<DTO>(DecvqAllCast(from))};
+         else {
+            #if LANGULUS(DEBUG)
+               static_assert(false,
+                  "Despite the appropriate morphism being declared at " + M::Where + ", "
+                  + FROMname + " can't be converted to " + TOname + ", "
+                  "because it lacks the functionality to do so. Either use "
+                  "LANGULUS_MORPHISM_CUSTOM(" + FROMname + ", " + TOname + ", {<custom conversion logic>}), "
+                  "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes " + FROMname + 
+                  ">, " + TOname + ", {<custom conversion logic>}), "
+                  "or, if possible, define an implicit constructor in " + TOname + ", "
+                  "or an implicit/explicit cast operator in " + FROMname
+               );
+            #else
+               static_assert(false,
+                  "Despite the appropriate morphism being declared, "
+                  "FROM can't be converted to TO, "
+                  "because it lacks the functionality to do so. Either use "
+                  "LANGULUS_MORPHISM_CUSTOM(FROM, TO, {<custom conversion logic>}), "
+                  "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes FROM"
+                  ">, TO, {<custom conversion logic>}), "
+                  "or, if possible, define an implicit constructor in TO, "
+                  "or an implicit/explicit cast operator in FROM"
+               );
+            #endif
+            return {};
+         }
       }
    }
 }
@@ -262,7 +268,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<FROM T, int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<T>, HERE()>()) \
       struct Morphism<T, UNIQUE> { \
-         static constexpr Literal Where = HERE(); \
+         DEBUGGERY(static constexpr Literal Where = HERE()); \
          static constexpr bool Conceptual = true; \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
@@ -278,7 +284,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<FROM T, int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<T>, HERE()>()) \
       struct Morphism<T, UNIQUE> { \
-         static constexpr Literal Where = HERE(); \
+         DEBUGGERY(static constexpr Literal Where = HERE()); \
          static constexpr bool Conceptual = true; \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
@@ -295,7 +301,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<FROM>, HERE()>()) \
       struct Morphism<FROM, UNIQUE> { \
-         static constexpr Literal Where = HERE(); \
+         DEBUGGERY(static constexpr Literal Where = HERE()); \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
          static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \
@@ -309,7 +315,7 @@ namespace Langulus
    namespace Langulus::CTTI { \
       template<int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::MorphismSet<FROM>, HERE()>()) \
       struct Morphism<FROM, UNIQUE> { \
-         static constexpr Literal Where = HERE(); \
+         DEBUGGERY(static constexpr Literal Where = HERE()); \
          using To = Types<__VA_ARGS__>; \
          static_assert(not To::Empty, "Empty morphisms not allowed"); \
          static_assert(::std::is_same_v<DecvqAll<FROM>, FROM>, "Strip all decorations on all indirections first"); \

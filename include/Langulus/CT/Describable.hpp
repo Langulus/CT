@@ -12,16 +12,6 @@
 
 namespace Langulus
 {
-   /*namespace Annies
-   {
-      struct Many;
-   }
-
-   namespace RTTI
-   {
-      struct DMeta;
-   }*/
-
    ///                                                                        
    /// Descriptor intermediate type, used in constructors and assignment      
    /// operators to enable describe-construction/assignment. The inner type   
@@ -29,42 +19,7 @@ namespace Langulus
    /// You should #include <Langulus/Annies/Many.hpp>                         
    ///        and #include <Langulus/CT/Describable.hpp>                      
    ///        in order to use Describe semantics                              
-   struct Describe; /*{
-      using Many = Annies::Many;
-      Many const& what;
-
-      using CTTI_ReflectAs     = void;
-      using CTTI_Abstract      = Yup;
-      using CTTI_Allocatable   = No;
-      using CTTI_Intent        = Yup;
-
-      Describe() = delete;
-      constexpr Describe(const Describe&) noexcept = default;
-      explicit constexpr Describe(Describe&&) noexcept = default;
-
-      explicit constexpr Describe(Many const& descriptor) noexcept
-         : what {descriptor} {}
-
-      auto& operator *  () const noexcept { return  what; }
-      auto* operator -> () const noexcept { return &what; }
-
-      ///                                                                     
-      /// These are higher order services, and are implemented in Annies      
-      ///                                                                     
-      template<CT::DefineTag>
-      void Set(auto&&, bool force = false);
-
-      template<CT::DefineTag...>
-      bool ExtractTag(auto&...) const;
-      auto ExtractData(auto&) const -> size_t;
-      auto ExtractDataAs(auto&) const -> size_t;
-
-      template<CT::NotVoid>
-      auto FindType() const -> RTTI::DMeta;
-
-      template<class TYPE>
-      auto FindType(RTTI::DMeta) const -> RTTI::DMeta;
-   };*/
+   struct Describe;
 }
 
 namespace Langulus::CT
