@@ -298,7 +298,7 @@ namespace Langulus
 
    /// Strips all cv-qualifiers from the provided argument                    
    ///   @attention this will return pointers for bounded array arguments     
-   template<class T> requires (not ::std::is_bounded_array_v<T>)
+   template<class T> requires (not ::std::is_bounded_array_v<Deref<T>>)
    LANGULUS(ALWAYS_INLINED)
    constexpr auto DecvqAllCast(T&& what) noexcept -> DecvqAll<T> {
       if constexpr (CT::Reference<T> or CT::Sparse<T>)
@@ -307,24 +307,24 @@ namespace Langulus
          return LglsFwd(what);
    }
    
-   template<class T> requires ::std::is_bounded_array_v<T>
+   template<class T> requires ::std::is_bounded_array_v<Deref<T>>
    LANGULUS(ALWAYS_INLINED)
-   constexpr auto DecvqAllCast(T&& what) noexcept -> DecvqAll<::std::remove_extent_t<T>>* {
-      return const_cast<DecvqAll<::std::remove_extent_t<T>>*>(what);
+   constexpr auto DecvqAllCast(T&& what) noexcept -> DecvqAll<::std::remove_extent_t<Deref<T>>>* {
+      return const_cast<DecvqAll<::std::remove_extent_t<Deref<T>>>*>(what);
    }
    
    /// Add const qualifiers to the provided argument                          
    ///   @attention this will return pointers for bounded array arguments     
-   template<class T> requires (not ::std::is_bounded_array_v<T>)
+   template<class T> requires (not ::std::is_bounded_array_v<Deref<T>>)
    LANGULUS(ALWAYS_INLINED)
    constexpr auto ConstAllCast(T&& what) noexcept -> ConstAll<T> {
       return const_cast<ConstAll<T>>(what);
    }
    
-   template<class T> requires ::std::is_bounded_array_v<T>
+   template<class T> requires ::std::is_bounded_array_v<Deref<T>>
    LANGULUS(ALWAYS_INLINED)
-   constexpr auto ConstAllCast(T&& what) noexcept -> ConstAll<::std::remove_extent_t<T>> const* {
-      return const_cast<ConstAll<::std::remove_extent_t<T>> const*>(what);
+   constexpr auto ConstAllCast(T&& what) noexcept -> ConstAll<::std::remove_extent_t<Deref<T>>> const* {
+      return const_cast<ConstAll<::std::remove_extent_t<Deref<T>>> const*>(what);
    }
 
    template<class T, class YES, class NO>

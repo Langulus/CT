@@ -276,11 +276,13 @@ namespace Langulus
          return batch_array(coal);
       }
       else if constexpr (::std::is_bounded_array_v<T>) {
-         // Built-in arrays                                             
-         using InnerT = Deext<T>;
+         // Built-in arrays.                                            
+         // Multidimensional arrays get nested.                         
+         using InnerT = ::std::remove_extent_t<Deref<T>>;
+         constexpr size_t top_extent = ::std::extent_v<Deref<T>>;
 
          // Combine the hashes of each element inside an array          
-         if constexpr (ExtentOf<T> == 1) {
+         if constexpr (top_extent == 1) {
             // Only one element in array, just use the first element    
             return HashOf<FORCE_RUNTIME, SEED>(head[0]);
          }
@@ -291,8 +293,8 @@ namespace Langulus
          else {
             // Hash each element of the array individually, and then    
             // hash that array of hashes as a whole                     
-            Hash coal[ExtentOf<T>];
-            for (size_t i = 0; i < ExtentOf<T>; ++i)
+            Hash coal[top_extent];
+            for (size_t i = 0; i < top_extent; ++i)
                coal[i] = HashOf<FORCE_RUNTIME, SEED>(head[i]);
             return batch_array(coal);
          }

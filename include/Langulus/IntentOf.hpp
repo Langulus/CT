@@ -1203,5 +1203,9 @@ namespace Langulus
       template<class...T>
       concept MoveAssignable = Validate<T...>
           and (IntentAssignable<Langulus::Move, T> and ...);
+
+      /// Like is_bounded_array_v but strips sheddables and references        
+      template<class...T>
+      concept BoundedArray = (::std::is_bounded_array_v<Deref<Deint<T>>> and ...);
    }
 }

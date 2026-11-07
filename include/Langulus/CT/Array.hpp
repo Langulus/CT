@@ -26,8 +26,8 @@ namespace Langulus::CTTI
    struct Array<void> : No {};
 
    /// All bounded arrays are considered CT::Array, even those with extent 1  
-   template<class T> requires ::std::is_bounded_array_v<T>
-   struct Array<T> : Yes<::std::extent_v<T>> {};
+   template<class T> requires ::std::is_bounded_array_v<Deref<T>>
+   struct Array<T> : Yes<::std::extent_v<Deref<T>>> {};
 
    /// All std::arrays are considered CT::Array                               
    template<class T, size_t S>

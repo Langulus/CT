@@ -232,7 +232,7 @@ namespace Langulus
    template<unsigned TIMES = 1000000, class T>
    constexpr decltype(auto) DenseCast(T&& a) {
       using ST = Shed<T>;
-      if constexpr (TIMES > 0 and (::std::is_bounded_array_v<ST> or CT::Sparse<ST>))
+      if constexpr (TIMES > 0 and (::std::is_bounded_array_v<Deref<ST>> or CT::Sparse<ST>))
          // Security depends on your unary operator* - call can throw   
          return DenseCast<TIMES - 1>(*ShedCast(LglsFwd(a)));
       else
