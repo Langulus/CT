@@ -85,7 +85,7 @@ namespace Langulus::CT
 {
    /// Checks if all E are defined constants                                  
    template<class...T>
-   concept DefineTag = ((not ::std::is_same_v<No, decltype(Inner::DefinitionOfTag<Decvq<Deref<T>>>())>) and ...);
+   concept DefineTag = ((not ::std::is_same_v<No, decltype(Inner::DefinitionOfTag<T>())>) and ...);
 
    /// Checks if all E are not defined constants                              
    template<class...T>

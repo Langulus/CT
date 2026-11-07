@@ -186,7 +186,7 @@ namespace Langulus::CT
 {
    /// Checks if all E are defined constants                                  
    template<class...T>
-   concept DefineVerb = ((not ::std::is_same_v<No, decltype(Inner::DefinitionOfVerb<Decvq<Deref<T>>>())>) and ...);
+   concept DefineVerb = ((not ::std::is_same_v<No, decltype(Inner::DefinitionOfVerb<T>())>) and ...);
 
    /// Checks if all E are not defined constants                              
    template<class...T>
