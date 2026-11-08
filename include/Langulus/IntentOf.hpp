@@ -174,7 +174,7 @@ namespace Langulus
       Refer() = delete("Inner reference needs to be specified");
 
       LANGULUS(ALWAYS_INLINED)
-      explicit constexpr Refer(Decvq<T>& value) noexcept : what {value} {
+      explicit constexpr Refer(Decvq<T>& value) noexcept requires (not ::std::is_function_v<T>) : what {value} {
          static_assert(CT::NoIntent<T>, "Can't nest intents");
       }
       
@@ -213,9 +213,9 @@ namespace Langulus
       static constexpr decltype(auto) Nest(ALT_T&& value) noexcept {
          // Aggregates don't play well with intents, so if type is an   
          // aggregate, use the standard copy semantics                  
-         if constexpr (CT::Aggregate<ALT_T>)
+         /*if constexpr (CT::Aggregate<ALT_T>)
             return DeintCast(value);
-         else
+         else*/ //TODO needs to be handled outside
             return Retype<ALT_T> (LglsFwd(value));
       }
 
@@ -292,9 +292,9 @@ namespace Langulus
       static constexpr decltype(auto) Nest(ALT_T&& value) noexcept {
          // Aggregates don't play well with intents, so if type is an   
          // aggregate, use the standard copy semantics                  
-         if constexpr (CT::Aggregate<ALT_T>)
+         /*if constexpr (CT::Aggregate<ALT_T>)
             return DeintCast(value);
-         else
+         else*/ //TODO needs to be handled outside
             return Retype<ALT_T> (LglsFwd(value));
       }
 
@@ -382,9 +382,9 @@ namespace Langulus
       static constexpr decltype(auto) Nest(ALT_T&& value) noexcept {
          // Aggregates don't play well with intents, so if type is an   
          // aggregate, use the standard copy semantics                  
-         if constexpr (CT::Aggregate<ALT_T>)
+         /*if constexpr (CT::Aggregate<ALT_T>)
             return DeintCast     (LglsFwd(value));
-         else
+         else*/ //TODO needs to be handled outside
             return Retype<ALT_T> (LglsFwd(value));
       }
 
@@ -474,9 +474,9 @@ namespace Langulus
       static constexpr decltype(auto) Nest(ALT_T&& value) noexcept {
          // Aggregates don't play well with intents, so if type is an   
          // aggregate, use the standard copy semantics                  
-         if constexpr (CT::Aggregate<ALT_T>)
+         /*if constexpr (CT::Aggregate<ALT_T>)
             return DeintCast     (LglsFwd(value));
-         else
+         else*/ //TODO needs to be handled outside
             return Retype<ALT_T> (LglsFwd(value));
       }
 
@@ -550,9 +550,9 @@ namespace Langulus
       static constexpr decltype(auto) Nest(ALT_T&& value) noexcept {
          // Aggregates don't play well with intents, so if type is an   
          // aggregate, use the standard copy semantics                  
-         if constexpr (CT::Aggregate<ALT_T>)
+         /*if constexpr (CT::Aggregate<ALT_T>)
             return DeintCast(value);
-         else
+         else*/ //TODO needs to be handled outside
             return Retype<ALT_T> (LglsFwd(value));
       }
 
@@ -814,7 +814,7 @@ namespace Langulus
       }
       else if constexpr (CT::Referred<S<T>>) {
          // Refer                                                       
-         if constexpr (CT::HasReferConstructor<T>)
+         if constexpr (CT::HasReferConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {LglsFwd(intent)};
          else if constexpr (requires { new (placement) T {intent.what}; }/*::std::copy_constructible<T>*/)
             return new (placement) T {intent.what};
@@ -825,7 +825,7 @@ namespace Langulus
       }
       else if constexpr (CT::Moved<S<T>>) {
          // Move                                                        
-         if constexpr (CT::HasMoveConstructor<T>)
+         if constexpr (CT::HasMoveConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {LglsFwd(intent)};
          else if constexpr (requires { new (placement) T {LglsFwd(intent.what)}; } /*::std::move_constructible<T>*/)
             return new (placement) T {LglsFwd(intent.what)};
@@ -836,9 +836,9 @@ namespace Langulus
       }
       else if constexpr (CT::Abandoned<S<T>>) {
          // Abandon                                                     
-         if constexpr (CT::HasAbandonConstructor<T>)
+         if constexpr (CT::HasAbandonConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {LglsFwd(intent)};
-         else if constexpr (CT::HasMoveConstructor<T>)
+         else if constexpr (CT::HasMoveConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {Move(intent.what)};
          else if constexpr (requires { new (placement) T {LglsFwd(intent.what)}; }/*::std::move_constructible<T>*/)
             return new (placement) T {LglsFwd(intent.what)};
@@ -861,9 +861,9 @@ namespace Langulus
             return No {};            
          }
          else if constexpr (CT::NotVoid<DT>) {
-            if constexpr (CT::HasCloneConstructor<DT>)
+            if constexpr (CT::HasCloneConstructor<DT> and not CT::Aggregate<T>)
                return new (placement) DT {Clone(DenseCast(intent.what))};
-            else if constexpr (CT::POD<DT> and CT::HasReferConstructor<DT>)
+            else if constexpr (CT::POD<DT> and CT::HasReferConstructor<DT> and not CT::Aggregate<T>)
                return new (placement) DT {Refer(DenseCast(intent.what))};
             else if constexpr (CT::POD<DT> and ::std::copy_constructible<DT>)
                return new (placement) DT {DenseCast(intent.what)};
@@ -879,9 +879,9 @@ namespace Langulus
       }
       else if constexpr (CT::Copied<S<T>>) {
          // Copy                                                        
-         if constexpr (CT::HasCopyConstructor<T>)
+         if constexpr (CT::HasCopyConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {LglsFwd(intent)};
-         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T>)
+         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {Refer(intent.what)};
          else if constexpr (CT::POD<T> and ::std::copy_constructible<T>)
             return new (placement) T {intent.what};
@@ -892,9 +892,9 @@ namespace Langulus
       }
       else if constexpr (CT::Disowned<S<T>>) {
          // Disown                                                      
-         if constexpr (CT::HasDisownConstructor<T>)
+         if constexpr (CT::HasDisownConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {LglsFwd(intent)};
-         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T>)
+         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T> and not CT::Aggregate<T>)
             return new (placement) T {Refer(intent.what)};
          else if constexpr (CT::POD<T> and ::std::copy_constructible<T>)
             return new (placement) T {intent.what};
@@ -927,7 +927,7 @@ namespace Langulus
 
       if constexpr (CT::Referred<S>) {
          // Refer                                                       
-         if constexpr (CT::HasReferAssign<T>)
+         if constexpr (CT::HasReferAssign<T> and not CT::Aggregate<T>)
             return (lhs = LglsFwd(rhs));
          else if constexpr (::std::is_copy_assignable_v<T>)
             return (lhs = rhs.what);
@@ -938,7 +938,7 @@ namespace Langulus
       }
       else if constexpr (CT::Moved<S>) {
          // Move                                                        
-         if constexpr (CT::HasMoveAssign<T>)
+         if constexpr (CT::HasMoveAssign<T> and not CT::Aggregate<T>)
             return (lhs = LglsFwd(rhs));
          else if constexpr (::std::is_move_assignable_v<T>)
             return (lhs = LglsFwd(rhs.what));
@@ -949,9 +949,9 @@ namespace Langulus
       }
       else if constexpr (CT::Abandoned<S>) {
          // Abandon                                                     
-         if constexpr (CT::HasAbandonAssign<T>)
+         if constexpr (CT::HasAbandonAssign<T> and not CT::Aggregate<T>)
             return (lhs = LglsFwd(rhs));
-         else if constexpr (CT::HasMoveAssign<T>)
+         else if constexpr (CT::HasMoveAssign<T> and not CT::Aggregate<T>)
             return (lhs = Move(rhs.what));
          else if constexpr (::std::is_move_assignable_v<T>)
             return (lhs = LglsFwd(rhs.what));
@@ -976,9 +976,9 @@ namespace Langulus
          }   
          else if constexpr (CT::NotVoid<DT>) {
             if constexpr (CT::Mutable<Deptr<T>>) {
-               if constexpr (CT::HasCloneAssign<DT>)
+               if constexpr (CT::HasCloneAssign<DT> and not CT::Aggregate<T>)
                   return (DenseCast(lhs) = Clone(DenseCast(rhs.what)));
-               else if constexpr (CT::POD<DT> and CT::HasReferAssign<DT>)
+               else if constexpr (CT::POD<DT> and CT::HasReferAssign<DT> and not CT::Aggregate<T>)
                   return (DenseCast(lhs) = Refer(DenseCast(rhs.what)));
                else if constexpr (CT::POD<DT> and ::std::is_copy_assignable_v<DT>)
                   return (DenseCast(lhs) = DenseCast(rhs.what));
@@ -999,9 +999,9 @@ namespace Langulus
       }
       else if constexpr (CT::Copied<S>) {
          // Copy                                                        
-         if constexpr (CT::HasCopyAssign<T>)
+         if constexpr (CT::HasCopyAssign<T> and not CT::Aggregate<T>)
             return (lhs = LglsFwd(rhs));
-         else if constexpr (CT::POD<T> and CT::HasReferAssign<T>)
+         else if constexpr (CT::POD<T> and CT::HasReferAssign<T> and not CT::Aggregate<T>)
             return (lhs = Refer(rhs.what));
          else if constexpr (CT::POD<T> and ::std::is_copy_assignable_v<T>)
             return (lhs = rhs.what);
@@ -1012,9 +1012,9 @@ namespace Langulus
       }
       else if constexpr (CT::Disowned<S>) {
          // Disown                                                      
-         if constexpr (CT::HasDisownAssign<T>)
+         if constexpr (CT::HasDisownAssign<T> and not CT::Aggregate<T>)
             return (lhs = LglsFwd(rhs));
-         else if constexpr (CT::POD<T> and CT::HasReferAssign<T>)
+         else if constexpr (CT::POD<T> and CT::HasReferAssign<T> and not CT::Aggregate<T>)
             return (lhs = Refer(rhs.what));
          else if constexpr (CT::POD<T> and ::std::is_copy_assignable_v<T>)
             return (lhs = rhs.what);
