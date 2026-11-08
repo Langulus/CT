@@ -83,6 +83,10 @@ namespace Langulus::CTTI
    /// All fundamental types are pooled by size by default                    
    template<CT::Fundamental T>
    struct Pooled<T> : PooledBySize {};
+
+   /// Same applies to all pointers                                           
+   template<CT::Sparse T>
+   struct Pooled<T> : PooledBySize {};
 }
 
 namespace Langulus
@@ -123,10 +127,10 @@ namespace Langulus
    /// Get the reflected pool tactic for T at compile time                    
    template<class T>
    consteval PoolTactic PoolTacticOf() {
-      PoolTactic result = PoolTactic::Default;
-
       using ST = Shed<T>;
       using ctti = CTTI::Pooled<ST>;
+
+      PoolTactic result = PoolTactic::Default;
       if constexpr (CT::Complete<ctti>) {
          if constexpr (ctti::Enabled)
             result = ctti::Tactic;
@@ -142,14 +146,13 @@ namespace Langulus
          }
       }
 
-      if (result == PoolTactic::Main
-      and (alignof(ST) > Alignment or sizeof(ST) > Alignment)) {
+      if (result == PoolTactic::Main and (alignof(ST) > Alignment
+                                      or  sizeof(ST)  > Alignment)) {
          // The main pool doesn't accept types with size and alignment  
          // that aren't within Langulus::Alignment limits.              
          result = PoolTactic::Type;
       }
-      else if (result == PoolTactic::Size
-      and alignof(T) > Alignment) {
+      else if (result == PoolTactic::Size and alignof(T) > Alignment) {
          // The size pools don't accept types with alignment            
          // that isn't within Langulus::Alignment limits.               
          result = PoolTactic::Type;

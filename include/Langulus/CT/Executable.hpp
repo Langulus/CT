@@ -25,26 +25,13 @@ namespace Langulus::CTTI
    template<class T>
    struct Executable;
 
-   /// All verbs are always marked executable                                 
+   /// All C++ function signatures are marked executable                      
+   template<class T> requires ::std::is_function_v<T>
+   struct Executable<T> {};
+
+   /// All verbs are marked executable                                        
    template<class T>
    struct Executable<::Langulus::Annies::TVerb<T>> {};
-
-   /// Same applies to verb pointers                                          
-   template<class T>
-   struct Executable<::Langulus::Annies::TVerb<T>*> {};
-   template<class T>
-   struct Executable<::Langulus::Annies::TVerb<T> const*> {};
 }
 
-namespace Langulus::CT
-{
-   /// Checks whether all decayed T are marked as executable                  
-   template<class...T>
-   concept Executable = Validate<Decay<T>...>
-       and (LANGULUS_CTTI_CHECK(Decay<T>, Executable) and ...);
-
-  /// Checks whether all decayed T are not marked as executable               
-   template<class...T>
-   concept NotExecutable = Validate<Decay<T>...>
-       and ((not Executable<T>) and ...);
-}
+LANGULUS_CTTI_CONCEPT_DECAY(Executable)
