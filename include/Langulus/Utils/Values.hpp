@@ -219,11 +219,11 @@ namespace Langulus
       LANGULUS(ALWAYS_INLINED)
       static constexpr decltype(auto) ForEachConstOr(auto&& lambda) {
          decltype(auto) r1 = LglsLamb(lambda, E1);
-         if constexpr (not ::std::same_as<No, decltype(r1)>)
+         if constexpr (not ::std::is_same_v<No, decltype(r1)>)
             return r1;
          else {
             decltype(auto) r2 = LglsLamb(lambda, E2);
-            if constexpr (not ::std::same_as<No, decltype(r2)>)
+            if constexpr (not ::std::is_same_v<No, decltype(r2)>)
                return r2;
             else
                return Values<EN...>::ForEachConstOr(LglsFwd(lambda));

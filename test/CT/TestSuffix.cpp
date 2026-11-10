@@ -7,7 +7,7 @@
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Suffix.hpp>
-#include <Langulus/Logger.hpp>
+//#include <Langulus/Logger.hpp>
 
 using namespace Langulus;
 

@@ -6,7 +6,9 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #include <Langulus/Testing.hpp>
+#include <Langulus/CT/Akin.hpp>
 #include <Langulus/CT/Bool.hpp>
+#include <Langulus/Utils/Types.hpp>
 
 using namespace Langulus;
 

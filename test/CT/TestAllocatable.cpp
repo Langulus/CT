@@ -7,6 +7,7 @@
 ///                                                                           
 #include <Langulus/Testing.hpp>
 #include <Langulus/CT/Allocatable.hpp>
+#include <Langulus/Utils/Types.hpp>
 
 using namespace Langulus;
 
@@ -18,7 +19,7 @@ namespace
 
    struct AllocatableExternally {};
    struct AllocatableExternallyDisabled {};
-   struct AllocatableInternally { using CTTI_Allocatable = Yes<>; };
+   struct AllocatableInternally { using CTTI_Allocatable = Yup; };
    struct InheritedAllocatable : AllocatableInternally {};
    struct InheritedAllocatableDisabled : AllocatableInternally { using CTTI_Allocatable = No; };
    struct InheritedAllocatableButPrivate : private AllocatableInternally {};

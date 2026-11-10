@@ -13,7 +13,7 @@ using namespace Langulus;
 
 TEST_CASE_TEMPLATE("Sequences", T
    , int
-   , ulonger
+   , unsigned long long
 ) {
    using s = Sequence<T{50}>;
    int counter_noexcept = 0;

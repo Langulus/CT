@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
-#include <Langulus/TypeOf.hpp>
+#include <Langulus/CT/Typed.hpp>
 #include <string_view>
 #include <array>
 #include <vector>

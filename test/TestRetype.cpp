@@ -16,6 +16,8 @@ namespace
 {
    struct TypedNotRetypable {
       using CTTI_Typed = int;
+      template<class>
+      using Retype = TypedNotRetypable;
    };
    
    struct TypedRetypable {
@@ -27,6 +29,9 @@ namespace
    template<class T>
    struct Retypable {
       T data;
+
+      template<class ALT>
+      using Retype = Retypable<ALT>;
    };
    
    template<class T>
@@ -43,7 +48,7 @@ namespace
 }
 
 SCENARIO("Retype") {
-   static_assert(::std::same_as<Retype<void, float>, void>);
+   static_assert(::std::same_as<Retype<void, float>, float>);
    static_assert(::std::same_as<Retype<TypedNotRetypable, float>, TypedNotRetypable>);
    static_assert(::std::same_as<Retype<TypedRetypable, float>, float>);
    static_assert(::std::same_as<Retype<Retypable<int>, float>, Retypable<float>>);

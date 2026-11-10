@@ -6,9 +6,8 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
-#include <Langulus/Literal.hpp>
+#include <Langulus/Utils/Literal.hpp>
 #include <string>
-//#include <string_view>
 
 using namespace Langulus;
 

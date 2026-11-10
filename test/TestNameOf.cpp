@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
-#include <Langulus/Testing/PackedPointers.hpp>
+//#include <Langulus/Testing/PackedPointers.hpp>
 #include <Langulus/NameOf.hpp>
 
 #if 0
