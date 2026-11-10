@@ -464,6 +464,16 @@ namespace Langulus
          return *this;
       }
 
+      /// Append a character                                                  
+      ///   @attention will never allocate a bigger literal                   
+      constexpr Literal& operator += (const CT::LiteralChar auto& rhs) noexcept {
+         auto d = data() + size();
+         *d = rhs;
+         return *this;
+      }
+
+      /// Append a bounded array of chatacters                                
+      ///   @attention will never allocate a bigger literal                   
       template<CT::LiteralChar C, size_t M>
       constexpr Literal& operator += (const C(&rhs)[M]) noexcept {
          auto d = data() + size();

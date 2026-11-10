@@ -244,12 +244,12 @@ namespace Langulus::RTTI
                return deext + "[" + static_cast<char>('0' + ext/1000)
                                   + static_cast<char>('0' + ext/100)
                                   + static_cast<char>('0' + ext/10)
-                                  + static_cast<char>('0' + ext) + "]";               
+                                  + static_cast<char>('0' + ext) + "]";
             }
             else if constexpr (ext > 99) {
                return deext + "[" + static_cast<char>('0' + ext/100)
                                   + static_cast<char>('0' + ext/10)
-                                  + static_cast<char>('0' + ext) + "]";               
+                                  + static_cast<char>('0' + ext) + "]";
             }
             else if constexpr (ext > 9) {
                return deext + "[" + static_cast<char>('0' + ext/10)
