@@ -7,30 +7,19 @@ project(LangulusCT
 
 # Check if this project is built as standalone, or a part of something else 
 if (PROJECT_IS_TOP_LEVEL OR NOT LANGULUS)
-   #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-   #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
-   #set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
-   #include(LangulusUtilities.cmake)
-   #fetch_langulus_module(Core GIT_TAG wip)
+   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+   include(LangulusUtilities.cmake)
+   fetch_langulus_module(Core GIT_TAG wip)
 endif()
 
-# Build and install SIMD library                                            
+# Build and install CD library                                            
 add_library(LangulusCT INTERFACE)
-
-target_include_directories(LangulusCT
-   INTERFACE   include
-)
-
-#target_link_libraries(LangulusCT
-#   PUBLIC   LangulusCore
-#            $<$<BOOL:${LANGULUS_OPTION_LOGGING}>:fmt>
-#)
-
-#target_compile_definitions(LangulusSIMD
-#   PRIVATE  LANGULUS_EXPORT_ALL
-#)
+target_include_directories(LangulusCT INTERFACE include)
+target_link_libraries(LangulusCT INTERFACE LangulusCore)
 
 if(LANGULUS_OPTION_TESTING)
-   #enable_testing()
-   #add_subdirectory(test)
+   enable_testing()
+   add_subdirectory(test)
 endif()
