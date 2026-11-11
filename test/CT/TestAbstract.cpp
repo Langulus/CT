@@ -8,8 +8,6 @@
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Abstract.hpp>
 
-using namespace Langulus;
-
 //TODO test extents
 
 ///                                                                           

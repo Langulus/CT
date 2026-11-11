@@ -8,14 +8,8 @@
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Integer.hpp>
 
-using namespace Langulus;
-
 namespace
 {
-   template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; };
-   struct IncompleteType;
-
    struct IntExternally {};
    struct NotIntExternally {};
    struct IntInternally { using CTTI_Integer = Yes<>; };
@@ -29,17 +23,15 @@ namespace Langulus::CTTI
 {
    template<>
    struct Integer<IntExternally> {};
+
    template<>
-   struct Integer<NotIntExternally> {
-      static constexpr bool Enabled = false;
-   };
+   struct Integer<NotIntExternally> : No {};
 }
 
 //TODO test extents
 
 ///                                                                           
-/// CT::Integer                                                               
-///                                                                           
+/// MARK: Integer                                                             
 TEST_CASE_TEMPLATE("Testing CT::Integer types", TestType
    //, IncompleteType                  // shouldn't compile
    //, IncompleteType const            // shouldn't compile

@@ -6,7 +6,8 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Void.hpp"
+#include <Langulus/Typenav.hpp>
+#include <Langulus/CT/Retype.hpp>
 
 
 namespace Langulus::CTTI
@@ -15,7 +16,11 @@ namespace Langulus::CTTI
    /// 1. Specialize for T/concept, with the desired Type                     
    /// 2. Add a public `using CTTI_ReflectAs = <DesiredType>;` in T           
    /// Use void to disable reflection for the type                            
-   template<class T>
+   template<class T> requires (not ::std::is_reference_v<T>
+                           and not ::std::is_bounded_array_v<T>
+                           and not ::std::is_const_v<T>
+                           and not ::std::is_volatile_v<T>
+                           and not ::std::is_pointer_v<T>)
    struct ReflectAs;
 
    /// void is not reflectable                                                
@@ -33,12 +38,28 @@ namespace Langulus::CT::Inner
    /// would mean that the type is not reflectable at all. It also makes      
    /// sure that if ReflectAs is specified, then the involved types are       
    /// binary-compatible.                                                     
+   /// If you provide a decorated/pointer type, all decorations will be       
+   /// preserved, and only the decayed type will be replaced by the reflected.
+   ///   @return type_identity containing the reflected type                  
    template<class T>
-   consteval auto IsReflectable() {
-      static_assert(not ::std::is_reference_v<T>, "Strip references first");
-      static_assert(not ::std::is_bounded_array_v<T>, "Strip extents first");
-
-      if constexpr (Complete<CTTI::ReflectAs<T>>) {
+   consteval auto FormReflectedType() {
+      if constexpr (not CT::Decayed<T>) {
+         using DT = Decay<T>;
+         using AS = typename decltype(FormReflectedType<DT>())::type;
+         if constexpr (::std::is_void_v<AS> and not ::std::is_pointer_v<T>) {
+            // Not reflectable only if resulting in a dense void.       
+            return ::std::type_identity<void> {};
+         }
+         else {
+            // Pointers are always reflectable, even if pointing to     
+            // unreflectable types. Also preserved all decorations.     
+            if constexpr (::std::is_void_v<AS>)
+               return ::std::type_identity<Retype<T, DT>> {};
+            else
+               return ::std::type_identity<Retype<T, AS>> {};
+         }
+      }
+      else if constexpr (Complete<CTTI::ReflectAs<T>>) {
          // Substitution through external template.                     
          // Despite this, all participating types must be complete      
          // because their `sizeof` and `alignof` are checked.           
@@ -54,20 +75,6 @@ namespace Langulus::CT::Inner
             return ::std::type_identity<AS> {};
          }
       }
-      else if constexpr (::std::is_const_v<T>) {
-         // Let's make sure constness is preserved                      
-         using AS = decltype(IsReflectable<::std::remove_const_t<T>>());
-         if constexpr (Void<AS>)
-            return ::std::type_identity<void> {};
-         else
-            return ::std::type_identity<typename AS::type const> {};
-      }
-      else if constexpr (::std::is_pointer_v<T>) {
-         // Let's make sure indirections are preserved                  
-         //if constexpr (not Complete<::std::remove_pointer_t<T>>)
-         // POINTERS (EVEN CUSTOM ONES) ARE ALWAYS REFLECTABLE, unless you explicitly specialize CTTI::ReflectAs<T> //TODO which should be forbidden BTW!!
-         return ::std::type_identity<T> {};
-      }
       else if constexpr (requires { typename T::CTTI_ReflectAs; }) {
          // Substitution through internal type                          
          using AS = typename T::CTTI_ReflectAs;
@@ -81,7 +88,11 @@ namespace Langulus::CT::Inner
             return ::std::type_identity<AS> {};
          }
       }
-      else return ::std::type_identity<T> {};
+      else {
+         // If incomplete, just return it as it is.                     
+         // Reflectable until proven otherwise.                         
+         return ::std::type_identity<T> {};
+      }
    }
 }
 
@@ -90,7 +101,7 @@ namespace Langulus::CT
    /// Check if all T are reflectable                                         
    template<class...T>
    concept Reflectable = PartialValidate<T...>
-       and (CT::NotVoid<decltype(Inner::IsReflectable<T>())> and ...);
+       and (CT::NotVoid<decltype(Inner::FormReflectedType<T>())> and ...);
 
    /// Get the type a given T is reflected as. This is very useful as a       
    /// a build-time optimization, because many type-erased containers are     
@@ -99,8 +110,8 @@ namespace Langulus::CT
    /// by reducing unnessesary template reflections of redundant types.       
    ///   @attention this is designed only for affecting the reflection of     
    ///      data types, not tag, verb, or constant definitions                
-   ///   @attention this will strip all references, but will preserve CV      
-   ///      qualifiers and indirections!                                      
+   ///   @attention this will preserve all CV qualifiers, references and      
+   ///      indirections!                                                     
    template<class T>
-   using ReflectedAs = typename decltype(Inner::IsReflectable<T>())::type;
+   using ReflectedAs = typename decltype(Inner::FormReflectedType<T>())::type;
 }

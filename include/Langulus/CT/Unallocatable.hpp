@@ -11,17 +11,13 @@
 
 namespace Langulus::CTTI
 {
-   /// Affects CT::Allocatable<T>                                             
+   /// Affects CT::Unallocatable<T>                                           
    template<class T>
-   struct Allocatable;
+   struct Unallocatable;
 
    /// Void types are non-allocatable by default                              
    template<CT::Void T>
-   struct Allocatable<T> : No {};
-
-   /// Non-void types are allocatable by default                              
-   template<CT::NotVoid T>
-   struct Allocatable<T> : Yup {};
+   struct Unallocatable<T> : Yup {};
 }
 
-LANGULUS_CTTI_CONCEPT_DECVQ(Allocatable);
+LANGULUS_CTTI_CONCEPT_DECVQ(Unallocatable);

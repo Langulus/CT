@@ -8,13 +8,11 @@
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Deep.hpp>
 
-using namespace Langulus;
-
 //TODO test extents
 
+
 ///                                                                           
-/// CT::Deep                                                                  
-///                                                                           
+/// MARK: Deep                                                                
 TEST_CASE_TEMPLATE("Testing CT::Deep types", TestType
    //, IncompleteType                 // shouldn't compile
    //, IncompleteType const           // shouldn't compile
@@ -44,10 +42,12 @@ TEST_CASE_TEMPLATE("Testing CT::Deep types", TestType
    , InheritedDeep1*&
 ) {
    static_assert(    CT::Deep<TestType>);
-   static_assert(not CT::NotDeep<TestType>);
+   static_assert(not CT::Flat<TestType>);
 }
 
-TEST_CASE_TEMPLATE("Testing CT::NotDeep types", TestType
+///                                                                           
+/// MARK: Flat                                                                
+TEST_CASE_TEMPLATE("Testing CT::Flat types", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile
    //, SheddableType<IncompleteType> // shouldn't compile
@@ -64,21 +64,20 @@ TEST_CASE_TEMPLATE("Testing CT::NotDeep types", TestType
    , InheritedDeep1Disabled
 ) {
    static_assert(not CT::Deep<TestType>);
-   static_assert(    CT::NotDeep<TestType>);
+   static_assert(    CT::Flat<TestType>);
 }
 
 //static_assert(    CT::Deep<>); // shouldn't compile at all
 static_assert(    CT::Deep<ForcedDeepExternally, ForcedDeepInternally>);
 static_assert(not CT::Deep<ForcedDeepExternally, int>);
 
-//static_assert(    CT::NotDeep<>); // shouldn't compile at all
-static_assert(    CT::NotDeep<void*, int>);
-static_assert(not CT::NotDeep<void*, ForcedDeepInternally>);
+//static_assert(    CT::Flat<>); // shouldn't compile at all
+static_assert(    CT::Flat<void*, int>);
+static_assert(not CT::Flat<void*, ForcedDeepInternally>);
 
 
 ///                                                                           
-/// CT::DeepDense                                                             
-///                                                                           
+/// MARK: DeepDense                                                           
 TEST_CASE_TEMPLATE("Testing CT::DeepDense types", TestType
    //, IncompleteType                 // shouldn't compile
    //, IncompleteType const           // shouldn't compile

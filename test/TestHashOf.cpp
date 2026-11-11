@@ -14,17 +14,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-using namespace Langulus;
 
-
-///                                                                           
-/// MARK: CT::Hashable                                                        
-///                                                                           
 namespace
 {
-   template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; using CTTI_Typed = T; };
-
    struct NonHashable {
       int blah = 5;
    };
@@ -48,6 +40,8 @@ namespace
    struct HashableViaBoth : HashableViaConstMethod, HashableViaBeingPOD {};
 }
 
+///                                                                           
+/// MARK:Hashable                                                             
 TEST_CASE_TEMPLATE("Testing hashable types", TestType
    , SheddableType<HashableViaConstMethod>
    , SheddableType<HashableViaBeingPOD>
@@ -88,8 +82,7 @@ static_assert(not CT::NotHashable<SheddableType<NonHashable>, NonHashable, Hasha
 
 
 ///                                                                           
-/// MARK: CT::HasGetHashMethod                                                
-///                                                                           
+/// MARK: HasGetHashMethod                                                    
 TEST_CASE_TEMPLATE("Testing types with GetHash() method", TestType
    , SheddableType<HashableViaConstMethod>
    , SheddableType<HashableViaBoth>
@@ -115,8 +108,7 @@ static_assert(not CT::HasGetHashMethod<SheddableType<HashableViaConstMethod>, Ha
 
 
 ///                                                                           
-/// MARK: CT::HasStdHasher                                                    
-///                                                                           
+/// MARK: HasStdHasher                                                        
 TEST_CASE_TEMPLATE("Testing for if types are hashable by std", TestType
    , std::string
    , std::string_view, int
@@ -150,7 +142,6 @@ static_assert(not CT::HasStdHasher<std::string, SheddableType<HashableViaConstMe
 
 ///                                                                           
 /// MARK: Hash type tests                                                     
-///                                                                           
 static_assert(CT::Nullable<Hash>, "Hash needs to be batch-nullable");
 static_assert(CT::POD<Hash>,      "Hash needs to be POD");
 
@@ -167,7 +158,6 @@ namespace doctest
 
 ///                                                                           
 /// MARK: Hashing using standard containers                                   
-///                                                                           
 SCENARIO("Hashing standard containers should result in the same hashes") {
    std::string_view same1 = "Same1";
    std::string_view same2 = "Same1";
@@ -231,7 +221,6 @@ struct TestValue {
 
 ///                                                                           
 /// MARK:: Hash similarities with fundamental types (and constexpr hashing)   
-///                                                                           
 TEST_CASE_TEMPLATE("Hashing same values of differently sized types should result in different hashes", TestType
    , TestValue<0>
    , TestValue<1>

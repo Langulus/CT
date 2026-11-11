@@ -47,10 +47,24 @@ namespace
    };
 }
 
+///                                                                           
+/// MARK: Retype                                                              
 SCENARIO("Retype") {
    static_assert(::std::same_as<Retype<void, float>, float>);
    static_assert(::std::same_as<Retype<TypedNotRetypable, float>, TypedNotRetypable>);
    static_assert(::std::same_as<Retype<TypedRetypable, float>, float>);
    static_assert(::std::same_as<Retype<Retypable<int>, float>, Retypable<float>>);
    static_assert(::std::same_as<Retype<RetypableCustom<int>, float>, Retypable2<float>>);
+
+   static_assert(::std::same_as<Retype<int, float>, float>);
+   static_assert(::std::same_as<Retype<int[2], float>, float[2]>);
+   static_assert(::std::same_as<Retype<int&, float>, float&>);
+   static_assert(::std::same_as<Retype<int&&, float>, float&&>);
+   static_assert(::std::same_as<Retype<volatile int, float>, volatile float>);
+   static_assert(::std::same_as<Retype<int*, float>, float*>);
+   static_assert(::std::same_as<Retype<int***, float>, float***>);
+   static_assert(::std::same_as<Retype<int***[5], float>, float***[5]>);
+   static_assert(::std::same_as<Retype<const int***[5], float>, const float***[5]>);
+   static_assert(::std::same_as<Retype<int**const*const, float>, float**const*const>);
+   static_assert(::std::same_as<Retype<int const**const*const&, float>, float const**const*const&>);
 }

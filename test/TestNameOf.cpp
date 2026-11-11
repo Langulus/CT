@@ -6,7 +6,6 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
-//#include <Langulus/Testing/PackedPointers.hpp>
 #include <Langulus/NameOf.hpp>
 
 #if 0
@@ -15,8 +14,6 @@
 #else
    #define VERBOSE(...)
 #endif
-
-using namespace Langulus;
 
 namespace One::Two::Three
 {
@@ -32,14 +29,6 @@ namespace One::Two::Three
 
    template<class T>
    struct VeryComplexTemplate;
-}
-
-namespace Langulus::Flow
-{
-   struct Construct;
-   struct Constructconst;
-   struct constConstructconst;
-   struct constconst;
 }
 
 namespace
@@ -77,9 +66,7 @@ namespace
       AnonymousNumberButNamed = 314,
       AnonymousNumberButNotNamed = 315
    };
-
-   struct IncompleteType;
-
+   
    using TypeDeepAlias             = One::Two::Three::TypeDeepIntoNamespaces;
    using TemplatedAlias            = One::Two::Three::TemplatedTypeDeepIntoNamespaces<uint16_t>;
    using VeryComplexTemplatedAlias = One::Two::Three::VeryComplexTemplate<
@@ -297,19 +284,34 @@ namespace
       }
    }
 
-   template<auto T, bool NORMALIZE, bool NAMED>
+   template<auto E, bool NORMALIZE, bool NAMED>
    ::std::string IsolateConstantAtRuntime() {
-      if constexpr (NAMED and CT::NamedValue<T>)
-         return static_cast<::std::string>(CTTI::NamedValue<T>::Name);
+      if constexpr (NAMED) {
+         // Custom name by specializing CTTI::DefineConstant found   
+         auto custom_token = static_cast<::std::string>(CT::Inner::GetCustomNameOfConstant<E>());
+         LglsAssert(IsKeyword(custom_token),
+            "Not a valid CTTI::NamedValue - "
+            "must be ASCII, starting with an alphabetical symbol, "
+            "and must not contain any spaces or operators"
+         );
+         LglsAssert(not IsReserved(custom_token),
+            "Not a valid CTTI::NamedValue - token is reserved"
+         );
+         return custom_token;
+      }
       else {
-         ::std::string name = static_cast<::std::string>(RTTI::Inner::WrappedEnumName<T>());
+         // Extract the C++ name and normalize it if required        
+         auto name = static_cast<::std::string>(RTTI::Inner::WrappedEnumName<E>());
          size_t size = name.size();
-         size_t left = RTTI::Inner::CalculateEnumLeftOffset();
-         size_t right = RTTI::Inner::CalculateEnumRightOffset();
+         size_t left = RTTI::Inner::CalibratedEnumLeftOffset;
+         size_t right = RTTI::Inner::CalibratedEnumRightOffset;
          REQUIRE(size > left + right);
          ::std::string isolated = name.substr(left, size - right - left);
 
          VERBOSE("IsolateConstantAtRuntime: ", name, " -> ", isolated);
+         LglsAssert(not IsReserved(isolated),
+            "Not a valid C++ value name - token is reserved"
+         );
 
          if constexpr (NORMALIZE) {
             ::std::string normalized = NormalizeTypenameAtRuntime(isolated);

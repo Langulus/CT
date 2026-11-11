@@ -8,14 +8,8 @@
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Real.hpp>
 
-using namespace Langulus;
-
 namespace
 {
-   template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; };
-   struct IncompleteType;
-
    struct RealExternally {};
    struct NotRealExternally {};
    struct RealInternally { using CTTI_Real = Yes<>; };
@@ -29,17 +23,15 @@ namespace Langulus::CTTI
 {
    template<>
    struct Real<RealExternally> {};
+
    template<>
-   struct Real<NotRealExternally> {
-      static constexpr bool Enabled = false;
-   };
+   struct Real<NotRealExternally> : No {};
 }
 
 //TODO test extents
 
 ///                                                                           
-/// CT::Real                                                                  
-///                                                                           
+/// MARK: Real                                                                
 TEST_CASE_TEMPLATE("Testing CT::Real types", TestType
    //, IncompleteType                  // shouldn't compile
    //, IncompleteType const            // shouldn't compile

@@ -5,25 +5,15 @@
 ///                                                                           
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
-#include <Langulus/Testing.hpp>
+#include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Akin.hpp>
 #include <Langulus/CT/Bool.hpp>
-#include <Langulus/Utils/Types.hpp>
-
-using namespace Langulus;
-
-namespace
-{
-   template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; };
-   struct IncompleteType;
-}
 
 //TODO test extents
 
+
 ///                                                                           
-/// Akin/AkinAsOneOf                                                          
-///                                                                           
+/// MARK: Akin/AkinAsOneOf                                                    
 TEST_CASE_TEMPLATE("Testing Akin/AkinAsOneOf", TestPair
    , Types<IncompleteType, IncompleteType>
    , Types<IncompleteType, IncompleteType const>
@@ -58,7 +48,7 @@ TEST_CASE_TEMPLATE("Testing Akin/AkinAsOneOf", TestPair
    static_assert(Akin       <T1, T2>);
    static_assert(AkinAsOneOf<T1, T2>);
 
-   if constexpr (CT::Complete<Shed<T1>, Shed<T2>>) {
+   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
       if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
          REQUIRE(MetaDataOf<T1>().Is(MetaDataOf<T2>()));
    }
@@ -75,7 +65,7 @@ TEST_CASE_TEMPLATE("Testing not Akin/AkinAsOneOf", TestPair
    static_assert(not Akin       <T1, T2>);
    static_assert(not AkinAsOneOf<T1, T2>);
 
-   if constexpr (CT::Complete<Shed<T1>, Shed<T2>>) {
+   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
       if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
          REQUIRE(not MetaDataOf<T1>().Is(MetaDataOf<T2>()));
    }
@@ -93,8 +83,7 @@ static_assert(not AkinAsOneOf<int, bool, void, void*>);
 
 
 ///                                                                           
-/// Same/SameAsOneOf                                                          
-///                                                                           
+/// MARK: Same/SameAsOneOf                                                    
 TEST_CASE_TEMPLATE("Testing Same/SameAsOneOf", TestPair
    , Types<int*, int const*>
    , Types<int*, int const* const>
@@ -115,7 +104,7 @@ TEST_CASE_TEMPLATE("Testing Same/SameAsOneOf", TestPair
    static_assert(Same       <T1, T2>);
    static_assert(SameAsOneOf<T1, T2>);
 
-   if constexpr (CT::Complete<Shed<T1>, Shed<T2>>) {
+   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
       if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
          REQUIRE(MetaDataOf<T1>().IsSame(MetaDataOf<T2>()));
    }
@@ -150,7 +139,7 @@ TEST_CASE_TEMPLATE("Testing not Same/SameAsOneOf", TestPair
    static_assert(not Same       <T1, T2>);
    static_assert(not SameAsOneOf<T1, T2>);
 
-   if constexpr (CT::Complete<Shed<T1>, Shed<T2>>) {
+   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
       if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
          REQUIRE(not MetaDataOf<T1>().IsSame(MetaDataOf<T2>()));
    }
@@ -168,8 +157,7 @@ static_assert(not SameAsOneOf<int, bool, void, void*, int***, int*>);
 
 
 ///                                                                           
-/// Exact/ExactAsOneOf                                                        
-///                                                                           
+/// MARK: Exact/ExactAsOneOf                                                  
 TEST_CASE_TEMPLATE("Testing Exact/ExactAsOneOf", TestPair
    , Types<IncompleteType, IncompleteType>
    , Types<IncompleteType, IncompleteType&>
@@ -184,7 +172,7 @@ TEST_CASE_TEMPLATE("Testing Exact/ExactAsOneOf", TestPair
    static_assert(Exact       <T1, T2>);
    static_assert(ExactAsOneOf<T1, T2>);
 
-   if constexpr (CT::Complete<Shed<T1>, Shed<T2>>) {
+   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
       if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
          REQUIRE(MetaDataOf<T1>().IsExact(MetaDataOf<T2>()));
    }
@@ -224,7 +212,7 @@ TEST_CASE_TEMPLATE("Testing not Exact/ExactAsOneOf", TestPair
    static_assert(not Exact       <T1, T2>);
    static_assert(not ExactAsOneOf<T1, T2>);
 
-   if constexpr (CT::Complete<Shed<T1>, Shed<T2>>) {
+   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
       if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
          REQUIRE(not MetaDataOf<T1>().IsExact(MetaDataOf<T2>()));
    }

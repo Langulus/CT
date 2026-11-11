@@ -5,17 +5,11 @@
 ///                                                                           
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
-#include <Langulus/Testing.hpp>
+#include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Character.hpp>
-
-using namespace Langulus;
 
 namespace
 {
-   template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; };
-   struct IncompleteType;
-
    struct CharacterExternally {};
    struct NotCharacterExternally {};
    struct CharacterInternally { using CTTI_Character = Yes<>; };
@@ -40,7 +34,6 @@ namespace Langulus::CTTI
 
 ///                                                                           
 /// CT::Character                                                             
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::Character types", TestType
    //, IncompleteType                  // shouldn't compile
    //, IncompleteType const            // shouldn't compile

@@ -8,16 +8,10 @@
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Unfold.hpp>
 
-using namespace Langulus;
-
 namespace
 {
    template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; };
-   template<class T>
    struct UnfoldableType { using CTTI_Unfoldable = Yes<>; };
-   struct IncompleteType;
-
    struct UnfoldableExternally {};
    struct NotUnfoldableExternally {};
    struct UnfoldableInternally { using CTTI_Unfoldable = Yes<>; };
@@ -33,16 +27,13 @@ namespace Langulus::CTTI
    struct Unfoldable<UnfoldableExternally> {};
 
    template<>
-   struct Unfoldable<NotUnfoldableExternally> {
-      static constexpr bool Enabled = false;
-   };
+   struct Unfoldable<NotUnfoldableExternally> : No {};
 }
 
 //TODO test extents
 
 ///                                                                           
-/// CT::Unfoldable                                                            
-///                                                                           
+/// MARK: Unfoldable                                                          
 TEST_CASE_TEMPLATE("Testing CT::Unfoldable types", TestType
    //, IncompleteType                  // shouldn't compile
    //, IncompleteType const            // shouldn't compile

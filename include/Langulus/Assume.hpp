@@ -6,7 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
-#include "Except.hpp"
+#include <Langulus/CT/Exception.hpp>
 
 #if LANGULUS(DEBUG)
    #include "Utils/DebugBreak.hpp"

@@ -38,7 +38,7 @@ namespace Langulus::CT::Inner
                "CTTI::Sheddable lacks Type");
 
             using InnerT = typename TI::Type;
-            if constexpr (Void<InnerT>)
+            if constexpr (::std::is_void_v<InnerT>)
                return ::std::type_identity<T> {};
             else {
                static_assert(not requires { InnerT::Enabled; },
@@ -55,7 +55,7 @@ namespace Langulus::CT::Inner
 
             if constexpr (requires { typename DT::CTTI_Sheddable; }) {
                using InnerT = typename DT::CTTI_Sheddable;
-               if constexpr (Void<InnerT>)
+               if constexpr (::std::is_void_v<InnerT>)
                   return ::std::type_identity<T> {};
                else {
                   static_assert(not requires { InnerT::Enabled; },

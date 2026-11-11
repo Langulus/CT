@@ -5,20 +5,14 @@
 ///                                                                           
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
-#include <Langulus/Testing.hpp>
+#include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Bool.hpp>
-
-using namespace Langulus;
 
 namespace
 {
-   template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; };
-   struct IncompleteType;
-
    struct BoolExternally {};
    struct NotBoolExternally {};
-   struct BoolInternally { using CTTI_Bool = Yes<>; };
+   struct BoolInternally { using CTTI_Bool = Yup; };
    struct InheritedBool : BoolInternally {};
    struct InheritedBoolDisabled : BoolInternally { using CTTI_Bool = No; };
    struct InheritedBoolButPrivate : private BoolInternally {};
@@ -39,7 +33,6 @@ namespace Langulus::CTTI
 
 ///                                                                           
 /// CT::Bool                                                                  
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::Bool types", TestType
    //, IncompleteType                  // shouldn't compile
    //, IncompleteType const            // shouldn't compile

@@ -5,23 +5,17 @@
 ///                                                                           
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
-#include <Langulus/Testing.hpp>
-#include <Langulus/CT/Allocatable.hpp>
-#include <Langulus/Utils/Types.hpp>
-
-using namespace Langulus;
+#include <Langulus/Testing/CommonTypes.hpp>
+#include <Langulus/NameOf.hpp>
+#include <Langulus/CT/Unallocatable.hpp>
 
 namespace
 {
-   template<class T>
-   struct SheddableType { using CTTI_Sheddable = T; };
-   struct IncompleteType;
-
    struct AllocatableExternally {};
    struct AllocatableExternallyDisabled {};
-   struct AllocatableInternally { using CTTI_Allocatable = Yup; };
+   struct AllocatableInternally { using CTTI_Unallocatable = No; };
    struct InheritedAllocatable : AllocatableInternally {};
-   struct InheritedAllocatableDisabled : AllocatableInternally { using CTTI_Allocatable = No; };
+   struct InheritedAllocatableDisabled : AllocatableInternally { using CTTI_Unallocatable = Yup; };
    struct InheritedAllocatableButPrivate : private AllocatableInternally {};
    struct InheritedAllocatableExternally : AllocatableExternally {};
 }
@@ -29,20 +23,17 @@ namespace
 namespace Langulus::CTTI
 {
    template<>
-   struct Allocatable<AllocatableExternally> {};
+   struct Unallocatable<AllocatableExternally> : No {};
 
    template<>
-   struct Allocatable<AllocatableExternallyDisabled> {
-      static constexpr bool Enabled = false;
-   };
+   struct Unallocatable<AllocatableExternallyDisabled> {};
 }
 
 //TODO test extents
 
 ///                                                                           
-/// CT::Allocatable                                                           
-///                                                                           
-TEST_CASE_TEMPLATE("Testing CT::Allocatable types", TestType
+/// CT::Unallocatable                                                         
+TEST_CASE_TEMPLATE("Testing CT::Unallocatable types", TestType
    //, IncompleteType                  // shouldn't compile
    //, IncompleteType const            // shouldn't compile
    //, IncompleteType const&           // shouldn't compile
@@ -70,11 +61,11 @@ TEST_CASE_TEMPLATE("Testing CT::Allocatable types", TestType
    , SheddableType<InheritedAllocatableDisabled* const&>
    , IncompleteType*
 ) {
-   static_assert(    CT::Allocatable<TestType>);
-   static_assert(not CT::NotAllocatable<TestType>);
+   static_assert(    CT::NotUnallocatable<TestType>);
+   static_assert(not CT::Unallocatable<TestType>);
 }
 
-TEST_CASE_TEMPLATE("Testing CT::NotAllocatable types", TestType
+TEST_CASE_TEMPLATE("Testing CT::NotUnallocatable types", TestType
    //, IncompleteType                    // shouldn't compile
    //, IncompleteType const              // shouldn't compile
    //, IncompleteType const&             // shouldn't compile
@@ -87,14 +78,16 @@ TEST_CASE_TEMPLATE("Testing CT::NotAllocatable types", TestType
    , InheritedAllocatableDisabled
    , AllocatableExternallyDisabled
 ) {
-   static_assert(not CT::Allocatable<TestType>);
-   static_assert(    CT::NotAllocatable<TestType>);
+   static_assert(not CT::NotUnallocatable<TestType>,
+      CppNameOf<TestType>() + " shouldn't be allocatable but is");
+   static_assert(    CT::Unallocatable<TestType>,
+      CppNameOf<TestType>() + " shouldn't be allocatable but is");
 }
 
 //static_assert(    CT::Allocatable<>); // shouldn't compile at all
-static_assert(    CT::Allocatable<AllocatableExternally, AllocatableInternally, int>);
-static_assert(not CT::Allocatable<AllocatableExternally, AllocatableInternally, InheritedAllocatableDisabled>);
+static_assert(    CT::NotUnallocatable<AllocatableExternally, AllocatableInternally, int>);
+static_assert(not CT::NotUnallocatable<AllocatableExternally, AllocatableInternally, InheritedAllocatableDisabled>);
 
 //static_assert(    CT::NotAllocatable<>); // shouldn't compile at all
-static_assert(    CT::NotAllocatable<void, InheritedAllocatableDisabled, AllocatableExternallyDisabled>);
-static_assert(not CT::NotAllocatable<void, InheritedAllocatableDisabled, int>);
+static_assert(    CT::Unallocatable<void, InheritedAllocatableDisabled, AllocatableExternallyDisabled>);
+static_assert(not CT::Unallocatable<void, InheritedAllocatableDisabled, int>);

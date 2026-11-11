@@ -47,9 +47,7 @@ namespace Langulus::CT::Inner
       }
       else {
          // Internal check                                              
-         static_assert(Complete<DT>,
-            "Can't check if an incomplete type is void");
-
+         static_assert(Complete<DT>, "Can't check if an incomplete type is void");
          if constexpr (requires { DT::CTTI_Void::Enabled; })
             return DT::CTTI_Void::Enabled;
          else

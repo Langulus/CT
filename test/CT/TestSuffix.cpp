@@ -7,10 +7,6 @@
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Suffix.hpp>
-//#include <Langulus/Logger.hpp>
-
-using namespace Langulus;
-
 
 namespace
 {
@@ -28,17 +24,13 @@ namespace
 namespace Langulus::CTTI
 {
    template<>
-   struct Suffix<SuffixBySpecialization> {
-      static constexpr Literal Name = "yeah";
-   };
+   struct Suffix<SuffixBySpecialization> : Yes<"yeah"> {};
+
    template<>
-   struct Suffix<SuffixBySpecialization*> {
-      static constexpr Literal Name = "yeahPtr";
-   };
+   struct Suffix<SuffixBySpecialization*> : Yes<"yeahPtr"> {};
+
    template<>
-   struct Suffix<SuffixBySpecialization const*> {
-      static constexpr Literal Name = "yeahCptr";
-   };
+   struct Suffix<SuffixBySpecialization const*> : Yes<"yeahCptr"> {};
 }
 
 //TODO test extents
@@ -69,8 +61,8 @@ SCENARIO("SuffixOf") {
    
    DEFINE_SUFFIXOF_TYPE_TEST(uint8_t,  "u8")
    DEFINE_SUFFIXOF_TYPE_TEST(uint16_t, "u16")
-   DEFINE_SUFFIXOF_TYPE_TEST(uint32_t, (::std::same_as<uint32_t, uint> ? "u" : "u32"))
-   DEFINE_SUFFIXOF_TYPE_TEST(uint64_t, (::std::same_as<uint64_t, uint> ? "u" : "u64"))
+   DEFINE_SUFFIXOF_TYPE_TEST(uint32_t, (::std::same_as<uint32_t, unsigned> ? "u" : "u32"))
+   DEFINE_SUFFIXOF_TYPE_TEST(uint64_t, (::std::same_as<uint64_t, unsigned> ? "u" : "u64"))
    
    DEFINE_SUFFIXOF_TYPE_TEST( int8_t,  "i8")
    DEFINE_SUFFIXOF_TYPE_TEST( int16_t, "i16")

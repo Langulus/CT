@@ -1,6 +1,5 @@
 add_langulus_test(LangulusCTTest
    SOURCES     TestAssume.cpp
-               TestCTTI.cpp
                TestHashOf.cpp
                TestIntentOf.cpp
                TestLambda.cpp
@@ -15,11 +14,10 @@ add_langulus_test(LangulusCTTest
 
                CT/TestAbstract.cpp
                CT/TestAkin.cpp
-               CT/TestAllocatable.cpp
+               CT/TestUnallocatable.cpp
                CT/TestBool.cpp
                CT/TestCharacter.cpp
                CT/TestConvertible.cpp
-               CT/TestCoreConcepts.cpp
                CT/TestDeep.cpp
                CT/TestInteger.cpp
                CT/TestNumber.cpp
