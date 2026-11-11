@@ -110,4 +110,42 @@ namespace Langulus
    /// Sheds and then dereferences all sheddable types                        
    template<class T>
    using ShedDeref = ::std::remove_reference_t<Shed<T>>;
+
+
+   /// MARK: Casts                                                            
+   /// Removes all sheddable types.                                           
+   ///  - if T isn't sheddable, just return itself                            
+   ///  - otherwise:                                                          
+   ///      - else if T::operator Shed<T>&& exists use that                   
+   ///      - else if T::operator Shed<T>& exists use that                    
+   ///      - else if T::operator Shed<T> const& exists use that              
+   ///      - else if T::operator Shed<T> exists use that                     
+   ///   @param what the instance to decay                                    
+   ///   @return the inner data                                               
+   template<class T> LANGULUS(ALWAYS_INLINED)
+   constexpr decltype(auto) ShedCast(T&& what) {
+      if constexpr (not CT::Sheddable<T>)
+         return LglsFwd(what);
+      else {
+         using InnerT = typename decltype(CT::Inner::GetSheddedType<T>())::type;
+         static_assert(not ::std::is_same_v<::std::decay_t<T>, ::std::decay_t<InnerT>>,
+            "ShedCast returns the same type, and will result in infinite regress");
+
+         if constexpr (requires { what.operator InnerT&& (); })
+            return ShedCast(what.operator InnerT&& ());
+         else if constexpr (requires { what.operator InnerT& (); })
+            return ShedCast(what.operator InnerT& ());
+         else if constexpr (requires { what.operator InnerT const& (); })
+            return ShedCast(what.operator InnerT const& ());
+         else if constexpr (requires { what.operator InnerT (); })
+            return ShedCast(what.operator InnerT ());
+         else {
+            static_assert(false,
+               "No cast operator available for casting to inner type. "
+               "Check the constness of your cast operators (if any)? "
+               "Is it compatible with the contained type: "
+            );
+         }
+      }
+   }
 }

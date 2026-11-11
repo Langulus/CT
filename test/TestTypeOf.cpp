@@ -74,20 +74,20 @@ TEST_CASE_TEMPLATE("Testing TypedCast", TestType
    , int
    , int&&
    , const int&
-   , SheddableTypeCastableExplicit<int>
-   , SheddableTypeCastableExplicit<int&&>
-   , SheddableTypeCastableExplicit<const int&>
-   , SheddableTypeCastableImplicit<int>
-   , SheddableTypeCastableImplicit<int&&>
-   , SheddableTypeCastableImplicit<const int&>
-   , SheddableTypeCastableUsingMethod<const int&>
-   , const SheddableTypeCastableExplicit<int>
-   , const SheddableTypeCastableExplicit<int&&>
-   , const SheddableTypeCastableExplicit<const int&>
-   , const SheddableTypeCastableImplicit<int>
-   , const SheddableTypeCastableImplicit<int&&>
-   , const SheddableTypeCastableImplicit<const int&>
-   , const SheddableTypeCastableUsingMethod<const int&>
+   , TypedTypeCastableExplicit<int>
+   , TypedTypeCastableExplicit<int&&>
+   , TypedTypeCastableExplicit<const int&>
+   , TypedTypeCastableImplicit<int>
+   , TypedTypeCastableImplicit<int&&>
+   , TypedTypeCastableImplicit<const int&>
+   , TypedTypeCastableUsingMethod<const int&>
+   , const TypedTypeCastableExplicit<int>
+   , const TypedTypeCastableExplicit<int&&>
+   , const TypedTypeCastableExplicit<const int&>
+   , const TypedTypeCastableImplicit<int>
+   , const TypedTypeCastableImplicit<int&&>
+   , const TypedTypeCastableImplicit<const int&>
+   , const TypedTypeCastableUsingMethod<const int&>
 ) {
    int value = 656;
    TestType i {::std::move(value)};
@@ -111,14 +111,14 @@ TEST_CASE_TEMPLATE("Testing ShedCast", TestType
    , SheddableTypeCastableImplicit<int>
    , SheddableTypeCastableImplicit<int&&>
    , SheddableTypeCastableImplicit<const int&>
-   , SheddableTypeCastableUsingMethod<SheddableTypeCastableExplicit<int>>
+   , SheddableTypeCastableExplicit<SheddableTypeCastableExplicit<int>>
    , const SheddableTypeCastableExplicit<int>
    , const SheddableTypeCastableExplicit<int&&>
    , const SheddableTypeCastableExplicit<const int&>
    , const SheddableTypeCastableImplicit<int>
    , const SheddableTypeCastableImplicit<int&&>
    , const SheddableTypeCastableImplicit<const int&>
-   , const SheddableTypeCastableUsingMethod<const SheddableTypeCastableExplicit<const int&>&>
+   , const SheddableTypeCastableExplicit<const SheddableTypeCastableExplicit<const int&>&>
 ) {
    int value = 656;
    TestType i {::std::move(value)};
@@ -144,7 +144,6 @@ TEST_CASE_TEMPLATE("Testing SparseCast", TestType
    , SheddableTypeCastableExplicit<const int* const* const&>
    , SheddableTypeCastableExplicit<const int* const* const* const&>
    , SheddableTypeCastableExplicit<const int* const* const*>
-   , SheddableTypeCastableUsingMethod<int>         // compiles, because method in test always returns a reference
    //, const SheddableTypeCastableExplicit<int>    // shouldn't compile, because operator returns temporary
    //, const SheddableTypeCastableExplicit<int&&>  // shouldn't compile, can't get a pointer out of rvalue
    , const SheddableTypeCastableExplicit<const int&>
@@ -152,7 +151,6 @@ TEST_CASE_TEMPLATE("Testing SparseCast", TestType
    , const SheddableTypeCastableExplicit<const int* const* const&>
    , const SheddableTypeCastableExplicit<const int* const* const* const&>
    , const SheddableTypeCastableExplicit<const int* const* const*>
-   , const SheddableTypeCastableUsingMethod<int>   // compiles, because method in test always returns a reference
 ) {
    int value = 656;
 

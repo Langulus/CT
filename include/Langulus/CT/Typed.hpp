@@ -173,7 +173,9 @@ namespace Langulus
    ///   @return the inner data                                               
    template<class T> LANGULUS(ALWAYS_INLINED)
    constexpr decltype(auto) TypedCast(T&& what) {
-      if constexpr (requires { what.TypedCast(); }) {
+      if constexpr (not CT::Typed<T>)
+         return LglsFwd(what);
+      else if constexpr (requires { what.TypedCast(); }) {
          using InnerT = decltype(what.TypedCast());
          static_assert(not ::std::is_same_v<Decvq<Deref<T>>, Decvq<Deref<InnerT>>>,
             "TypedCast() returns the same type, and will result in infinite regress");
@@ -203,15 +205,6 @@ namespace Langulus
          }
       }
    }
-
-   /// Strips all sheddable layers down to the first non-sheddable inner type 
-   template<class T>
-   constexpr decltype(auto) ShedCast(T&& item) noexcept {
-      if constexpr (CT::Sheddable<T>)
-         return ShedCast(TypedCast(LglsFwd(item)));
-      else
-         return LglsFwd(item);
-   };
    
    /// Always returns a pointer to the argument, unles it is already a pointer
    ///   @param a the argument to point to                                    

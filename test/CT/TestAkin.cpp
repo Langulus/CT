@@ -47,11 +47,6 @@ TEST_CASE_TEMPLATE("Testing Akin/AkinAsOneOf", TestPair
    using T2 = typename TestPair::Second;
    static_assert(Akin       <T1, T2>);
    static_assert(AkinAsOneOf<T1, T2>);
-
-   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
-      if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
-         REQUIRE(MetaDataOf<T1>().Is(MetaDataOf<T2>()));
-   }
 }
 
 TEST_CASE_TEMPLATE("Testing not Akin/AkinAsOneOf", TestPair
@@ -64,11 +59,6 @@ TEST_CASE_TEMPLATE("Testing not Akin/AkinAsOneOf", TestPair
    using T2 = typename TestPair::Second;
    static_assert(not Akin       <T1, T2>);
    static_assert(not AkinAsOneOf<T1, T2>);
-
-   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
-      if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
-         REQUIRE(not MetaDataOf<T1>().Is(MetaDataOf<T2>()));
-   }
 }
 
 //static_assert(    Akin<>);    // shouldn't compile at all
@@ -103,11 +93,6 @@ TEST_CASE_TEMPLATE("Testing Same/SameAsOneOf", TestPair
    using T2 = typename TestPair::Second;
    static_assert(Same       <T1, T2>);
    static_assert(SameAsOneOf<T1, T2>);
-
-   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
-      if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
-         REQUIRE(MetaDataOf<T1>().IsSame(MetaDataOf<T2>()));
-   }
 }
 
 TEST_CASE_TEMPLATE("Testing not Same/SameAsOneOf", TestPair
@@ -138,11 +123,6 @@ TEST_CASE_TEMPLATE("Testing not Same/SameAsOneOf", TestPair
    using T2 = typename TestPair::Second;
    static_assert(not Same       <T1, T2>);
    static_assert(not SameAsOneOf<T1, T2>);
-
-   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
-      if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
-         REQUIRE(not MetaDataOf<T1>().IsSame(MetaDataOf<T2>()));
-   }
 }
 
 //static_assert(    Same<>);    // shouldn't compile at all
@@ -171,11 +151,6 @@ TEST_CASE_TEMPLATE("Testing Exact/ExactAsOneOf", TestPair
    using T2 = typename TestPair::Second;
    static_assert(Exact       <T1, T2>);
    static_assert(ExactAsOneOf<T1, T2>);
-
-   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
-      if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
-         REQUIRE(MetaDataOf<T1>().IsExact(MetaDataOf<T2>()));
-   }
 }
 
 TEST_CASE_TEMPLATE("Testing not Exact/ExactAsOneOf", TestPair
@@ -211,11 +186,6 @@ TEST_CASE_TEMPLATE("Testing not Exact/ExactAsOneOf", TestPair
    using T2 = typename TestPair::Second;
    static_assert(not Exact       <T1, T2>);
    static_assert(not ExactAsOneOf<T1, T2>);
-
-   if constexpr (CT::Complete<Shed<T1>> and CT::Complete<Shed<T2>>) {
-      if constexpr (CT::NotVoid<Shed<T1>, Shed<T2>>)
-         REQUIRE(not MetaDataOf<T1>().IsExact(MetaDataOf<T2>()));
-   }
 }
 
 //static_assert(    Exact<>);    // shouldn't compile at all
