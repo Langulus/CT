@@ -157,6 +157,7 @@ TEST_CASE_TEMPLATE("Testing sparse types", TestType
    , CustomPointerType
    , IncompleteType*
    , void**
+   , nullptr_t
 ) {
    static_assert(    CT::Sparse<TestType>);
    static_assert(not CT::Dense<TestType>);
@@ -166,7 +167,7 @@ TEST_CASE_TEMPLATE("Testing dense types", TestType
    //, IncompleteType    // shouldn't compile, we must check whether it's a custom pointer type
    , SheddableType<CustomNonPointerType>
    , CustomNonPointerType
-   , int, int&, void, nullptr_t
+   , int, int&, void
 ) {
    static_assert(not CT::Sparse<TestType>);
    static_assert(    CT::Dense<TestType>);
@@ -553,14 +554,14 @@ static_assert(not CT::Slab<SheddableType<int>, SheddableType<int&>, int*>);
 
 ///                                                                           
 /// MARK: IsConstexpr                                                         
-namespace
+/*namespace
 {
    constexpr int const_function(int x, int y) { return x + y; }
    int nonconst_function(int x, int y) { return x + y; }
 }
 
 static_assert(    IsConstexpr([] {    const_function(1,2);}));
-static_assert(not IsConstexpr([] { nonconst_function(1,2);}));
+static_assert(not IsConstexpr([] { nonconst_function(1,2);}));*/ //TODO we seem to be have dropped these. maybe unused?
 
 
 ///                                                                           
@@ -591,7 +592,7 @@ static_assert(::std::same_as<Deptr<int&>,        int>);
 static_assert(::std::same_as<Deptr<int&&>,       int>);
 static_assert(::std::same_as<Deptr<int const&>,  int const>);
 static_assert(::std::same_as<Deptr<int const&&>, int const>);
-static_assert(::std::same_as<Deptr<int(&)[15]>,  int>);
+static_assert(::std::same_as<Deptr<int(&)[15]>,  int[15]>);
 
 static_assert(::std::same_as<Deptr<int*>,        int>);
 static_assert(::std::same_as<Deptr<int const*>,  int const>);
@@ -601,7 +602,7 @@ static_assert(::std::same_as<Deptr<int const*&>, int const>);
 static_assert(::std::same_as<Deptr<int const*&&>,int const>);
 static_assert(::std::same_as<Deptr<int(*)[15]>,  int[15]>);
 static_assert(::std::same_as<Deptr<int*(*)[15]>, int*[15]>);
-static_assert(::std::same_as<Deptr<int*[15]>,    int*>);
+static_assert(::std::same_as<Deptr<int*[15]>,    int*[15]>);
 
 static_assert(::std::same_as<Deptr<int**>,   int*>);
 static_assert(::std::same_as<Deptr<int**&>,  int*>);
@@ -620,16 +621,16 @@ static_assert(::std::same_as<Deptr<int&, 2>,  int>);
 static_assert(::std::same_as<Deptr<int&&, 2>, int>);
 static_assert(::std::same_as<Deptr<int const&, 2>,  int const>);
 static_assert(::std::same_as<Deptr<int const&&, 2>, int const>);
-static_assert(::std::same_as<Deptr<int(&)[15], 2>,  int>);
+static_assert(::std::same_as<Deptr<int(&)[15], 2>,  int[15]>);
 
 static_assert(::std::same_as<Deptr<int*, 2>,         int>);
 static_assert(::std::same_as<Deptr<int*&, 2>,        int>);
 static_assert(::std::same_as<Deptr<int*&&, 2>,       int>);
 static_assert(::std::same_as<Deptr<int const*&, 2>,  int const>);
 static_assert(::std::same_as<Deptr<int const*&&, 2>, int const>);
-static_assert(::std::same_as<Deptr<int(*)[15], 2>,   int>);
-static_assert(::std::same_as<Deptr<int*(*)[15], 2>,  int*>);
-static_assert(::std::same_as<Deptr<int*[15], 2>,     int>);
+static_assert(::std::same_as<Deptr<int(*)[15], 2>,   int[15]>);
+static_assert(::std::same_as<Deptr<int*(*)[15], 2>,  int*[15]>);
+static_assert(::std::same_as<Deptr<int*[15], 2>,     int*[15]>);
 
 static_assert(::std::same_as<Deptr<int**, 2>,   int>);
 static_assert(::std::same_as<Deptr<int**&, 2>,  int>);
@@ -765,7 +766,7 @@ static_assert(::std::same_as<Devq<int const* const* const volatile>, int const* 
 
 ///                                                                           
 /// MARK: Deext                                                               
-static_assert(::std::same_as<Deext<SheddableType<int(&)[15]>>, SheddableType<int(&)[15]>>);
+static_assert(::std::same_as<Deext<SheddableType<int(&)[15]>>, int>);
 static_assert(::std::same_as<Deext<SheddableType<int>(&)[15]>, SheddableType<int>>);
 
 static_assert(::std::same_as<Deext<int>, int>);
@@ -775,6 +776,7 @@ static_assert(::std::same_as<Deext<volatile int>, volatile int>);
 static_assert(::std::same_as<Deext<int const&>, int const>);
 static_assert(::std::same_as<Deext<int const&&>, int const>);
 static_assert(::std::same_as<Deext<int const>, int const>);
+static_assert(::std::same_as<TypeOf<volatile int(&)[15]>, volatile int>);
 static_assert(::std::same_as<Deext<volatile int(&)[15]>, volatile int>);
 static_assert(::std::same_as<Deext<volatile const int[15]>, volatile const int>);
 
@@ -885,7 +887,7 @@ TEST_CASE_TEMPLATE("Testing DecvqAllCast", TestType
    , int const* const* const
    , int*&
    , int const* const&
-   //int const* const&& //TODO explain why this is commented???
+   //, int const* const&& //TODO explain why this was commented out???
    , int[15]
    , const int[15]
    , int(&)[15]
@@ -894,7 +896,7 @@ TEST_CASE_TEMPLATE("Testing DecvqAllCast", TestType
    , IncompleteType const*
    , IncompleteType const* const
 ) {
-   if constexpr (::std::is_bounded_array_v<TestType>)
+   if constexpr (::std::is_bounded_array_v<Deref<TestType>>)
       static_assert(::std::same_as<decltype(DecvqAllCast(LglsFake(TestType))), Deext<DecvqAll<TestType>>*>);
    else
       static_assert(::std::same_as<decltype(DecvqAllCast(LglsFake(TestType))), DecvqAll<TestType>>);

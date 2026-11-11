@@ -297,7 +297,8 @@ namespace Langulus
    using ConstAll = typename decltype(Inner::NestedConst<T>())::type;
 
    /// Strips all cv-qualifiers from the provided argument                    
-   ///   @attention this will return pointers for bounded array arguments     
+   ///   @attention this will return pointers for bounded array arguments,    
+   ///      because C++ doesn't allow us to return arrays.                    
    template<class T> requires (not ::std::is_bounded_array_v<Deref<T>>)
    LANGULUS(ALWAYS_INLINED)
    constexpr auto DecvqAllCast(T&& what) noexcept -> DecvqAll<T> {
@@ -314,7 +315,8 @@ namespace Langulus
    }
    
    /// Add const qualifiers to the provided argument                          
-   ///   @attention this will return pointers for bounded array arguments     
+   ///   @attention this will return pointers for bounded array arguments,    
+   ///      because C++ doesn't allow us to return arrays.                    
    template<class T> requires (not ::std::is_bounded_array_v<Deref<T>>)
    LANGULUS(ALWAYS_INLINED)
    constexpr auto ConstAllCast(T&& what) noexcept -> ConstAll<T> {
@@ -327,13 +329,19 @@ namespace Langulus
       return const_cast<ConstAll<::std::remove_extent_t<Deref<T>>> const*>(what);
    }
 
+   /// Makes returns YES if T is mutable. Ignores references of T.            
    template<class T, class YES, class NO>
    using Tmut = typename ::std::conditional_t<CT::Mutable<T>,
          ::std::type_identity<YES>,
          ::std::type_identity<NO>
       >::type;
 
-   #define LglsMutIf(CONDITION_TYPE, ...) Tmut<CONDITION_TYPE, __VA_ARGS__, ConstAll<__VA_ARGS__>>
+   /// Makes any and all indirections/extents constant if the CONDITION_TYPE  
+   /// is not mutable. Very useful for const-correct return types.            
+   /// Example: some_method(this SELF&& self) -> LglsMutIf(SELF, R**)         
+   /// If SELF is constant, `some_method` will return R const* const*         
+   #define LglsMutIf(CONDITION_TYPE, ...) \
+      Tmut<CONDITION_TYPE, __VA_ARGS__, ConstAll<__VA_ARGS__>>
 }
 
 LANGULUS_CTTI_CONCEPT(Null);

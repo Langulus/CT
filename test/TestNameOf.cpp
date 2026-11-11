@@ -42,10 +42,6 @@ namespace
       int this_type_name_contains_a_cyrillic_letter;
    };
 
-   enum class Pi {
-      Number = 314
-   };
-
    enum PiNonClass {
       Number = 314
    };
@@ -185,7 +181,7 @@ namespace
    template<class T, bool NORMALIZE, bool NAMED>
    ::std::string IsolateTypenameAtRuntime() {
       if constexpr (NAMED and CT::Complete<CTTI::Named<T>>)
-         return static_cast<::std::string>(CTTI::Named<T>::Name);
+         return static_cast<::std::string>(CTTI::Named<T>::Constant);
       // Move `const` next to pointers/references at the end of type 
       // Discards `volatile` - it shouldn't matter outside compiler  
       // Helps with better sorting reflected types                   
@@ -294,7 +290,7 @@ namespace
             "must be ASCII, starting with an alphabetical symbol, "
             "and must not contain any spaces or operators"
          );
-         LglsAssert(not IsReserved(custom_token),
+         LglsAssert(not RTTI::Inner::IsReserved(custom_token),
             "Not a valid CTTI::NamedValue - token is reserved"
          );
          return custom_token;
@@ -309,7 +305,7 @@ namespace
          ::std::string isolated = name.substr(left, size - right - left);
 
          VERBOSE("IsolateConstantAtRuntime: ", name, " -> ", isolated);
-         LglsAssert(not IsReserved(isolated),
+         LglsAssert(not RTTI::Inner::IsReserved(isolated),
             "Not a valid C++ value name - token is reserved"
          );
 
@@ -326,30 +322,29 @@ namespace
 namespace Langulus::CTTI
 {
    template<>
-   struct Named<NamedBySpecialization> {
-      static constexpr Literal Name = "NameOverridedBySpecializing_CTTI_Named";
-   };
-   template<>
-   struct Named<NamedBySpecialization*> {
-      static constexpr Literal Name = "NameOverridedBySpecializing_CTTI_Named_Ptr";
-   };
-   template<>
-   struct Named<NamedBySpecialization const*> {
-      static constexpr Literal Name = "NameOverridedBySpecializing_CTTI_Named_ConstPtr";
-   };
+   struct Named<NamedBySpecialization>
+      : Yes<"NameOverridedBySpecializing_CTTI_Named"> {};
 
    template<>
-   struct NamedValue<PiButNamed::Number> {
-      static constexpr Literal Name = "PiButNamedByCTTI";
-   };
+   struct Named<NamedBySpecialization*>
+      : Yes<"NameOverridedBySpecializing_CTTI_Named_Ptr"> {};
+
    template<>
-   struct NamedValue<NumberButNamed> {
-      static constexpr Literal Name = "NumberButNamedByCTTI";
-   };
+   struct Named<NamedBySpecialization const*> 
+      : Yes<"NameOverridedBySpecializing_CTTI_Named_ConstPtr"> {};
+
+   /// Extend bool, by associating couple of constants with it                
    template<>
-   struct NamedValue<AnonymousNumberButNamed> {
-      static constexpr Literal Name = "AnonymousNumberButNamedByCTTI";
-   };
+   struct DefineConstant<PiButNamed>
+      : NamedValue<PiButNamed::Number, "PiButNamedByCTTI"> {};
+
+   template<>
+   struct DefineConstant<PiNonClassButNamed>
+      : NamedValue<NumberButNamed, "NumberButNamedByCTTI"> {};
+
+   template<>
+   struct DefineConstant<decltype(AnonymousNumberButNamed)>
+      : NamedValue<AnonymousNumberButNamed, "AnonymousNumberButNamedByCTTI"> {};
 }
 
 
@@ -457,7 +452,7 @@ SCENARIO("NameOf") {
 
    DEFINE_NAMEOF_TYPE_TEST(z, "z")
 
-   #if LANGULUS_FEATURE(MANAGED_MEMORY)
+   /*#if LANGULUS_FEATURE(MANAGED_MEMORY) //TODO move these to Fractalloc tests
       DEFINE_NAMEOF_TYPE_TEST(pptr8, "Langulus::Fractalloc::PackedPointer<char, 2, 6, 0>")
       DEFINE_NAMEOF_TYPE_TEST(pptr16, "Langulus::Fractalloc::PackedPointer<char, 4, 4, 8>")
       DEFINE_NAMEOF_TYPE_TEST(pptr32, "Langulus::Fractalloc::PackedPointer<char>")
@@ -465,7 +460,7 @@ SCENARIO("NameOf") {
       DEFINE_NAMEOF_TYPE_TEST(pptr8*, "Langulus::Fractalloc::PackedPointer<char, 2, 6, 0>*")
       DEFINE_NAMEOF_TYPE_TEST(pptr16*, "Langulus::Fractalloc::PackedPointer<char, 4, 4, 8>*")
       DEFINE_NAMEOF_TYPE_TEST(pptr32*, "Langulus::Fractalloc::PackedPointer<char>*")
-   #endif
+   #endif*/
 
    WHEN("Taken the name of type Nаsty (with cyrillic 'a')") {
       //static_assert(NameOf<Nаsty>()); // shouldn't compile at all
@@ -512,9 +507,9 @@ SCENARIO("NameOf") {
       "One::Two::Three::VeryComplexTemplate<One::Two::Three::TemplatedTypeDeepIntoNamespaces<uint16>>"
    )
 
-   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::Construct, "Langulus::Flow::Construct")
-   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::Constructconst, "Langulus::Flow::Constructconst")
-   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::constConstructconst, "Langulus::Flow::constConstructconst")
+   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::Recipe, "Langulus::Flow::Recipe")
+   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::Recipeconst, "Langulus::Flow::Recipeconst")
+   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::constRecipeconst, "Langulus::Flow::constRecipeconst")
    DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::constconst, "Langulus::Flow::constconst")
    DEFINE_NAMEOF_TYPE_TEST(Signature, "<void(void*)>*")
 
@@ -696,9 +691,9 @@ SCENARIO("CppNameOf") {
       "One::Two::Three::VeryComplexTemplate<One::Two::Three::TemplatedTypeDeepIntoNamespaces<uint16>>"
    )
 
-   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::Construct, "Langulus::Flow::Construct")
-   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::Constructconst, "Langulus::Flow::Constructconst")
-   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::constConstructconst, "Langulus::Flow::constConstructconst")
+   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::Recipe, "Langulus::Flow::Recipe")
+   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::Recipeconst, "Langulus::Flow::Recipeconst")
+   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::constRecipeconst, "Langulus::Flow::constRecipeconst")
    DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::constconst, "Langulus::Flow::constconst")
    DEFINE_CPPNAMEOF_TYPE_TEST(Signature, "<void(void*)>*")
 

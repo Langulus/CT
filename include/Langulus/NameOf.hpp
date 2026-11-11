@@ -20,46 +20,14 @@ namespace Langulus::CTTI
    ///                                                                        
    /// The following are some manual overrides that make stuff consistent     
    /// across different compilers                                             
-   ///                                                                        
-   template<>
-   struct Named<int8_t> {
-      static constexpr Literal Name = "int8";
-   };
-
-   template<>
-   struct Named<int16_t> {
-      static constexpr Literal Name = "int16";
-   };
-
-   template<>
-   struct Named<int32_t> {
-      static constexpr Literal Name = "int32";
-   };
-
-   template<>
-   struct Named<int64_t> {
-      static constexpr Literal Name = "int64";
-   };
-
-   template<>
-   struct Named<uint8_t> {
-      static constexpr Literal Name = "uint8";
-   };
-
-   template<>
-   struct Named<uint16_t> {
-      static constexpr Literal Name = "uint16";
-   };
-
-   template<>
-   struct Named<uint32_t> {
-      static constexpr Literal Name = "uint32";
-   };
-
-   template<>
-   struct Named<uint64_t> {
-      static constexpr Literal Name = "uint64";
-   };
+   template<> struct Named<int8_t>   : Yes<"int8">   {};
+   template<> struct Named<int16_t>  : Yes<"int16">  {};
+   template<> struct Named<int32_t>  : Yes<"int32">  {};
+   template<> struct Named<int64_t>  : Yes<"int64">  {};
+   template<> struct Named<uint8_t>  : Yes<"uint8">  {};
+   template<> struct Named<uint16_t> : Yes<"uint16"> {};
+   template<> struct Named<uint32_t> : Yes<"uint32"> {};
+   template<> struct Named<uint64_t> : Yes<"uint64"> {};
 }
 
 namespace Langulus::RTTI
@@ -75,7 +43,7 @@ namespace Langulus::RTTI
       };
 
       /// Check if a name is reserved                                         
-      consteval bool IsReserved(Token const& name) {
+      constexpr bool IsReserved(Token const& name) {
          for (auto& reserved : ReservedKeywords) {
             if (name.size() != reserved.size())
                continue;
@@ -192,15 +160,15 @@ namespace Langulus::RTTI
       consteval auto IsolateTypename() {
          if constexpr (NAMED and CT::Complete<CTTI::Named<T>>) {
             // Custom name by CTTI::Named specialization                
-            static_assert(IsKeyword(CTTI::Named<T>::Name),
+            static_assert(IsKeyword(CTTI::Named<T>::Constant),
                "Not a valid CTTI::Named - "
                "must be ASCII, starting with an alphabetical symbol, "
                "and must not contain any spaces or operators"
             );
-            static_assert(not IsReserved(CTTI::Named<T>::Name),
+            static_assert(not IsReserved(CTTI::Named<T>::Constant),
                "Not a valid CTTI::Named - token is reserved"
             );
-            return CTTI::Named<T>::Name;
+            return CTTI::Named<T>::Constant;
          }
          else if constexpr (::std::is_const_v<T> or ::std::is_volatile_v<T>) {
             // Move `const` next to pointers/references at the end of   

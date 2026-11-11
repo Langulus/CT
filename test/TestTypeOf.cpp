@@ -11,12 +11,9 @@
 #include <array>
 #include <vector>
 
-using namespace Langulus;
-
 
 ///                                                                           
-/// MARK: CT::Typed / CT::Untyped                                             
-///                                                                           
+/// MARK: Typed/Untyped                                                       
 TEST_CASE_TEMPLATE("Testing typed type", TestType
    , std::vector<bool>
    , std::string_view
@@ -26,7 +23,6 @@ TEST_CASE_TEMPLATE("Testing typed type", TestType
    , CustomTypedType
    , CustomTypedTypeDerived
    , SheddableType<TypedEnum>
-   , SheddableType<int>
 ) {
    static_assert(    CT::Typed<TestType>);
    static_assert(not CT::Untyped<TestType>);
@@ -34,6 +30,7 @@ TEST_CASE_TEMPLATE("Testing typed type", TestType
 
 TEST_CASE_TEMPLATE("Testing untyped type", TestType
    , CustomUntypedType
+   , SheddableType<int>
    //, IncompleteType // shouldn't compile
    , void, int
 ) {
@@ -52,11 +49,10 @@ static_assert(not CT::Untyped<CustomUntypedType, void, TypedEnum>);
 
 ///                                                                           
 /// MARK: TypeOf                                                              
-///                                                                           
 TEST_CASE("Testing TypeOf") {
-   static_assert(::std::same_as<TypeOf<SheddableType<int>>, int>);
-   static_assert(::std::same_as<TypeOf<SheddableType<int&>>, int&>);
-   static_assert(::std::same_as<TypeOf<SheddableType<int const* const>>, int const* const>);
+   static_assert(::std::same_as<TypeOf<SheddableType<int>>, void>);
+   static_assert(::std::same_as<TypeOf<SheddableType<int&>>, void>);
+   static_assert(::std::same_as<TypeOf<SheddableType<int const* const>>, void>);
    static_assert(::std::same_as<TypeOf<CustomTypedType>, int>);
    static_assert(::std::same_as<TypeOf<int>, void>);
    static_assert(::std::same_as<TypeOf<void>, void>);
@@ -74,7 +70,6 @@ TEST_CASE("Testing TypeOf") {
 
 ///                                                                           
 /// MARK: TypedCast                                                           
-///                                                                           
 TEST_CASE_TEMPLATE("Testing TypedCast", TestType
    , int
    , int&&
@@ -106,7 +101,6 @@ TEST_CASE_TEMPLATE("Testing TypedCast", TestType
 
 ///                                                                           
 /// MARK: ShedCast                                                            
-///                                                                           
 TEST_CASE_TEMPLATE("Testing ShedCast", TestType
    , int
    , int&&
@@ -135,7 +129,6 @@ TEST_CASE_TEMPLATE("Testing ShedCast", TestType
 
 ///                                                                           
 /// MARK: SparseCast                                                          
-///                                                                           
 TEST_CASE_TEMPLATE("Testing SparseCast", TestType
    , int
    , int&&
@@ -196,7 +189,6 @@ TEST_CASE_TEMPLATE("Testing SparseCast", TestType
 
 ///                                                                           
 /// MARK: DenseCast                                                           
-///                                                                           
 TEST_CASE_TEMPLATE("Testing DenseCast", TestType
    , int
    , int&&

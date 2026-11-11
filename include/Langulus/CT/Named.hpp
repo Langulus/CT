@@ -18,7 +18,7 @@ namespace Langulus::CTTI
    /// they're binary incompatible, in which case a runtime error will occur  
    /// when reflected (if MANAGED_REFLECTION is enabled).                     
    /// Can be used in two ways to satisfy CT::Named<T>:                       
-   /// 1. Specialize for T/concept                                            
+   /// 1. Specialize: Named<T> : Yes<"DataID"> {};                            
    /// 2. Add a public `using CTTI_Named = Yes<"DataID">;` in T               
    template<class T>
    struct Named;

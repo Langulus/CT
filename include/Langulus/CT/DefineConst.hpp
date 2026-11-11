@@ -10,6 +10,7 @@
 #include "../Utils/Literal.hpp"
 #include "../Utils/Types.hpp"
 #include "../Utils/Values.hpp"
+#include "../Utils/ASCII.hpp"
 
 
 namespace Langulus

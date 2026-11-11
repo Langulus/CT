@@ -31,9 +31,10 @@ namespace Langulus::CT::Inner
    ///      type list, it will produce a compile-time error.                  
    template<class T, size_t INDEX>
    consteval auto GetUnderlyingType() {
-      static_assert(not ::std::is_const_v<T>,     "Strip constness first");
-      static_assert(not ::std::is_volatile_v<T>,  "Strip volatileness first");
+      //static_assert(not ::std::is_const_v<T>,     "Strip constness first");
+      //static_assert(not ::std::is_volatile_v<T>,  "Strip volatileness first");
       static_assert(not ::std::is_reference_v<T>, "Strip references first");
+      using DT = Decvq<T>;
 
       if constexpr (::std::is_bounded_array_v<T>) {
          // Get the type of a bounded array: int[5]    -> int           
@@ -42,9 +43,9 @@ namespace Langulus::CT::Inner
             "Bounded arrays have exactly one inner type");
          return ::std::type_identity<::std::remove_extent_t<T>> {};
       }
-      else if constexpr (Complete<CTTI::Typed<T>>) {
+      else if constexpr (Complete<CTTI::Typed<DT>>) {
          // Checked externally, T doesn't have to be complete           
-         using InnerT = typename CTTI::Typed<T>::Type;
+         using InnerT = typename CTTI::Typed<DT>::Type;
          static_assert(not requires { InnerT::Enabled; },
             "Pick a type to shed to, or void, instead of using Yes/Yup/No"
             "for CTTI::Typed::Type");
@@ -66,20 +67,20 @@ namespace Langulus::CT::Inner
             return ::std::type_identity<InnerT> {};
          }
       }
-      else if constexpr (::std::is_enum_v<T>) {
+      else if constexpr (::std::is_enum_v<DT>) {
          // Get the type of an enum (enum stuff : char {...}; -> char)  
          static_assert(INDEX == 0,
             "Enums have exactly one inner type");
          return ::std::type_identity<::std::underlying_type_t<T>> {};
       }
-      else if constexpr (::std::is_class_v<T>) {
-         // Checked internally, T has to be a complete type             
-         static_assert(Complete<T>,
+      else if constexpr (::std::is_class_v<DT>) {
+         // Checked internally, DT has to be a complete type            
+         static_assert(Complete<DT>,
             "Can't get inner type of an incomplete outer type");
 
-         if constexpr (requires { typename T::CTTI_Typed; }) {
-            // Inner type defined by T::CTTI_Typed = type(s);           
-            using InnerT = typename T::CTTI_Typed;
+         if constexpr (requires { typename DT::CTTI_Typed; }) {
+            // Inner type defined by DT::CTTI_Typed = type(s);          
+            using InnerT = typename DT::CTTI_Typed;
 
             if constexpr (IncompleteNonVoid<InnerT>) {
                // Incomplete inner type is assumed to not be typelist   
@@ -103,9 +104,9 @@ namespace Langulus::CT::Inner
                }
             }
          }
-         else if constexpr (requires { typename T::value_type; }) {
+         else if constexpr (requires { typename DT::value_type; }) {
             // Inner type defined by a std protocol (value_type)        
-            using InnerT = typename T::value_type;
+            using InnerT = typename DT::value_type;
 
             if constexpr (IncompleteNonVoid<InnerT>) {
                // Incomplete inner type is assumed to not be typelist   
@@ -140,7 +141,7 @@ namespace Langulus
    ///   - if T has CTTI_Typed/value_type -> return the inner type(s)         
    ///   - otherwise just return a void type                                  
    template<class T, int INDEX = 0>
-   using TypeOf = typename decltype(CT::Inner::GetUnderlyingType<Decvq<ShedDeref<T>>, INDEX>())::type;
+   using TypeOf = typename decltype(CT::Inner::GetUnderlyingType<ShedDeref<T>, INDEX>())::type;
 
    namespace CT
    {

@@ -30,7 +30,10 @@ namespace Langulus::CT
       /// Removes a pointer from the type. Supports custom pointers.          
       ///   @attention if an incomplete type is reached the nesting ceases,   
       ///      as incomplete types are always considered dense                
-      ///   @attention std::nullptr_t is considered a pointer to void*        
+      ///   @attention std::nullptr_t is considered a pointer to void*, and   
+      ///      depointering it results in void.                               
+      ///   @attention bounded arrays are preserved and not considered as     
+      ///      an indirection!                                                
       template<class T, unsigned TIMES = 1>
       consteval auto NestedDeptr() {
          static_assert(not ::std::is_reference_v<T>,
@@ -41,7 +44,7 @@ namespace Langulus::CT
          if constexpr (::std::is_null_pointer_v<T>)
             return ::std::type_identity<void> {};
          else if constexpr (not Complete<T>)
-            return ::std::type_identity<T> {};
+            return ::std::type_identity<::std::remove_reference_t<T>> {};
          else if constexpr (::std::is_pointer_v<T>) {
             if constexpr (::std::is_void_v<::std::remove_pointer_t<T>>)
                return ::std::type_identity<void> {};
@@ -54,14 +57,6 @@ namespace Langulus::CT
                   return NestedDeptr<deptr_once, TIMES - 1>();
             }
          }
-         /*else if constexpr (::std::is_bounded_array_v<T>) { //TODO hmmmm, should arrays be considered sparse? there's no real indirection?
-            // Conventional bounded array dereferencing                 
-            using deptr_once = ::std::remove_extent_t<T>;
-            if constexpr (TIMES == 1)
-               return ::std::type_identity<deptr_once> {};
-            else
-               return NestedDeptr<deptr_once, TIMES - 1>();
-         }*/
          else if constexpr (Complete<CTTI::Sparse<T>>) {
             // Custom pointer (externally defined) dereferencing        
             static_assert(requires(T t) { *t; },
@@ -115,16 +110,20 @@ namespace Langulus::CT
 namespace Langulus
 {
    /// Remove a number of pointers from type. Supports custom pointer types.  
-   ///   @attention may result in a reference                                 
+   ///   @attention always strips references                                  
    ///   @attention if an incomplete type is reached the nesting ceases, as   
    ///      incomplete types are always considered dense                      
+   ///   @attention bounded arrays are preserved and not considered as        
+   ///      an indirection!                                                   
    template<class T, unsigned TIMES = 1>
    using Deptr = typename decltype(CT::Inner::NestedDeptr<ShedDeref<T>, TIMES>())::type;
 
    /// Remove all pointers from type. Supports custom pointer types.          
-   ///   @attention may result in a reference                                 
+   ///   @attention always strips references                                  
    ///   @attention if an incomplete type is reached the nesting ceases, as   
    ///      incomplete types are always considered dense                      
+   ///   @attention bounded arrays are preserved and not considered as        
+   ///      an indirection!                                                   
    template<class T>
    using DeptrAll = typename decltype(CT::Inner::NestedDeptr<ShedDeref<T>, 1000>())::type;
 
