@@ -1,0 +1,61 @@
+///                                                                           
+/// Langulus::CT                                                              
+/// Copyright (c) 2024 Dimo Markov <team@langulus.com>                        
+/// Part of the Langulus framework, see https://langulus.com                  
+///                                                                           
+/// SPDX-License-Identifier: MIT                                              
+///                                                                           
+#pragma once
+#include <Langulus/Core.hpp>
+#include <type_traits>
+
+
+namespace Langulus::CT
+{
+   /// Check if all T are complete (defined), by exploiting sizeof            
+   /// Usefulness of this is limited to the first instantiation, and          
+   /// that is how it is used upon reflection. Thankfully, most modern        
+   /// compilers do detect if a definition changes between completeness       
+   /// checks, so it is unlikely to cause any real harm:                      
+   /// https://stackoverflow.com/questions/21119281                           
+   //template<class...T>
+   //concept Complete = (sizeof...(T) > 0) and ((sizeof(T) == sizeof(T)) and ...);
+
+   /// This is a slightly improved version, that doesn't do ODR violations    
+   template<class T, bool PROBE = requires { sizeof(T); }>
+   constexpr bool Complete = PROBE;
+
+   /// Checks if T is incomplete, but also not void                           
+   template<class T>
+   constexpr bool IncompleteNonVoid = not Complete<T> and not ::std::is_void_v<T>;
+
+   namespace Inner
+   {
+      template<class...T>
+      consteval bool ValidateInner() {
+         static_assert(sizeof...(T) > 0, "No arguments provided");
+         static_assert(((Complete<T> or ::std::is_void_v<T>) and ...),
+            "Incomplete type in CT check");
+         return true;
+      }
+
+      template<class...T>
+      consteval bool PartialValidateInner() {
+         static_assert(sizeof...(T) > 0, "No arguments provided");
+         return true;
+      }
+   }
+
+   /// Makes sure an error is reported if a CT concept is tested without      
+   /// any arguments, or if any argument is an incomplete type, so that       
+   /// failures aren't silent.                                                
+   ///   @attention 'void' is not considered incomplete in this context       
+   template<class...T>
+   concept Validate = Inner::ValidateInner<T...>();
+
+   /// Makes sure an error is reported if a CT concept is tested without      
+   /// any arguments, so failures aren't silent. This variation allows for    
+   /// incomplete types.                                                      
+   template<class...T>
+   concept PartialValidate = Inner::PartialValidateInner<T...>();
+}
