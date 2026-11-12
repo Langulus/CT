@@ -101,14 +101,14 @@ namespace Langulus
 
       LANGULUS(ALWAYS_INLINED)
       static constexpr bool ForEachAnd(auto&& lambda) {
-         static_assert(requires{ {LglsLamb(lambda, E1)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ LglsLamb(lambda, E1); },
             "Provided argument is not a lambda of the form []<auto> -> convertible to bool");
          return LglsLamb(lambda, E1);
       }
 
       LANGULUS(ALWAYS_INLINED)
       static constexpr bool ForEachOr(auto&& lambda) {
-         static_assert(requires{ {LglsLamb(lambda, E1)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ LglsLamb(lambda, E1); },
             "Provided argument is not a lambda of the form []<auto> -> convertible to bool");
          return LglsLamb(lambda, E1);
       }
@@ -198,7 +198,7 @@ namespace Langulus
 
       LANGULUS(ALWAYS_INLINED)
       static constexpr bool ForEachAnd(auto&& lambda) {
-         static_assert(requires{ {LglsLamb(lambda, E1)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ LglsLamb(lambda, E1); },
             "Provided argument is not a lambda of the form []<auto> -> convertible to bool");
          return LglsLamb(lambda, E1)
             and LglsLamb(lambda, E2)
@@ -207,7 +207,7 @@ namespace Langulus
 
       LANGULUS(ALWAYS_INLINED)
       static constexpr bool ForEachOr(auto&& lambda) {
-         static_assert(requires{ {LglsLamb(lambda, E1)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ LglsLamb(lambda, E1); },
             "Provided argument is not a lambda of the form []<auto> -> convertible to bool");
          return LglsLamb(lambda, E1)
              or LglsLamb(lambda, E2)

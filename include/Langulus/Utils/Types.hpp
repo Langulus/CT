@@ -164,7 +164,7 @@ namespace Langulus
    template<class...T> LANGULUS(ALWAYS_INLINED)
    constexpr bool ForEachAnd(Types<T...>, auto&& lambda) {
       if constexpr (sizeof...(T) != 0) {
-         static_assert(requires{ {(LglsLamb(lambda, T),...)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ (LglsLamb(lambda, T),...); },
             "Provided argument is not a lambda of the form []<class> -> convertible to bool");
 
          return (... and LglsLamb(lambda, T));
@@ -175,7 +175,7 @@ namespace Langulus
    template<class...T> LANGULUS(ALWAYS_INLINED)
    constexpr bool ForEachOr(Types<T...>, auto&& lambda) {
       if constexpr (sizeof...(T) != 0) {
-         static_assert(requires{ {(LglsLamb(lambda, T),...)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ (LglsLamb(lambda, T),...); },
             "Provided argument is not a lambda of the form []<class> -> convertible to bool");
 
          return (... or LglsLamb(lambda, T));
@@ -216,7 +216,7 @@ namespace Langulus
    template<unsigned IDX = 0, class...T> LANGULUS(ALWAYS_INLINED)
    constexpr bool ForEachIndexedAnd(Types<T...>, auto&& lambda) {
       if constexpr (sizeof...(T) != 0) {
-         static_assert(requires{ {(LglsLamb(lambda,T,0),...)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ (LglsLamb(lambda,T,0),...); },
             "Provided argument is not a lambda of the form []<class,index> -> convertible to bool");
 
          return [&]<unsigned...I>(::std::integer_sequence<unsigned, I...>&&) {
@@ -229,7 +229,7 @@ namespace Langulus
    template<unsigned IDX = 0, class...T> LANGULUS(ALWAYS_INLINED)
    constexpr bool ForEachIndexedOr(Types<T...>, auto&& lambda) {
       if constexpr (sizeof...(T) != 0) {
-         static_assert(requires{ {(LglsLamb(lambda,T,0),...)} -> ::std::convertible_to<bool>; },
+         static_assert(requires{ (LglsLamb(lambda,T,0),...); },
             "Provided argument is not a lambda of the form []<class,index> -> convertible to bool");
 
          return [&]<unsigned...I>(::std::integer_sequence<unsigned, I...>&&) {
@@ -257,7 +257,7 @@ namespace Langulus
    template<class...T> LANGULUS(ALWAYS_INLINED)
    consteval auto GenerateTypes(Types<T...>, auto&& lambda) {
       if constexpr (sizeof...(T) != 0) {
-         static_assert(requires{ {(LglsLamb(lambda, T),...)} -> CT::NotVoid; },
+         static_assert(requires{ (LglsLamb(lambda, T),...); },
             "Provided argument is not a lambda of the form []<class> -> non-void type");
             
          return Types<decltype(LglsLamb(lambda, T))...> {};
@@ -271,7 +271,7 @@ namespace Langulus
 
    template<class T1, class...TN> LANGULUS(ALWAYS_INLINED)
    constexpr auto Discard(Types<T1, TN...>, auto&& lambda) {
-      static_assert(requires{ {LglsLambStatic(lambda, T1)} -> ::std::convertible_to<bool>; },
+      static_assert(requires{ LglsLambStatic(lambda, T1); },
          "Provided argument is not a lambda of the form []<class> static -> convertible to bool");
 
       if constexpr (LglsLambStatic(lambda, T1)) {
