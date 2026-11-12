@@ -35,7 +35,8 @@ namespace Langulus::CTTI
             return false;
          else {
             return CT::Sparse<DT> or CT::Fundamental<DT> or (
-                   ::std::is_trivial_v<DT>
+                   ::std::is_trivially_default_constructible_v<DT>
+               and ::std::is_trivially_copyable_v<DT>
                and ::std::is_standard_layout_v<DT>
                and ::std::is_trivially_destructible_v<DT>
                and not ::std::ranges::range<DT>
