@@ -1084,9 +1084,9 @@ TEST_CASE_TEMPLATE("Testing refer-constructible types", T
       static_assert(::std::same_as<decltype(Refer<int>::Nest(Move(*test2))), T&&>);
    }
    else {*/
-      static_assert(::std::same_as<decltype(Refer<int>::Nest(*test2)), Refer<T>>);
-      static_assert(::std::same_as<decltype(Refer<int>::Nest(Clone(*test2))), Refer<T>>);
-      static_assert(::std::same_as<decltype(Refer<int>::Nest(Move(*test2))), Refer<T>>);
+   static_assert(::std::same_as<decltype(Refer<int>::Nest(*test2)), Refer<T>>);
+   static_assert(::std::same_as<decltype(Refer<int>::Nest(Clone(*test2))), Refer<T>>);
+   static_assert(::std::same_as<decltype(Refer<int>::Nest(Move(*test2))), Refer<T>>);
    //}
 }
 
