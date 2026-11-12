@@ -74,9 +74,6 @@ jobs:
           - os: ubuntu-26.04
             arch: x86
             cmake_args: "-DCMAKE_CXX_FLAGS=-m32"
-          #- os: ubuntu-24.04-arm
-          #  arch: ARM
-          #  cmake_args: "-DCMAKE_CXX_FLAGS=-march=armv7"
           - os: ubuntu-26.04
             arch: x64
             cmake_args: "-DCMAKE_CXX_FLAGS=-m64"
@@ -90,10 +87,6 @@ jobs:
           - os: windows-2025
             arch: x64
             cmake_args: "-G \"Visual Studio 18 2026\" -A x64"
-
-          #- os: windows-11-vs2026-arm
-          #  arch: ARM
-          #  cmake_args: "-G \"Visual Studio 18 2026\" -A ARM"
           - os: windows-11-vs2026-arm
             arch: ARM64
             cmake_args: "-G \"Visual Studio 18 2026\" -A ARM64"
@@ -121,14 +114,6 @@ jobs:
           git pull
           ./emsdk install latest
           ./emsdk activate latest
-
-      - if: matrix.cxx == 'clang++-21'
-        name: Installing Clang 21 (Linux)
-        run: |
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          sudo apt-add-repository "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-21 main"
-          sudo apt update
-          sudo apt install clang-21
 
       - if: startsWith(matrix.os, 'ubuntu') && matrix.cxx != 'emcc'
         name: Configure (Linux)
