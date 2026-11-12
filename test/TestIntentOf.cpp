@@ -8,6 +8,7 @@
 //#include "Langulus/Typenav.hpp"
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/IntentOf.hpp>
+#include <Langulus/CT/Destroyable.hpp>
 /*#include <Langulus/MetaOf.hpp>
 #include <Langulus/Anyness/SerializeText.hpp>
 #include <Langulus/Anyness/SerializeBytes.hpp>*/
@@ -1200,11 +1201,13 @@ TEST_CASE_TEMPLATE("Testing move-constructible types", T
    /*static_assert(    CT::IntentConstructibleAlt<Move<T>>);
    static_assert(    CT::IntentConstructibleAlt<Move<T*>>);*/
 
-   alignas(T) char storage1[sizeof(T)] {};
-   alignas(T) char storage2[sizeof(T)] {};
-   auto test1 = reinterpret_cast<T*>(storage1);
-   auto test2 = reinterpret_cast<T*>(storage2);
-   new (test1) T {LglsMov(*test2)};
+   if constexpr (CT::Destroyable<T>) {//TODO GCC invokes deleted destructor on placement new... go figure...
+      alignas(T) char storage1[sizeof(T)] {};
+      alignas(T) char storage2[sizeof(T)] {};
+      auto test1 = reinterpret_cast<T*>(storage1);
+      auto test2 = reinterpret_cast<T*>(storage2);
+      new (test1) T {LglsMov(*test2)};
+   }
 }
 
 TEST_CASE_TEMPLATE("Testing non-move-constructible types", T

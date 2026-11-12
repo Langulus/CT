@@ -33,7 +33,6 @@ TEST_CASE_TEMPLATE("Testing CT::POD types", TestType
    , Types<>, Types<int>
    , ArrayType, ArrayType2, ArrayTypeRef, ArrayTypeRef2
    , PointerType, PointerType2, PureAbstract*, NonDestructible*, NonAggregateTypeDerived*
-   , PrivatelyConstructible
    , ForcefullyPod
    , ForcefullyPod[5]
    , ForcefullyPod[5][5]
@@ -67,6 +66,7 @@ TEST_CASE_TEMPLATE("Testing CT::NotPOD types", TestType
    , Complex[5]
    , Complex[5][5]
    , CustomAggregateType, AggregateTypeDerived, NonAggregateTypeDerived
+      , PrivatelyConstructible //TODO moved when fixed deprecation warning for is_trivial_v
 ) {
    static_assert(not CT::POD<TestType>);
    static_assert(    CT::NotPOD<TestType>);

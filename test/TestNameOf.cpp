@@ -7,6 +7,7 @@
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/NameOf.hpp>
+#include <Langulus/Assume.hpp>
 
 #if 0
    #include <Langulus/Logger.hpp>
