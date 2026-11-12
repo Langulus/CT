@@ -657,13 +657,13 @@ namespace Langulus
       ///   @tparam T the types                                               
       template<template<class> class S, class...T>
       concept HasIntentConstructor = Intent<S<T>...> and not Aggregate<T...>
-          and requires (S<T>&&...arg) { (T {LglsFwd(arg)}, ...); };
+          and requires (S<T>&&...arg) { (T (LglsFwd(arg)), ...); };
 
       /// Check if all Deint<S> have a dedicated intent constructor for S     
       ///   @tparam S the intents and types                                   
       template<class...S>
       concept HasIntentConstructorAlt = Intent<S...> and not Aggregate<Deint<S>...>
-          and requires (S&&...arg) { (Decvq<Deref<Deint<S>>> {LglsFwd(arg)}, ...); };
+          and requires (S&&...arg) { (Decvq<Deref<Deint<S>>> (LglsFwd(arg)), ...); };
 
       /// Check if all T have a dedicated disown-constructor                  
       /// Disowning does a shallow copy without referencing contents,         
@@ -814,10 +814,10 @@ namespace Langulus
       }
       else if constexpr (CT::Referred<S<T>>) {
          // Refer                                                       
-         if constexpr (CT::HasReferConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {LglsFwd(intent)};
-         else if constexpr (requires { new (placement) T {intent.what}; }/*::std::copy_constructible<T>*/)
-            return new (placement) T {intent.what};
+         if constexpr (CT::HasReferConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (LglsFwd(intent));
+         else if constexpr (requires { new (placement) T (intent.what); }/*::std::copy_constructible<T>*/)
+            return new (placement) T (intent.what);
          else {
             static_assert(FAKE, "Can't refer-construct type");
             return No {};
@@ -825,10 +825,10 @@ namespace Langulus
       }
       else if constexpr (CT::Moved<S<T>>) {
          // Move                                                        
-         if constexpr (CT::HasMoveConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {LglsFwd(intent)};
-         else if constexpr (requires { new (placement) T {LglsFwd(intent.what)}; } /*::std::move_constructible<T>*/)
-            return new (placement) T {LglsFwd(intent.what)};
+         if constexpr (CT::HasMoveConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (LglsFwd(intent));
+         else if constexpr (requires { new (placement) T (LglsFwd(intent.what)); } /*::std::move_constructible<T>*/)
+            return new (placement) T (LglsFwd(intent.what));
          else {
             static_assert(FAKE, "Can't move-construct type");
             return No {};
@@ -836,12 +836,12 @@ namespace Langulus
       }
       else if constexpr (CT::Abandoned<S<T>>) {
          // Abandon                                                     
-         if constexpr (CT::HasAbandonConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {LglsFwd(intent)};
-         else if constexpr (CT::HasMoveConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {Move(intent.what)};
-         else if constexpr (requires { new (placement) T {LglsFwd(intent.what)}; }/*::std::move_constructible<T>*/)
-            return new (placement) T {LglsFwd(intent.what)};
+         if constexpr (CT::HasAbandonConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (LglsFwd(intent));
+         else if constexpr (CT::HasMoveConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (Move(intent.what));
+         else if constexpr (requires { new (placement) T (LglsFwd(intent.what)); }/*::std::move_constructible<T>*/)
+            return new (placement) T (LglsFwd(intent.what));
          else {
             static_assert(FAKE,
                "Can't abandon-construct destructible type"
@@ -861,12 +861,12 @@ namespace Langulus
             return No {};            
          }
          else if constexpr (CT::NotVoid<DT>) {
-            if constexpr (CT::HasCloneConstructor<DT> and not CT::Aggregate<T>)
-               return new (placement) DT {Clone(DenseCast(intent.what))};
-            else if constexpr (CT::POD<DT> and CT::HasReferConstructor<DT> and not CT::Aggregate<T>)
-               return new (placement) DT {Refer(DenseCast(intent.what))};
-            else if constexpr (CT::POD<DT> and ::std::copy_constructible<DT>)
-               return new (placement) DT {DenseCast(intent.what)};
+            if constexpr (CT::HasCloneConstructor<DT> /*and not CT::Aggregate<T>*/)
+               return new (placement) DT (Clone(DenseCast(intent.what)));
+            else if constexpr (CT::POD<DT> and CT::HasReferConstructor<DT> /*and not CT::Aggregate<T>*/)
+               return new (placement) DT (Refer(DenseCast(intent.what)));
+            else if constexpr (CT::POD<DT> and requires { new (placement) DT (DenseCast(intent.what)); } /*::std::copy_constructible<DT>*/)
+               return new (placement) DT (DenseCast(intent.what));
             else {
                static_assert(FAKE, "Can't clone-construct type");
                return No {};
@@ -879,12 +879,12 @@ namespace Langulus
       }
       else if constexpr (CT::Copied<S<T>>) {
          // Copy                                                        
-         if constexpr (CT::HasCopyConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {LglsFwd(intent)};
-         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {Refer(intent.what)};
-         else if constexpr (CT::POD<T> and ::std::copy_constructible<T>)
-            return new (placement) T {intent.what};
+         if constexpr (CT::HasCopyConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (LglsFwd(intent));
+         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (Refer(intent.what));
+         else if constexpr (CT::POD<T> and requires { new (placement) T (intent.what); } /*::std::copy_constructible<T>*/)
+            return new (placement) T (intent.what);
          else {
             static_assert(FAKE, "Can't copy-construct type");
             return No {};
@@ -892,12 +892,12 @@ namespace Langulus
       }
       else if constexpr (CT::Disowned<S<T>>) {
          // Disown                                                      
-         if constexpr (CT::HasDisownConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {LglsFwd(intent)};
-         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T> and not CT::Aggregate<T>)
-            return new (placement) T {Refer(intent.what)};
-         else if constexpr (CT::POD<T> and ::std::copy_constructible<T>)
-            return new (placement) T {intent.what};
+         if constexpr (CT::HasDisownConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (LglsFwd(intent));
+         else if constexpr (CT::POD<T> and CT::HasReferConstructor<T> /*and not CT::Aggregate<T>*/)
+            return new (placement) T (Refer(intent.what));
+         else if constexpr (CT::POD<T> and requires { new (placement) T (intent.what); } /*::std::copy_constructible<T>*/)
+            return new (placement) T (intent.what);
          else {
             static_assert(FAKE, "Can't disown-construct type");
             return No {};

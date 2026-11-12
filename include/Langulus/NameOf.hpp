@@ -285,16 +285,16 @@ namespace Langulus::RTTI
       ///   @return a compile-time string                                     
       template<auto E, bool NORMALIZE = true, bool NAMED = true>
       consteval auto IsolateConstant() {
-         if constexpr (NAMED) {
+         constexpr Literal custom_token = CT::Inner::GetCustomNameOfConstant<E>();
+         if constexpr (NAMED and custom_token != "") {
             // Custom name by specializing CTTI::DefineConstant found   
-            constexpr auto custom_token = CT::Inner::GetCustomNameOfConstant<E>();
             static_assert(IsKeyword(custom_token),
-               "Not a valid CTTI::NamedValue - "
+               "\"" + custom_token + "\" is not a valid CTTI::NamedValue - "
                "must be ASCII, starting with an alphabetical symbol, "
                "and must not contain any spaces or operators"
             );
             static_assert(not IsReserved(custom_token),
-               "Not a valid CTTI::NamedValue - token is reserved"
+               "\"" + custom_token + "\" is not a valid CTTI::NamedValue - token is reserved"
             );
             return custom_token;
          }

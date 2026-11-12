@@ -15,72 +15,8 @@
    #define VERBOSE(...)
 #endif
 
-namespace One::Two::Three
-{
-   struct TypeDeepIntoNamespaces;
-
-   template<class T>
-   struct TemplatedTypeDeepIntoNamespaces {
-      enum VeryDeeplyTemplatedEnum { YesYouGotThatRight };
-
-      template<class MORE>
-      struct Nested;
-   };
-
-   template<class T>
-   struct VeryComplexTemplate;
-}
-
 namespace
 {
-   struct NamedUsingMember {
-      using CTTI_Named = Yes<"NameOverrideUsingMember">;
-   };
-   struct NamedBySpecialization {};
-
-   struct Nаsty {
-      int this_type_name_contains_a_cyrillic_letter;
-   };
-
-   enum PiNonClass {
-      Number = 314
-   };
-
-   enum {
-      AnonymousNumber = 314
-   };
-
-   enum class PiButNamed {
-      Number = 314
-   };
-
-   enum PiNonClassButNamed {
-      NumberButNamed = 314
-   };
-
-   enum {
-      AnonymousNumberButNamed = 314,
-      AnonymousNumberButNotNamed = 315
-   };
-   
-   using TypeDeepAlias             = One::Two::Three::TypeDeepIntoNamespaces;
-   using TemplatedAlias            = One::Two::Three::TemplatedTypeDeepIntoNamespaces<uint16_t>;
-   using VeryComplexTemplatedAlias = One::Two::Three::VeryComplexTemplate<
-      One::Two::Three::TemplatedTypeDeepIntoNamespaces<uint16_t>
-   >;
-
-   class A; class B; class C; class D; class E; class F; class G; class H; class I;
-   class J; class K; class L; class M; class N; class O; class P; class Q; class R;
-   class S; class T; class U; class V; class W; class X; class Y; class Z; class _;
-
-   class a; class b; class c; class d; class e; class f; class g; class h; class i;
-   class j; class k; class l; class m; class n; class o; class p; class q; class r;
-   class s; class t; class u; class v; class w; class x; class y; class z;
-
-   struct s_struct; struct t_struct; struct u_struct; struct v_struct; struct w_struct; struct x_struct; struct y_struct; struct z_struct;
-
-   using Signature = void(*)(void*);
-   
    template<class,bool,bool>
    ::std::string IsolateTypenameAtRuntime();
 
@@ -282,9 +218,9 @@ namespace
 
    template<auto E, bool NORMALIZE, bool NAMED>
    ::std::string IsolateConstantAtRuntime() {
-      if constexpr (NAMED) {
+      auto custom_token = static_cast<::std::string>(CT::Inner::GetCustomNameOfConstant<E>());
+      if (NAMED and custom_token != "") {
          // Custom name by specializing CTTI::DefineConstant found   
-         auto custom_token = static_cast<::std::string>(CT::Inner::GetCustomNameOfConstant<E>());
          LglsAssert(IsKeyword(custom_token),
             "Not a valid CTTI::NamedValue - "
             "must be ASCII, starting with an alphabetical symbol, "
@@ -319,47 +255,18 @@ namespace
    }
 }
 
-namespace Langulus::CTTI
-{
-   template<>
-   struct Named<NamedBySpecialization>
-      : Yes<"NameOverridedBySpecializing_CTTI_Named"> {};
-
-   template<>
-   struct Named<NamedBySpecialization*>
-      : Yes<"NameOverridedBySpecializing_CTTI_Named_Ptr"> {};
-
-   template<>
-   struct Named<NamedBySpecialization const*> 
-      : Yes<"NameOverridedBySpecializing_CTTI_Named_ConstPtr"> {};
-
-   /// Extend bool, by associating couple of constants with it                
-   template<>
-   struct DefineConstant<PiButNamed>
-      : NamedValue<PiButNamed::Number, "PiButNamedByCTTI"> {};
-
-   template<>
-   struct DefineConstant<PiNonClassButNamed>
-      : NamedValue<NumberButNamed, "NumberButNamedByCTTI"> {};
-
-   template<>
-   struct DefineConstant<decltype(AnonymousNumberButNamed)>
-      : NamedValue<AnonymousNumberButNamed, "AnonymousNumberButNamedByCTTI"> {};
-}
-
-
 #define DEFINE_NAMEOF_TYPE_TEST(WHAT, RESULT) \
    WHEN("Taken the name of type " #WHAT) { \
       auto name_runtime = IsolateTypenameAtRuntime<WHAT, true, true>(); \
       REQUIRE(name_runtime == RESULT); \
-      /*static_assert(NameOf<WHAT>() == RESULT);*/ \
+      static_assert(NameOf<WHAT>() == RESULT); \
    }
 
 #define DEFINE_NAMEOF_CONST_TEST(WHAT, RESULT) \
    WHEN("Taken the name of constant " #WHAT) { \
       auto name_runtime = IsolateConstantAtRuntime<WHAT, true, true>(); \
       REQUIRE(name_runtime == RESULT); \
-      /*static_assert(NameOf<WHAT>() == RESULT);*/ \
+      static_assert(NameOf<WHAT>() == RESULT); \
    }
 
 
@@ -513,8 +420,20 @@ SCENARIO("NameOf") {
    DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::constconst, "Langulus::Flow::constconst")
    DEFINE_NAMEOF_TYPE_TEST(Signature, "<void(void*)>*")
 
-   DEFINE_NAMEOF_CONST_TEST(Pi::Number, "Pi::Number")
-   DEFINE_NAMEOF_CONST_TEST(PiNonClass::Number, "Number")
+   //DEFINE_NAMEOF_CONST_TEST(Pi::Number, "Pi::Number")
+   WHEN("Taken the name of constant Pi::Number") { \
+      auto name_runtime = IsolateConstantAtRuntime<Pi::Number, true, true>();
+      REQUIRE(name_runtime == "Pi::Number");
+      static_assert(NameOf<Pi::Number>() == "Pi::Number");
+   }
+
+   WHEN("Taken the name of constant PiNonClass::Number") { \
+      auto name_runtime = IsolateConstantAtRuntime<PiNonClass::Number, true, true>();
+      REQUIRE(name_runtime == "Number");
+      static_assert(NameOf<PiNonClass::Number>() == "Number",
+         NameOf<PiNonClass::Number>() + " != " + "Number");
+   }
+   
    DEFINE_NAMEOF_CONST_TEST(AnonymousNumber, "AnonymousNumber")
 
    DEFINE_NAMEOF_CONST_TEST(

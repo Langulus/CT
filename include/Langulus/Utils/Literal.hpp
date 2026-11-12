@@ -657,11 +657,21 @@ namespace Langulus
       return result;
    }
 
+   template<CT::LiteralChar C, size_t N, CT::LiteralUndefined RHS>
+   constexpr auto operator + (const C(&lhs)[N], RHS const&) {
+      return Literal {lhs};
+   }
+
    template<CT::LiteralChar C, size_t N, CT::LiteralString LHS>
    constexpr auto operator + (LHS const& lhs, const C(&rhs)[N]) {
       typename LHS::template Resized<LHS::ArraySize + N> result {lhs};
       result += rhs;
       return result;
+   }
+
+   template<CT::LiteralChar C, size_t N, CT::LiteralUndefined LHS>
+   constexpr auto operator + (LHS const&, const C(&rhs)[N]) {
+      return Literal {rhs};
    }
 
    template<CT::LiteralChar C, CT::LiteralString RHS>
