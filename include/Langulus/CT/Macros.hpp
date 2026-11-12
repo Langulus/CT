@@ -132,3 +132,4 @@
 ///   @attention use this macro in the global namespace                       
 #define LANGULUS_CTTI_CONCEPT_DECAY(NAME) \
    LANGULUS_CTTI_CONCEPT_INNER(NAME, Decay<T>)
+
