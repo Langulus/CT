@@ -24,7 +24,7 @@ namespace Langulus
    #pragma pack(push, 1)
    struct Byte {
       using Type          = uint8_t;
-      using CTTI_Typed    = Type;
+      //using CTTI_Typed    = Type;
       using CTTI_POD      = Yup;
       using CTTI_Nullable = Yup;
 

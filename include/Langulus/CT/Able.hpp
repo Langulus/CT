@@ -8,7 +8,6 @@
 #pragma once
 #include "DefineVerb.hpp"
 #include "Support.hpp"
-//#include "../Utils/Types.hpp"
 
 
 namespace Langulus::CTTI
@@ -173,17 +172,18 @@ namespace Langulus::CT
 
 #include "../Utils/StaticSet.hpp"
 
+///   @attention needs to be placed inside namespace Langulus::CTTI           
 /// Extend OF with the abilities provided by you. Example in which allow for  
 /// integers to be added to other integers:                                   
 ///  LglsImplementAbilitiesFor(int) {                                         
 ///     using Can = Verbs::Add;                                               
 ///     static bool Default(int& lhs, Verb& verb) {                           
-///         Many const& rhs = verb.GetRHS();                             
+///         Many const& rhs = verb.GetRHS();                                  
 ///         rhs.ForEach([&lhs](int const& i) { lhs += i; });                  
 ///         return true;                                                      
 ///     }                                                                     
 ///     static bool Default(int const& lhs, Verb& verb) {                     
-///         Many const& rhs = verb.GetRHS();                             
+///         Many const& rhs = verb.GetRHS();                                  
 ///         int result = lhs;                                                 
 ///         rhs.ForEach([&result](int const& i) { result += i; });            
 ///         verb << result;                                                   
@@ -194,17 +194,18 @@ namespace Langulus::CT
    template<int UNIQUE> requires (UNIQUE == GetStaticSetIndex<Inner::AbilitySet<OF>, HERE()>()) \
    struct Ability<OF, UNIQUE>
    
+///   @attention needs to be placed inside namespace Langulus::CTTI           
 /// Same as above, but uses a concept to group types. Here's a more elegant   
 /// solution to the above, that applies to all number types:                  
 ///  LglsImplementAbilitiesForConcept(CT::Number, OF) {                       
 ///     using Can = Verbs::Add;                                               
 ///     static bool Default(OF& lhs, Verb& verb) {                            
-///         Many const& rhs = verb.GetRHS();                             
+///         Many const& rhs = verb.GetRHS();                                  
 ///         rhs.ForEach([&lhs](OF const& i) { lhs += i; });                   
 ///         return true;                                                      
 ///     }                                                                     
 ///     static bool Default(OF const& lhs, Verb& verb) {                      
-///         Many const& rhs = verb.GetRHS();                             
+///         Many const& rhs = verb.GetRHS();                                  
 ///         OF result = lhs;                                                  
 ///         rhs.ForEach([&result](OF const& i) { result += i; });             
 ///         verb << result;                                                   

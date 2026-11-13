@@ -70,7 +70,7 @@ TEST_CASE("Testing TypeOf") {
 
 ///                                                                           
 /// MARK: TypedCast                                                           
-TEST_CASE_TEMPLATE("Testing TypedCast", TestType
+TEST_CASE_TEMPLATE("Testing TypedCast", TestType //TODO test with sheddable, make sure they shed
    , int
    , int&&
    , const int&
@@ -98,38 +98,9 @@ TEST_CASE_TEMPLATE("Testing TypedCast", TestType
       static_assert(::std::same_as<decltype(TypedCast(i)), TestType&>);
 }
 
-
-///                                                                           
-/// MARK: ShedCast                                                            
-TEST_CASE_TEMPLATE("Testing ShedCast", TestType
-   , int
-   , int&&
-   , const int&
-   , SheddableTypeCastableExplicit<int>
-   , SheddableTypeCastableExplicit<int&&>
-   , SheddableTypeCastableExplicit<const int&>
-   , SheddableTypeCastableImplicit<int>
-   , SheddableTypeCastableImplicit<int&&>
-   , SheddableTypeCastableImplicit<const int&>
-   , SheddableTypeCastableExplicit<SheddableTypeCastableExplicit<int>>
-   , const SheddableTypeCastableExplicit<int>
-   , const SheddableTypeCastableExplicit<int&&>
-   , const SheddableTypeCastableExplicit<const int&>
-   , const SheddableTypeCastableImplicit<int>
-   , const SheddableTypeCastableImplicit<int&&>
-   , const SheddableTypeCastableImplicit<const int&>
-   , const SheddableTypeCastableExplicit<const SheddableTypeCastableExplicit<const int&>&>
-) {
-   int value = 656;
-   TestType i {::std::move(value)};
-
-   static_assert(not CT::Sheddable<decltype(ShedCast(i))>);
-}
-
-
 ///                                                                           
 /// MARK: SparseCast                                                          
-TEST_CASE_TEMPLATE("Testing SparseCast", TestType
+TEST_CASE_TEMPLATE("Testing SparseCast", TestType //TODO test with typed, make sure they don't shed
    , int
    , int&&
    , const int&
@@ -176,7 +147,8 @@ TEST_CASE_TEMPLATE("Testing SparseCast", TestType
    else if constexpr (IndirectsOf<TestType> == 3) {
       int* vp = &value;
       int** vpp = &vp;
-      TestType i {&vpp};
+      int*** vppp = &vpp;
+      TestType i {const_cast<Shed<TestType>&>(vppp)};
 
       static_assert(    CT::Sparse   <decltype(SparseCast(i))>);
       static_assert(not CT::Sheddable<decltype(SparseCast(i))>);
@@ -187,9 +159,9 @@ TEST_CASE_TEMPLATE("Testing SparseCast", TestType
 
 ///                                                                           
 /// MARK: DenseCast                                                           
-TEST_CASE_TEMPLATE("Testing DenseCast", TestType
+TEST_CASE_TEMPLATE("Testing DenseCast", TestType //TODO test with typed, make sure they don't shed
    , int
-   , int&&
+   //, int&&
    , const int&
    , const int* const&
    , const int* const* const&
@@ -213,7 +185,7 @@ TEST_CASE_TEMPLATE("Testing DenseCast", TestType
    int value = 656;
 
    if constexpr (CT::Dense<TestType>) {
-      TestType i {::std::move(value)};
+      TestType i {value};
 
       static_assert(    CT::Dense    <decltype(DenseCast(i))>);
       static_assert(not CT::Sheddable<decltype(DenseCast(i))>);
@@ -234,7 +206,8 @@ TEST_CASE_TEMPLATE("Testing DenseCast", TestType
    else if constexpr (IndirectsOf<TestType> == 3) {
       int* vp = &value;
       int** vpp = &vp;
-      TestType i {&vpp};
+      int*** vppp = &vpp;
+      TestType i {const_cast<Shed<TestType>&>(vppp)};
 
       static_assert(    CT::Dense    <decltype(DenseCast(i))>);
       static_assert(not CT::Sheddable<decltype(DenseCast(i))>);

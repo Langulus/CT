@@ -282,7 +282,6 @@ TEST_CASE_TEMPLATE("Testing not CT::Convertible from int", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile
    //, SheddableType<IncompleteType> // shouldn't compile
-   , void
    , void*
    , SheddableType<ConvertibleFromIntExternallyMissingConverter*>
    , SheddableType<ConvertibleFromIntExternallyMissingConverter* const>

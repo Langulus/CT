@@ -23,6 +23,7 @@ add_langulus_test(LangulusCTTest
                CT/TestPOD.cpp
                CT/TestReal.cpp
                CT/TestReflectAs.cpp
+               CT/TestSheddable.cpp
                CT/TestSuffix.cpp
                CT/TestTyped.cpp
                CT/TestUnallocatable.cpp
