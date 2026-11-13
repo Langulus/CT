@@ -7,6 +7,7 @@
 ///                                                                           
 #pragma once
 #include "../Typenav.hpp"
+#include "Abstract.hpp"
 
 
 namespace Langulus::CTTI
@@ -17,6 +18,10 @@ namespace Langulus::CTTI
 
    /// Void types are non-allocatable by default                              
    template<CT::Void T>
+   struct Unallocatable<T> : Yup {};
+
+   /// Abstract types are non-allocatable by default                          
+   template<CT::Abstract T>
    struct Unallocatable<T> : Yup {};
 }
 

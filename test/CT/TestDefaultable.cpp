@@ -7,12 +7,13 @@
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Defaultable.hpp>
+#include <Langulus/Utils/Byte.hpp>
 
 //TODO test extents
 
 ///                                                                           
 /// CT::Defaultable                                                           
-TEST_CASE_TEMPLATE("Testing CT::Defaultable types", TestType
+TEST_CASE_TEMPLATE("Testing CT::Defaultable types", T
    , IncompleteType                     // shouldn't compile
    , IncompleteType const               // shouldn't compile
    , SheddableType<IncompleteType>      // shouldn't compile
@@ -25,11 +26,11 @@ TEST_CASE_TEMPLATE("Testing CT::Defaultable types", TestType
    , AggregateType
    , Complex*, ContainsComplex*
 ) {
-   static_assert(    CT::Defaultable<TestType>);
-   static_assert(not CT::NotDefaultable<TestType>);
+   static_assert(    CT::Defaultable<T>);
+   static_assert(not CT::NotDefaultable<T>);
 }
 
-TEST_CASE_TEMPLATE("Testing CT::NotDefaultable types", TestType
+TEST_CASE_TEMPLATE("Testing CT::NotDefaultable types", T
    , IncompleteType                // shouldn't compile
    , IncompleteType const          // shouldn't compile
    , SheddableType<IncompleteType> // shouldn't compile
@@ -47,8 +48,8 @@ TEST_CASE_TEMPLATE("Testing CT::NotDefaultable types", TestType
    , PureVirtual
    , ForcedAbstract
 ) {
-   static_assert(not CT::Defaultable<TestType>);
-   static_assert(    CT::NotDefaultable<TestType>);
+   static_assert(not CT::Defaultable<T>);
+   static_assert(    CT::NotDefaultable<T>);
 }
 
 static_assert(    CT::Defaultable<>); // shouldn't compile at all

@@ -15,6 +15,7 @@ namespace Langulus::CTTI
    /// Can be used in two ways to satisfy CT::DerivedFrom<T>:                 
    /// 1. Specialize for T/concept                                            
    /// 2. Add a public `using CTTI_Bases = <single type or Types<...>>;` in T 
+   //TODO when compile-time reflection is well supported, most cases of CTTI_Bases can be automated. only imposed bases should remain
    template<class T>
    struct Bases;
 }
@@ -31,13 +32,14 @@ namespace Langulus::CT::Inner
       static_assert(not CT::Sheddable<T>,
          "Strip sheddables first");
 
-      if constexpr (Complete<CTTI::Bases<T>>) {
+      using ctti = CTTI::Bases<T>;
+      if constexpr (Complete<ctti>) {
          // Checked externally, T doesn't have to be complete           
-         using LIST = typename CTTI::Bases<T>::Type;
-         if constexpr (CT::Typelist<LIST>)
-            return LIST {};
-         else
-            return Types<LIST> {};
+         static_assert(CT::Typelist<ctti>,
+            "Pick a type to derive from, or void, instead of using Yes/Yup/No"
+            "for CTTI::Bases. Just inherit from Types<...>."
+         );
+         return ctti {};
       }
       else if constexpr (requires { typename T::CTTI_Bases; }) {
          // Checked internally, T has to be a complete type             
@@ -111,4 +113,70 @@ namespace Langulus
    /// Get the reflected base types, void if none                             
    template<class T>
    using BasesOf = decltype(CT::Inner::GetBaseTypes<Decvq<Deref<T>>>());
+
+
+   ///                                                                        
+   /// Some abstract bases for built-in types                                 
+   ///                                                                        
+
+   /// Context dependent number                                               
+   struct AbstractNumber {
+      using CTTI_Abstract  = Yup;
+   };
+
+   /// Context dependent integer number                                       
+   struct AbstractInteger : AbstractNumber {
+      using CTTI_Bases     = AbstractNumber;
+   };
+
+   /// Context dependent real number                                          
+   struct AbstractReal : AbstractNumber {
+      using CTTI_Bases     = AbstractNumber;
+   };
+
+   /// Context dependent unsigned number                                      
+   struct AbstractUnsigned : AbstractNumber {
+      using CTTI_Bases     = AbstractNumber;
+   };
+
+   /// Context dependent signed number                                        
+   struct AbstractSigned : AbstractNumber {
+      using CTTI_Bases     = AbstractNumber;
+   };
+   
+   /// Context dependent unsigned integer                                     
+   struct AbstractUnsignedInteger : AbstractInteger {
+      using CTTI_Bases     = Types<AbstractInteger, AbstractUnsigned>;
+   };
+
+   /// Context dependent signed integer                                       
+   struct AbstractSignedInteger : AbstractInteger {
+      using CTTI_Bases     = Types<AbstractInteger, AbstractSigned>;
+   };
+   
+   /// Context dependent unsigned real (unused but here for completeness)     
+   struct AbstractUnsignedReal : AbstractReal {
+      using CTTI_Bases     = Types<AbstractReal, AbstractUnsigned>;
+   };
+
+   /// Context dependent signed real                                          
+   struct AbstractSignedReal : AbstractReal {
+      using CTTI_Bases     = Types<AbstractReal, AbstractSigned>;
+   };
+}
+
+namespace Langulus::CTTI
+{
+   template<> struct Bases<uint8_t>  : Types <AbstractUnsignedInteger> {};
+   template<> struct Bases<uint16_t> : Types <AbstractUnsignedInteger> {};
+   template<> struct Bases<uint32_t> : Types <AbstractUnsignedInteger> {};
+   template<> struct Bases<uint64_t> : Types <AbstractUnsignedInteger> {};
+
+   template<> struct Bases<int8_t>   : Types <AbstractSignedInteger> {};
+   template<> struct Bases<int16_t>  : Types <AbstractSignedInteger> {};
+   template<> struct Bases<int32_t>  : Types <AbstractSignedInteger> {};
+   template<> struct Bases<int64_t>  : Types <AbstractSignedInteger> {};
+
+   template<> struct Bases<float>    : Types <AbstractSignedReal> {};
+   template<> struct Bases<double>   : Types <AbstractSignedReal> {};
 }

@@ -41,6 +41,7 @@ namespace Langulus::CT::Inner
    /// If you provide a decorated/pointer type, all decorations will be       
    /// preserved, and only the decayed type will be replaced by the reflected.
    ///   @return type_identity containing the reflected type                  
+   ///   @attention always strips volatileness, as it is not reflectable      
    template<class T>
    consteval auto FormReflectedType() {
       if constexpr (not CT::Decayed<T>) {
@@ -54,9 +55,9 @@ namespace Langulus::CT::Inner
             // Pointers are always reflectable, even if pointing to     
             // unreflectable types. Also preserved all decorations.     
             if constexpr (::std::is_void_v<AS>)
-               return ::std::type_identity<Retype<T, DT>> {};
+               return ::std::type_identity<Retype<Devq<T>, DT>> {};
             else
-               return ::std::type_identity<Retype<T, AS>> {};
+               return ::std::type_identity<Retype<Devq<T>, AS>> {};
          }
       }
       else if constexpr (Complete<CTTI::ReflectAs<T>>) {
@@ -72,6 +73,8 @@ namespace Langulus::CT::Inner
                "Provided ReflectAs type must be of the same size");
             static_assert(alignof(T) == alignof(AS),
                "Provided ReflectAs type must be of the same alignment");
+            static_assert(CT::Decayed<AS>,
+               "You can't reflect as a decorated type");
             return ::std::type_identity<AS> {};
          }
       }
@@ -85,13 +88,15 @@ namespace Langulus::CT::Inner
                "Provided ReflectAs type must be of the same size");
             static_assert(alignof(T) == alignof(AS),
                "Provided ReflectAs type must be of the same alignment");
+            static_assert(CT::Decayed<AS>,
+               "You can't reflect as a decorated type");
             return ::std::type_identity<AS> {};
          }
       }
       else {
          // If incomplete, just return it as it is.                     
          // Reflectable until proven otherwise.                         
-         return ::std::type_identity<T> {};
+         return ::std::type_identity<Devq<T>> {};
       }
    }
 }

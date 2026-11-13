@@ -8,6 +8,7 @@
 #pragma once
 #include "../Typenav.hpp"
 #include "../Utils/Roof.hpp"
+#include "../Utils/Literal.hpp"
 
 
 namespace Langulus::CTTI
@@ -29,7 +30,9 @@ namespace Langulus
    consteval auto MinAllocOf() {
       using ST = Shed<T>;
       constexpr Literal extracted = LANGULUS_CTTI_CHECK_EXTRACT(ST, MinAlloc, sizeof(ST));
-      constexpr size_t minalloc = Roof2(extracted[0]);
+      static_assert(extracted[0] > 0,
+         "MinAlloc can't be smaller or equal to zero");
+      constexpr size_t minalloc = Roof2(static_cast<size_t>(extracted[0]));
       static_assert(minalloc >= sizeof(ST),
          "MinAlloc can't be smaller than the size of T");
       static_assert(::std::has_single_bit(minalloc),

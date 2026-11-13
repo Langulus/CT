@@ -6,6 +6,7 @@
 /// SPDX-License-Identifier: MIT                                              
 ///                                                                           
 #pragma once
+#include "DefineTag.hpp"
 #include "../Typenav.hpp"
 #include "../Utils/Types.hpp"
 
@@ -30,44 +31,50 @@ namespace Langulus::CT::Inner
    consteval auto GetAllTags() {
       static_assert(not ::std::is_reference_v<T>, "Strip references first");
       static_assert(not ::std::is_const_v<T>, "Strip qualifiers first");
-      using ctti = CTTI::Tagged<T>;
 
-      if constexpr (CT::Complete<ctti>) {
-         // Checked externally, T doesn't have to be complete           
-         if constexpr (CT::Void<ctti>)
-            return NoTypes {};
-         else {
-            if constexpr (CT::Typelist<ctti>) {
-               // Defined as in examples 2)                             
-               return ctti {};
-            }
-            else {
-               // Defined as in example 1)                              
-               return Types<typename ctti::ConsistentNamedTagTypeEvenIfInherited> {};
-            }
-         }
+      if constexpr (CT::DefineTag<T>) {
+         // Tag definition just returns itself                          
+         return Types<T> {};
       }
       else {
-         // Checked internally, T has to be a complete type             
-         static_assert(CT::Complete<T>,
-            "Can't access `CTTI_Tagged` inside incomplete type");
-
-         if constexpr (requires { typename T::CTTI_Tagged; }) {
-            using inner = typename T::CTTI_Tagged;
-            if constexpr (CT::Void<inner>)
+         using ctti = CTTI::Tagged<T>;
+         if constexpr (CT::Complete<ctti>) {
+            // Checked externally, T doesn't have to be complete        
+            if constexpr (CT::Void<ctti>)
                return NoTypes {};
             else {
-               if constexpr (CT::Typelist<inner>) {
-                  // Defined as in examples 4)                          
-                  return inner {};
+               if constexpr (CT::Typelist<ctti>) {
+                  // Defined as in examples 2)                          
+                  return ctti {};
                }
                else {
-                  // Defined as in examples 3)                          
-                  return Types<inner> {};
+                  // Defined as in example 1)                           
+                  return Types<typename ctti::ConsistentNamedTagTypeEvenIfInherited> {};
                }
             }
          }
-         else return NoTypes {};
+         else {
+            // Checked internally, T has to be a complete type          
+            static_assert(CT::Complete<T>,
+               "Can't access `CTTI_Tagged` inside incomplete type");
+
+            if constexpr (requires { typename T::CTTI_Tagged; }) {
+               using inner = typename T::CTTI_Tagged;
+               if constexpr (CT::Void<inner>)
+                  return NoTypes {};
+               else {
+                  if constexpr (CT::Typelist<inner>) {
+                     // Defined as in examples 4)                       
+                     return inner {};
+                  }
+                  else {
+                     // Defined as in examples 3)                       
+                     return Types<inner> {};
+                  }
+               }
+            }
+            else return NoTypes {};
+         }
       }
    };
 
