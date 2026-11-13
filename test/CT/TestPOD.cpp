@@ -8,12 +8,9 @@
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/POD.hpp>
 
-using namespace Langulus;
-
 
 ///                                                                           
 /// CT::POD                                                                   
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::POD types", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile

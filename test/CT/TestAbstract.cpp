@@ -12,7 +12,6 @@
 
 ///                                                                           
 /// CT::Abstract                                                              
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::Abstract types", TestType
    //, IncompleteType                     // shouldn't compile
    //, IncompleteType const               // shouldn't compile

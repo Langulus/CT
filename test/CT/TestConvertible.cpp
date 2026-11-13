@@ -10,9 +10,9 @@
 
 //TODO test extents
 
+
 ///                                                                           
 /// CT::ConvertibleImplicit                                                   
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::ConvertibleImplicit from int", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile
@@ -91,7 +91,6 @@ static_assert(not CT::ConvertibleImplicit<int, int, float, bool, void>);
 
 ///                                                                           
 /// CT::ConvertibleExplicit                                                   
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::ConvertibleExplicit from int", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile
@@ -170,7 +169,6 @@ static_assert(not CT::ConvertibleExplicit<int, BuiltinConvertibleFromIntViaExpli
 
 ///                                                                           
 /// CT::ConvertibleCustom                                                     
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::ConvertibleCustom from int", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile
@@ -249,7 +247,6 @@ static_assert(not CT::ConvertibleCustom<int, ConvertibleFromIntExternally, int>)
 
 ///                                                                           
 /// CT::Convertible from int                                                  
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::Convertible from int", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile
@@ -330,7 +327,6 @@ static_assert(not CT::Convertible<int, int, float, bool, void>);
 
 ///                                                                           
 /// CT::Convertible to int                                                    
-///                                                                           
 TEST_CASE_TEMPLATE("Testing CT::Convertible to int", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile
@@ -404,7 +400,6 @@ TEST_CASE_TEMPLATE("Testing not CT::Convertible to int", TestType
 
 ///                                                                           
 /// Langulus::GatherMorphismsFrom                                             
-///                                                                           
 TEST_CASE_TEMPLATE("Testing Langulus::GatherMorphismsFrom to int", TestType
    //, IncompleteType                // shouldn't compile
    //, IncompleteType const          // shouldn't compile

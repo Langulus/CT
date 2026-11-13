@@ -80,7 +80,6 @@ static_assert(not CT::Reflectable<ReflectableIntern, ReflectableExtern, NotRefle
 
 ///                                                                           
 /// CT::ReflectedAs                                                           
-///                                                                           
 SCENARIO("CT::ReflectedAs") {
    DEFINE_REFLECTAS_TYPE_TEST(void,                void)
    DEFINE_REFLECTAS_TYPE_TEST(void*,               void*)

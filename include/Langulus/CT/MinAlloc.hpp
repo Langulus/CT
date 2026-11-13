@@ -28,7 +28,8 @@ namespace Langulus
    template<class T>
    consteval auto MinAllocOf() {
       using ST = Shed<T>;
-      constexpr size_t minalloc = Roof2(LANGULUS_CTTI_CHECK_EXTRACT(ST, MinAlloc, sizeof(ST)));
+      constexpr Literal extracted = LANGULUS_CTTI_CHECK_EXTRACT(ST, MinAlloc, sizeof(ST));
+      constexpr size_t minalloc = Roof2(extracted[0]);
       static_assert(minalloc >= sizeof(ST),
          "MinAlloc can't be smaller than the size of T");
       static_assert(::std::has_single_bit(minalloc),
