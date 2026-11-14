@@ -39,7 +39,7 @@ namespace Langulus::CT::Inner
       using Owner = OWNER;
       using Type  = TYPE;
       static constexpr TYPE OWNER::*Handle = HANDLE;
-      static constexpr auto Name = CppNameOf<HANDLE>();
+      static constexpr auto Name = LastCppNameOf<HANDLE>();
 
       constexpr MemberReflector() = default;
       constexpr MemberReflector(Emballage<HANDLE>, TYPE OWNER::*) {}

@@ -462,6 +462,7 @@ SCENARIO("NameOf") {
    DEFINE_NAMEOF_CONST_TEST(AnonymousNumberButNotNamed, "AnonymousNumberButNotNamed")
 }
 
+//TODO static asserts here
 #define DEFINE_CPPNAMEOF_TYPE_TEST(WHAT, RESULT) \
    WHEN("Taken the raw name of type " #WHAT) { \
       auto name_runtime = IsolateTypenameAtRuntime<WHAT, true, false>(); \
@@ -644,4 +645,9 @@ SCENARIO("CppNameOf") {
    DEFINE_CPPNAMEOF_CONST_TEST(PiNonClassButNamed::NumberButNamed, "NumberButNamed")
    DEFINE_CPPNAMEOF_CONST_TEST(AnonymousNumberButNamed, "AnonymousNumberButNamed")
    DEFINE_CPPNAMEOF_CONST_TEST(AnonymousNumberButNotNamed, "AnonymousNumberButNotNamed")
+}
+
+/// Get the name of a member variable                                         
+SCENARIO("Isolating the name of a member variable") {
+   static_assert(LastCppNameOf<&ImplicitlyReflectedDataWithTraits::member>() == "member");
 }

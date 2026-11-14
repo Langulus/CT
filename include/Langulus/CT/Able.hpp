@@ -8,6 +8,7 @@
 #pragma once
 #include "DefineVerb.hpp"
 #include "Support.hpp"
+#include "../Utils/Types.hpp"
 
 
 namespace Langulus::CTTI
