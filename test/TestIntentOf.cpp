@@ -1631,7 +1631,6 @@ TEST_CASE_TEMPLATE("Testing abandon-constructible types", T
    , int
       , ReferConstructibleButNotAssignable //TODO this shifted with latest IntentNew changes
       , NonDestructible //TODO this shifted with latest IntentNew changes
-
 ) {
    static_assert(    CT::Abandoned<Abandon<int>>);
    static_assert(not CT::Abandoned<  Refer<int>>);

@@ -164,7 +164,7 @@ namespace Langulus::CT
 {
    /// Check if 'T' had the ability to do all binary 'VERB'                   
    template<class T, class...VERB>
-   concept AbleBinary = (LglsSupported(Langulus::InvokeAbility(Fake<T>(), Fake<VERB&>())) and ...);
+   concept AbleBinary = (LglsSupported(Langulus::InvokeAbility(Fake<T&>(), Fake<VERB&>())) and ...);
 
    /// Check if 'T' had the ability to do all unary 'VERB'                    
    template<class T, class...VERB>

@@ -7,34 +7,34 @@
 ///                                                                           
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/CT/Destroyable.hpp>
+#include <Langulus/Utils/Byte.hpp>
 
 //TODO test extents
 
 
 ///                                                                           
 /// CT::Destroyable                                                           
-TEST_CASE_TEMPLATE("Testing CT::Destroyable types", TestType
-   , IncompleteType                     // shouldn't compile
-   , IncompleteType const               // shouldn't compile
-   , SheddableType<IncompleteType>      // shouldn't compile
-   , SheddableType<PureAbstract>        // shouldn't compile
-   , SheddableType<PureAbstract const>  // shouldn't compile
-   , SheddableType<PureAbstract const&>
-   , Destructible
+TEST_CASE_TEMPLATE("Testing CT::Destroyable types", T
+   //, IncompleteType                     // shouldn't compile
+   //, IncompleteType const               // shouldn't compile
+   //, SheddableType<IncompleteType>      // shouldn't compile
+   //, SheddableType<PureAbstract>        // shouldn't compile
+   //, SheddableType<PureAbstract const>  // shouldn't compile
+   //, SheddableType<PureAbstract const&> // shouldn't compile
    , Complex
    , ContainsComplex
-   , PureVirtual
+   , PureAbstract
    , ImpureVirtual
-   , VirtuallyDerive
+   , VirtuallyDerived
 ) {
-   static_assert(    CT::Destroyable<TestType>);
-   static_assert(not CT::NotDestroyable<TestType>);
+   static_assert(    CT::Destroyable<T>);
+   static_assert(not CT::NotDestroyable<T>);
 }
 
-TEST_CASE_TEMPLATE("Testing CT::NotDestroyable types", TestType
-   , IncompleteType                // shouldn't compile
-   , IncompleteType const          // shouldn't compile
-   , SheddableType<IncompleteType> // shouldn't compile
+TEST_CASE_TEMPLATE("Testing CT::NotDestroyable types", T
+   //, IncompleteType                // shouldn't compile
+   //, IncompleteType const          // shouldn't compile
+   //, SheddableType<IncompleteType> // shouldn't compile
    , EmptyType
    , NonDestructible
    , PrivatelyConstructible
@@ -42,20 +42,20 @@ TEST_CASE_TEMPLATE("Testing CT::NotDestroyable types", TestType
    , AllIntentConstructible
    , AllIntentConstructibleAndAssignable
    , PartiallyIntentConstructible
-   , DescriptorConstructible
-   , IncompleteType
+   , DescribeConstructible
    , bool, uint32_t, double, char, wchar_t, char8_t, Langulus::Byte
    , Complex*, ContainsComplex*
-   , ForcedAbstract
+   , ForcedAbstractExternally
+   , ForcedAbstractInternally
 ) {
-   static_assert(not CT::Destroyable<TestType>);
-   static_assert(    CT::NotDestroyable<TestType>);
+   static_assert(not CT::Destroyable<T>);
+   static_assert(    CT::NotDestroyable<T>);
 }
 
-static_assert(    CT::Destroyable<>); // shouldn't compile at all
-static_assert(    CT::Destroyable<Destructible, Complex, PureVirtual>);
-static_assert(not CT::Destroyable<Destructible, Complex, bool>);
+//static_assert(    CT::Destroyable<>); // shouldn't compile at all
+static_assert(    CT::Destroyable<VirtuallyDerived, Complex, PureAbstract>);
+static_assert(not CT::Destroyable<EmptyType, Complex, bool>);
 
-static_assert(    CT::NotDestroyable<>); // shouldn't compile at all
-static_assert(    CT::NotDestroyable<uint32_t, NonDestructible, ForcedAbstract>);
-static_assert(not CT::NotDestroyable<uint32_t, NonDestructible, Destructible>);
+//static_assert(    CT::NotDestroyable<>); // shouldn't compile at all
+static_assert(    CT::NotDestroyable<uint32_t, NonDestructible, ForcedAbstractExternally>);
+static_assert(not CT::NotDestroyable<VirtuallyDerived, NonDestructible, EmptyType>);

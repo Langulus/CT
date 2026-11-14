@@ -18,6 +18,7 @@ add_langulus_test(LangulusCTTest
                CT/TestConvertible.cpp
                CT/TestDeep.cpp
                CT/TestDefaultable.cpp
+               CT/TestDestroyable.cpp
                CT/TestInteger.cpp
                CT/TestNumber.cpp
                CT/TestPOD.cpp

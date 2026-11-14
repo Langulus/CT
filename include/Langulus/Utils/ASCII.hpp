@@ -32,16 +32,6 @@ namespace Langulus
       }
    }
 
-   /// A fully portable constexpr lowercase character check                   
-   constexpr bool IsLowercase(char c) noexcept {
-      return c != '_' and IsAlphabetical(c) and c >= 'a';
-   }
-
-   /// A fully portable constexpr lowercase character check                   
-   constexpr bool IsUppercase(char c) noexcept {
-      return c != '_' and IsAlphabetical(c) and c <= 'Z';
-   }
-
    /// A fully portable constexpr operator character check                    
    constexpr bool IsOperator(char c) noexcept {
       switch (c) {
@@ -72,10 +62,30 @@ namespace Langulus
       return c == ' ';
    }
 
+   /// A fully portable constexpr lowercase character check                   
+   constexpr bool IsLowercase(char c) noexcept {
+      return not IsAlphabetical(c) or (c != '_' and IsAlphabetical(c) and c >= 'a');
+   }
+
+   /// A fully portable constexpr lowercase character check                   
+   constexpr bool IsUppercase(char c) noexcept {
+      return not IsAlphabetical(c) or (c != '_' and IsAlphabetical(c) and c <= 'Z');
+   }
+
    /// Verify that a string literal is made of allowed ASCII symbols          
    constexpr bool IsASCII(Token const& source) noexcept {
       for (char c : source) {
          if (IsAlphabetical(c) or IsOperator(c) or IsNumerical(c) or IsSpace(c))
+            continue;
+         return false;
+      }
+      return true;
+   }
+
+   /// Verify that a string literal is lowercase                              
+   constexpr bool IsLowercase(Token const& source) noexcept {
+      for (char c : source) {
+         if (IsLowercase(c))
             continue;
          return false;
       }

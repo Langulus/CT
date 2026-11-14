@@ -32,6 +32,7 @@ namespace Langulus
       using DT = Decvq<Deref<T>>;
       constexpr auto files = LANGULUS_CTTI_CHECK_EXTRACT(DT, Files, Literal {});
       static_assert(IsASCII(files), "File extensions must be ASCII");
+      static_assert(IsLowercase(files), "File extensions must be lowercased");
       return files;
    }
 }
