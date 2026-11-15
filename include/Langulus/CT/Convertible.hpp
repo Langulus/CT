@@ -227,7 +227,7 @@ namespace Langulus
          else if constexpr (CT::ConvertibleImplicit<DFROM, DTO>)
             return DTO(from);
          else if constexpr (CT::ConvertibleExplicit<DFROM, DTO>)
-            return DTO{static_cast<DTO>(DecvqAllCast(from))};
+            return /*DTO{*/static_cast<DTO>(const_cast<DFROM&>(from));//};
          else {
             #if LANGULUS(DEBUG)
                static_assert(false,
@@ -236,7 +236,7 @@ namespace Langulus
                   "because it lacks the functionality to do so. Either use "
                   "LANGULUS_MORPHISM_CUSTOM(" + FROMname + ", " + TOname + ", {<custom conversion logic>}), "
                   "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes " + FROMname + 
-                  ">, " + TOname + ", {<custom conversion logic>}), "
+                  ">, {<custom conversion logic>}, " + TOname + "), "
                   "or, if possible, define an implicit constructor in " + TOname + ", "
                   "or an implicit/explicit cast operator in " + FROMname
                );
@@ -247,7 +247,7 @@ namespace Langulus
                   "because it lacks the functionality to do so. Either use "
                   "LANGULUS_MORPHISM_CUSTOM(FROM, TO, {<custom conversion logic>}), "
                   "or LANGULUS_MORPHISM_CONCEPT_CUSTOM(<some concept that includes FROM"
-                  ">, TO, {<custom conversion logic>}), "
+                  ">, {<custom conversion logic>}, TO), "
                   "or, if possible, define an implicit constructor in TO, "
                   "or an implicit/explicit cast operator in FROM"
                );

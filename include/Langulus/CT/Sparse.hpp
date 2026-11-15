@@ -104,7 +104,9 @@ namespace Langulus::CT
    /// Check if all T are custom pointer types.                               
    template<class...T>
    concept CustomPointer = PartialValidate<T...> and Sparse<T...>
-       and ((not ::std::is_pointer_v<ShedDeref<T>>) and ...);
+       and ((not ::std::is_pointer_v<ShedDeref<T>>
+         and not ::std::is_null_pointer_v<ShedDeref<T>>
+       ) and ...);
 }
 
 namespace Langulus

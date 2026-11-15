@@ -47,13 +47,13 @@ namespace Langulus::CT::Inner
       if constexpr (not CT::Decayed<T>) {
          using DT = Decay<T>;
          using AS = typename decltype(FormReflectedType<DT>())::type;
-         if constexpr (::std::is_void_v<AS> and not ::std::is_pointer_v<T>) {
+         if constexpr (::std::is_void_v<AS> and not ::std::is_pointer_v<::std::remove_reference_t<T>>) {
             // Not reflectable only if resulting in a dense void.       
             return ::std::type_identity<void> {};
          }
          else {
             // Pointers are always reflectable, even if pointing to     
-            // unreflectable types. Also preserved all decorations.     
+            // unreflectable types. Also preserves all decorations.     
             if constexpr (::std::is_void_v<AS>)
                return ::std::type_identity<Retype<Devq<T>, DT>> {};
             else

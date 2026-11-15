@@ -9,11 +9,6 @@
 #include <Langulus/Testing/CommonTypes.hpp>
 #include <Langulus/IntentOf.hpp>
 #include <Langulus/CT/Destroyable.hpp>
-/*#include <Langulus/MetaOf.hpp>
-#include <Langulus/Anyness/SerializeText.hpp>
-#include <Langulus/Anyness/SerializeBytes.hpp>*/
-
-using namespace Langulus;
 
 
 ///                                                                           

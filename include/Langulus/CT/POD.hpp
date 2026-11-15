@@ -30,7 +30,7 @@ namespace Langulus::CTTI
       ///   @note extents are ignored by default                              
       template<class T>
       consteval bool CanItBeConsideredPOD() {
-         using DT = ::std::remove_all_extents_t<T>;
+         using DT = ::std::remove_all_extents_t<::std::remove_reference_t<T>>;
          if constexpr (CT::Abstract<DT>)
             return false;
          else {

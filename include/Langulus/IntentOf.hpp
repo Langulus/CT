@@ -1207,5 +1207,11 @@ namespace Langulus
       /// Like is_bounded_array_v but strips sheddables and references        
       template<class...T>
       concept BoundedArray = (::std::is_bounded_array_v<Deref<Deint<T>>> and ...);
+
+      template<class T>
+      using RemoveBoundedArray = ::std::remove_extent_t<Deref<Deint<T>>>;
+
+      template<class T>
+      using RemoveAllBoundedArrays = ::std::remove_all_extents_t<Deref<Deint<T>>>;
    }
 }

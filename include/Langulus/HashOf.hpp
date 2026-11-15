@@ -275,7 +275,7 @@ namespace Langulus
          };
          return batch_array(coal);
       }
-      else if constexpr (::std::is_bounded_array_v<T>) {
+      else if constexpr (::std::is_bounded_array_v<Deref<T>>) {
          // Built-in arrays.                                            
          // Multidimensional arrays get nested.                         
          using InnerT = ::std::remove_extent_t<Deref<T>>;
@@ -288,7 +288,8 @@ namespace Langulus
          }
          else if constexpr (CT::POD<InnerT> and not CT::HasGetHashMethod<InnerT>) {
             // Array is made of POD elements, batch-hash the array      
-            return HashBytes({head, sizeof(head)}, SEED);
+            return batch_array(head);
+            //return HashBytes({head, sizeof(head)}, SEED);
          }
          else {
             // Hash each element of the array individually, and then    
