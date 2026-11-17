@@ -26,7 +26,6 @@ namespace Langulus
    ///                                                                        
    /// Base types off this one, to make them CT::Referenced and provide the   
    /// required interface for it.                                             
-   ///                                                                        
    class Referenced {
       mutable int mReferences = 1;
 

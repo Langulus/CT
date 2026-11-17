@@ -415,9 +415,9 @@ SCENARIO("NameOf") {
       "One::Two::Three::VeryComplexTemplate<One::Two::Three::TemplatedTypeDeepIntoNamespaces<uint16>>"
    )
 
-   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::Recipe, "Langulus::Flow::Recipe")
-   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::Recipeconst, "Langulus::Flow::Recipeconst")
-   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::constRecipeconst, "Langulus::Flow::constRecipeconst")
+   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::TestRecipe, "Langulus::Flow::TestRecipe")
+   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::TestRecipeconst, "Langulus::Flow::TestRecipeconst")
+   DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::constTestRecipeconst, "Langulus::Flow::constTestRecipeconst")
    DEFINE_NAMEOF_TYPE_TEST(Langulus::Flow::constconst, "Langulus::Flow::constconst")
    DEFINE_NAMEOF_TYPE_TEST(Signature, "<void(void*)>*")
 
@@ -612,9 +612,9 @@ SCENARIO("CppNameOf") {
       "One::Two::Three::VeryComplexTemplate<One::Two::Three::TemplatedTypeDeepIntoNamespaces<uint16>>"
    )
 
-   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::Recipe, "Langulus::Flow::Recipe")
-   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::Recipeconst, "Langulus::Flow::Recipeconst")
-   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::constRecipeconst, "Langulus::Flow::constRecipeconst")
+   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::TestRecipe, "Langulus::Flow::TestRecipe")
+   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::TestRecipeconst, "Langulus::Flow::TestRecipeconst")
+   DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::constTestRecipeconst, "Langulus::Flow::constTestRecipeconst")
    DEFINE_CPPNAMEOF_TYPE_TEST(Langulus::Flow::constconst, "Langulus::Flow::constconst")
    DEFINE_CPPNAMEOF_TYPE_TEST(Signature, "<void(void*)>*")
 

@@ -843,9 +843,7 @@ namespace Langulus
          else if constexpr (requires { new (placement) T (LglsFwd(intent.what)); }/*::std::move_constructible<T>*/)
             return new (placement) T (LglsFwd(intent.what));
          else {
-            static_assert(FAKE,
-               "Can't abandon-construct destructible type"
-               " - explicit abandon-constructor is required");
+            static_assert(FAKE, "Can't abandon/move-construct type");
             return No {};
          }
       }
