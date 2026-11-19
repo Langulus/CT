@@ -162,7 +162,8 @@ namespace Langulus::CT::Inner
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Positive;
-         static_assert(IsASCII(c), "Verb positive operator must be ASCII");
+         static_assert(IsASCII(c),
+            "Verb positive operator must be ASCII: `" + c + "`");
          return c;
       }
    }
@@ -177,7 +178,8 @@ namespace Langulus::CT::Inner
          return Langulus::Literal {};
       else {
          constexpr auto c = definition.Negative;
-         static_assert(IsASCII(c), "Verb negative operator must be ASCII");
+         static_assert(IsASCII(c),
+            "Verb negative operator must be ASCII: `" + c + "`");
          return c;
       }
    }

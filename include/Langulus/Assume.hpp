@@ -76,7 +76,8 @@ namespace Langulus
          else Logger::Line("At: ", std::to_string(stack[skip]));
       }
    #else
-      inline void Stacktrace(
+      LANGULUS(ALWAYS_INLINED)
+      void Stacktrace(
          [[maybe_unused]] const char* location,
          size_t = 0, size_t = 0
       ) {
@@ -93,6 +94,7 @@ namespace Langulus
    ///   @param location optional location of the error                       
    ///   @param mn additional information to log                              
    template<bool BREAK = false, class E = Exception, class...MORE>
+   LANGULUS(ALWAYS_INLINED)
    void ErrorInner(
       [[maybe_unused]] const char* location,
       [[maybe_unused]] const char* m1 = "<unknown error>",
@@ -128,6 +130,7 @@ namespace Langulus
    ///   @param location optional location of the error                       
    ///   @param mn additional information to log                              
    template<bool BREAK = false, class E = Exception, class...MORE>
+   LANGULUS(ALWAYS_INLINED)
    constexpr void AssertInner(
       [[maybe_unused]] const char* location,
       [[maybe_unused]] auto const& condition,
@@ -160,6 +163,7 @@ namespace Langulus
    #define LglsAssert(...) ::Langulus::AssertInner(HERE(), __VA_ARGS__)
    #define LglsAssertAndBreak(...) ::Langulus::AssertInner<true>(HERE(), __VA_ARGS__)
 
+   #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
    /// Assertion that works at runtime.                                       
    /// Doesn't throw or ruin compilation.                                     
    ///   @param condition the condition that must hold true                   
@@ -173,20 +177,21 @@ namespace Langulus
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
-         if not consteval {
-            if (not static_cast<bool>(condition)) {
-               // Log error message                                     
-               auto s = Logger::WarningScoped("Assertion failure: ");
-               Logger::Append(m1);
-               (Logger::Append(LglsFwd(mn)), ...);
-               Stacktrace(location, 1);
-            }
+      if not consteval {
+         if (not static_cast<bool>(condition)) {
+            // Log error message                                     
+            auto s = Logger::WarningScoped("Assertion failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            Stacktrace(location, 1);
          }
-      #endif
+      }
    }
    
    #define LglsAssertWarn(...) ::Langulus::AssertWarnInner(HERE(), __VA_ARGS__)
+   #else
+   #define LglsAssertWarn(...) LANGULUS(NOOP)
+   #endif
 
    #if LANGULUS(SAFE) > 0
    /// MARK: User assumes                                                     
@@ -198,6 +203,7 @@ namespace Langulus
    ///   @param location optional location of the error                       
    ///   @param mn additional information to log                              
    template<bool BREAK = false, class E = Exception, class...MORE>
+   LANGULUS(ALWAYS_INLINED)
    constexpr void AssumeUserInner(
       [[maybe_unused]] const char* location, 
       [[maybe_unused]] auto const& condition,
@@ -227,6 +233,7 @@ namespace Langulus
       }
    }
    
+   #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
    /// User assumption at runtime.                                            
    /// Tested only if LANGULUS(SAFE) >= 1.                                    
    /// Doesn't throw or ruin compilation.                                     
@@ -241,17 +248,15 @@ namespace Langulus
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
-         if not consteval {
-            if (not static_cast<bool>(condition)) {
-               // Log error message                                     
-               auto s = Logger::WarningScoped("User assumption failure: ");
-               Logger::Append(m1);
-               (Logger::Append(LglsFwd(mn)), ...);
-               Stacktrace(location, 1);
-            }
+      if not consteval {
+         if (not static_cast<bool>(condition)) {
+            // Log error message                                     
+            auto s = Logger::WarningScoped("User assumption failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            Stacktrace(location, 1);
          }
-      #endif
+      }
    }
 
       #define LglsAssumeUser(...)         ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__)
@@ -270,6 +275,12 @@ namespace Langulus
       #define LglsAssumeUserWarn(...)        LANGULUS(NOOP)
       #define LglsAssumeUserAndOptimize(...) LglsCompilerSpecificAssume(__VA_ARGS__)
    #endif
+   #else
+      #define LglsAssumeUser(...)            LANGULUS(NOOP)
+      #define LglsAssumeUserAndBreak(...)    LANGULUS(NOOP)
+      #define LglsAssumeUserWarn(...)        LANGULUS(NOOP)
+      #define LglsAssumeUserAndOptimize(...) LglsCompilerSpecificAssume(__VA_ARGS__)
+   #endif
 
    #if LANGULUS(SAFE) > 1
    /// MARK: Dev assumes                                                      
@@ -281,6 +292,7 @@ namespace Langulus
    ///   @param location optional location of the error                       
    ///   @param mn additional information to log                              
    template<bool BREAK = false, class E = Exception, class...MORE>
+   LANGULUS(ALWAYS_INLINED)
    constexpr void AssumeDevInner(
       [[maybe_unused]] const char* location, 
       [[maybe_unused]] auto const& condition,
@@ -310,6 +322,7 @@ namespace Langulus
       }
    }
    
+   #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
    /// Developer assumption at runtime.  Tested only if LANGULUS(SAFE) >= 2.  
    /// Doesn't throw or ruin compilation.                                     
    ///   @param condition the condition that must hold true                   
@@ -323,17 +336,15 @@ namespace Langulus
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
-         if not consteval {
-            if (not static_cast<bool>(condition)) {
-               // Log error message                                     
-               auto s = Logger::WarningScoped("Dev assumption failure: ");
-               Logger::Append(m1);
-               (Logger::Append(LglsFwd(mn)), ...);
-               Stacktrace(location, 1);
-            }
+      if not consteval {
+         if (not static_cast<bool>(condition)) {
+            // Log error message                                     
+            auto s = Logger::WarningScoped("Dev assumption failure: ");
+            Logger::Append(m1);
+            (Logger::Append(LglsFwd(mn)), ...);
+            Stacktrace(location, 1);
          }
-      #endif
+      }
    }
 
       #define LglsAssumeDev(...)          ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__)
@@ -352,6 +363,12 @@ namespace Langulus
       #define LglsAssumeDevWarn(...)         LANGULUS(NOOP)
       #define LglsAssumeDevAndOptimize(...)  LglsCompilerSpecificAssume(__VA_ARGS__)
    #endif
+   #else
+      #define LglsAssumeDev(...)             LANGULUS(NOOP)
+      #define LglsAssumeDevAndBreak(...)     LANGULUS(NOOP)
+      #define LglsAssumeDevWarn(...)         LANGULUS(NOOP)
+      #define LglsAssumeDevAndOptimize(...)  LglsCompilerSpecificAssume(__VA_ARGS__)
+   #endif
 
    /// MARK: Custom assume                                                    
    /// Custom assumption that works both at runtime and at compile-time.      
@@ -362,6 +379,7 @@ namespace Langulus
    ///   @param location optional location of the error                       
    ///   @param mn additional information to log                              
    template<unsigned LEVEL, bool BREAK = false, class E = Exception, class...MORE>
+   LANGULUS(ALWAYS_INLINED)
    constexpr void AssumeInner(
       [[maybe_unused]] const char* location, 
       [[maybe_unused]] auto const& condition,
@@ -403,6 +421,7 @@ namespace Langulus
       ::Langulus::AssumeInner<LEVEL>(HERE(), __VA_ARGS__) \
       LglsCompilerSpecificAssume(__VA_ARGS__)
    
+   #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
    /// Custom assumption at runtime. Tested only if LANGULUS(SAFE) >= LEVEL.  
    /// Doesn't throw or ruin compilation.                                     
    ///   @param condition the condition that must hold true                   
@@ -416,22 +435,23 @@ namespace Langulus
       [[maybe_unused]] const char* m1 = "<unknown assertion failure>",
       [[maybe_unused]] MORE&&...mn
    ) noexcept {
-      #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
-         if constexpr (LANGULUS(SAFE) >= LEVEL) {
-            if not consteval {
-               if (not static_cast<bool>(condition)) {
-                  // Log error message                                  
-                  auto s = Logger::WarningScoped("Assumption level ", LEVEL, " failure: ");
-                  Logger::Append(m1);
-                  (Logger::Append(LglsFwd(mn)), ...);
-                  Stacktrace(location, 1);
-               }
+      if constexpr (LANGULUS(SAFE) >= LEVEL) {
+         if not consteval {
+            if (not static_cast<bool>(condition)) {
+               // Log error message                                  
+               auto s = Logger::WarningScoped("Assumption level ", LEVEL, " failure: ");
+               Logger::Append(m1);
+               (Logger::Append(LglsFwd(mn)), ...);
+               Stacktrace(location, 1);
             }
          }
-      #endif
+      }
    }
 
    #define LglsAssumeWarn(LEVEL, ...) ::Langulus::AssumeWarnInner<LEVEL>(HERE(), __VA_ARGS__)
+   #else
+   #define LglsAssumeWarn(LEVEL, ...) LANGULUS(NOOP)
+   #endif
 }
 
 /// Convenience macro for specifying temporary lazyness                       

@@ -8,6 +8,7 @@
 #pragma once
 #include "Integer.hpp"
 #include "Signed.hpp"
+#include "DefineConst.hpp"
 #include <limits>
 #include <stdexcept>
 
@@ -49,7 +50,7 @@ namespace Langulus::Index
       struct Front    : Common<true>  {};
       struct Middle   : Common<true>  {};
       struct Back     : Common<true>  {};
-      struct Mode     : Common<true>  {};
+      struct Modal    : Common<true>  {};
       struct Biggest  : Common<true>  {};
       struct Smallest : Common<true>  {};
       struct Random   : Common<true>  {};
@@ -82,7 +83,7 @@ namespace Langulus::Index
    constexpr auto Back = Inner::Back {};
 
    /// Equivalent to the first index of the most occuring element in memory   
-   constexpr auto Mode = Inner::Mode {};
+   constexpr auto Modal = Inner::Modal {};
 
    /// Equivalent to the index of the first largest element in memory         
    constexpr auto Biggest = Inner::Biggest {};
@@ -104,7 +105,23 @@ namespace Langulus::Index
    /// comparing against npos like a chump.                                   
    //TODO some values should be reserved and mapped to the special indices above
    struct At {
-      using CTTI_Index = Yup;
+      using CTTI_Index  = Yup;
+      using CTTI_Named  = Yes<"Index">;
+      using CTTI_Values = Types<
+         NamedValue<All,      "Index::All",        "Represents all elements in a container">,
+         NamedValue<Many,     "Index::Many",       "Represents more than one element">,
+         NamedValue<Single,   "Index::Single",     "Represents one element">,
+         NamedValue<None,     "Index::None",       "Represents no elements">,
+         NamedValue<Front,    "Index::Front",      "Represents the location in front of a contiguous container">,
+         NamedValue<Middle,   "Index::Middle",     "Represents the location in the middle of a contiguous container">,
+         NamedValue<Back,     "Index::Back",       "Represents the location in the back of a contiguous container">,
+         NamedValue<Modal,    "Index::Modal",      "Represents the most frequently occuring element">,
+         NamedValue<Biggest,  "Index::Biggest",    "Represents the biggest element">,
+         NamedValue<Smallest, "Index::Smallest",   "Represents the smallest element">,
+         NamedValue<Random,   "Index::Random",     "Represents a random element">,
+         NamedValue<First,    "Index::First",      "Represents the first element">,
+         NamedValue<Last,     "Index::Last",       "Represents the last element">
+      >;
 
       int64_t index;
 
@@ -112,6 +129,28 @@ namespace Langulus::Index
          : index {::std::numeric_limits<int64_t>::max()} {}
       constexpr At(Inner::Last) noexcept
          : index {::std::numeric_limits<int64_t>::min()} {}
+      constexpr At(Inner::All) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+1} {}
+      constexpr At(Inner::Many) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+2} {}
+      constexpr At(Inner::Single) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+3} {}
+      constexpr At(Inner::Front) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+4} {}
+      constexpr At(Inner::Middle) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+5} {}
+      constexpr At(Inner::Back) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+6} {}
+      constexpr At(Inner::Modal) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+7} {}
+      constexpr At(Inner::Biggest) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+8} {}
+      constexpr At(Inner::Smallest) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+9} {}
+      constexpr At(Inner::Random) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+10} {}
+      constexpr At(Inner::First) noexcept
+         : index {::std::numeric_limits<int64_t>::min()+11} {}
 
       explicit constexpr At(Real r)
          : index {static_cast<int64_t>(r)} {
@@ -123,6 +162,26 @@ namespace Langulus::Index
          return index != ::std::numeric_limits<int64_t>::max();
       }
 
+      constexpr int64_t TypedCast() const noexcept {
+         return index;
+      }
+
+      constexpr bool operator == (Inner::None    ) const noexcept { return index == ::std::numeric_limits<int64_t>::max()   ; }
+      constexpr bool operator == (Inner::Last    ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()   ; }
+      constexpr bool operator == (Inner::All     ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+1 ; }
+      constexpr bool operator == (Inner::Many    ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+2 ; }
+      constexpr bool operator == (Inner::Single  ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+3 ; }
+      constexpr bool operator == (Inner::Front   ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+4 ; }
+      constexpr bool operator == (Inner::Middle  ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+5 ; }
+      constexpr bool operator == (Inner::Back    ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+6 ; }
+      constexpr bool operator == (Inner::Modal   ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+7 ; }
+      constexpr bool operator == (Inner::Biggest ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+8 ; }
+      constexpr bool operator == (Inner::Smallest) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+9 ; }
+      constexpr bool operator == (Inner::Random  ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+10; }
+      constexpr bool operator == (Inner::First   ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+11; }
+
+      /// If true, then indicates that the index needs processing before      
+      /// turning into contiguous offset.                                     
       constexpr bool IsSpecial() const noexcept {
          if (index < 0)
             return true;

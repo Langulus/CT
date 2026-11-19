@@ -147,6 +147,7 @@ namespace Langulus::Serial
       Precedence      ,
       And             ,
       AndUnordered    ,
+      Namespace       ,
       Pair            ,
       Or              ,
       Last              
@@ -193,6 +194,7 @@ namespace Langulus::Serial
    constexpr auto Precedence      = OperatorDefinition<"!", true> {};
    constexpr auto And             = OperatorDefinition<", "     > {};
    constexpr auto AndUnordered    = OperatorDefinition<"; "     > {};
-   constexpr auto Pair            = OperatorDefinition<" : "   > {};
+   constexpr auto Namespace       = OperatorDefinition<"::"     > {};
+   constexpr auto Pair            = OperatorDefinition<" : "    > {};
    constexpr auto Or              = OperatorDefinition<" or "   > {};
 }
