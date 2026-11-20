@@ -107,6 +107,7 @@ namespace Langulus::Index
    struct At {
       using CTTI_Index  = Yup;
       using CTTI_Named  = Yes<"Index">;
+      using CTTI_POD    = Yup;
       using CTTI_Values = Types<
          NamedValue<All,      "Index::All",        "Represents all elements in a container">,
          NamedValue<Many,     "Index::Many",       "Represents more than one element">,

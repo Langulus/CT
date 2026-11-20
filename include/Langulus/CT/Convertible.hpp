@@ -180,10 +180,12 @@ namespace Langulus
    ///      serialization. For example, you can't convert Text -> Text, as    
    ///      the same type is never converter to itself. However, you can      
    ///      serialize Text ~> Text, which will wrap the contents in quotes,   
-   ///      and produce a completely different string.                        
+   ///      and produce a completely different string. They both count as     
+   ///      morphisms, but have completely different outcomes.                
    ///   @attention serialization uses conversion routines internally as      
    ///      fallback, but these can be overriden with serialization rules.    
-   ///      In other words: serialization is an indirection on top of convert 
+   ///      In other words: serialization is an indirection on top of         
+   ///      conversion.                                                       
    template<class TO, class FROM>
    constexpr auto Convert(FROM const& from) -> TO {
       static_assert(CT::NotReference<TO, FROM>, "Strip references first");

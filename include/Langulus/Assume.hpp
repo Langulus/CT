@@ -20,7 +20,7 @@
       #include <stacktrace>
 
       #ifndef LANGULUS_DEFAULT_STACK_SKIP
-         #define LANGULUS_DEFAULT_STACK_SKIP 2
+         #define LANGULUS_DEFAULT_STACK_SKIP 1
       #endif
 
       #ifndef LANGULUS_DEFAULT_STACK_DEPTH
