@@ -232,7 +232,17 @@ namespace Langulus
          }
       }
    }
-   
+
+   #define LglsAssumeUser(...)         ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__)
+   #define LglsAssumeUserAndBreak(...) ::Langulus::AssumeUserInner<true>(HERE(), __VA_ARGS__)
+
+   /// Leverages C++23's [[assume(condition)]] attribute, in order to both    
+   /// test the assumption when safety is enabled, and instruct the           
+   /// compiler to generate more performant code                              
+   #define LglsAssumeUserAndOptimize(...) \
+      ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__); \
+      LglsCompilerSpecificAssume(__VA_ARGS__)
+
    #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
    /// User assumption at runtime.                                            
    /// Tested only if LANGULUS(SAFE) >= 1.                                    
@@ -258,22 +268,9 @@ namespace Langulus
          }
       }
    }
-
-      #define LglsAssumeUser(...)         ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__)
-      #define LglsAssumeUserAndBreak(...) ::Langulus::AssumeUserInner<true>(HERE(), __VA_ARGS__)
-      #define LglsAssumeUserWarn(...)     ::Langulus::AssumeUserWarnInner(HERE(), __VA_ARGS__)
-   
-      /// Leverages C++23's [[assume(condition)]] attribute, in order to both 
-      /// test the assumption when safety is enabled, and instruct the        
-      /// compiler to generate more performant code                           
-      #define LglsAssumeUserAndOptimize(...) \
-         ::Langulus::AssumeUserInner(HERE(), __VA_ARGS__); \
-         LglsCompilerSpecificAssume(__VA_ARGS__)
+      #define LglsAssumeUserWarn(...)        ::Langulus::AssumeUserWarnInner(HERE(), __VA_ARGS__)
    #else
-      #define LglsAssumeUser(...)            LANGULUS(NOOP)
-      #define LglsAssumeUserAndBreak(...)    LANGULUS(NOOP)
       #define LglsAssumeUserWarn(...)        LANGULUS(NOOP)
-      #define LglsAssumeUserAndOptimize(...) LglsCompilerSpecificAssume(__VA_ARGS__)
    #endif
    #else
       #define LglsAssumeUser(...)            LANGULUS(NOOP)
@@ -321,7 +318,17 @@ namespace Langulus
          }
       }
    }
-   
+
+   #define LglsAssumeDev(...)          ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__)
+   #define LglsAssumeDevAndBreak(...)  ::Langulus::AssumeDevInner<true>(HERE(), __VA_ARGS__)
+
+   /// Leverages C++23's [[assume(condition)]] attribute, in order to both    
+   /// test the assumption when safety is enabled, and instruct the           
+   /// compiler to generate more performant code                              
+   #define LglsAssumeDevAndOptimize(...) \
+      ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__); \
+      LglsCompilerSpecificAssume(__VA_ARGS__)
+
    #if LANGULUS_FEATURE_LOGGING() and defined(LANGULUS_LIBRARY_LOGGER)
    /// Developer assumption at runtime.  Tested only if LANGULUS(SAFE) >= 2.  
    /// Doesn't throw or ruin compilation.                                     
@@ -346,22 +353,9 @@ namespace Langulus
          }
       }
    }
-
-      #define LglsAssumeDev(...)          ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__)
-      #define LglsAssumeDevAndBreak(...)  ::Langulus::AssumeDevInner<true>(HERE(), __VA_ARGS__)
-      #define LglsAssumeDevWarn(...)      ::Langulus::AssumeDevWarnInner(HERE(), __VA_ARGS__)
-   
-      /// Leverages C++23's [[assume(condition)]] attribute, in order to both 
-      /// test the assumption when safety is enabled, and instruct the        
-      /// compiler to generate more performant code                           
-      #define LglsAssumeDevAndOptimize(...) \
-         ::Langulus::AssumeDevInner(HERE(), __VA_ARGS__); \
-         LglsCompilerSpecificAssume(__VA_ARGS__)
+      #define LglsAssumeDevWarn(...)         ::Langulus::AssumeDevWarnInner(HERE(), __VA_ARGS__)
    #else
-      #define LglsAssumeDev(...)             LANGULUS(NOOP)
-      #define LglsAssumeDevAndBreak(...)     LANGULUS(NOOP)
       #define LglsAssumeDevWarn(...)         LANGULUS(NOOP)
-      #define LglsAssumeDevAndOptimize(...)  LglsCompilerSpecificAssume(__VA_ARGS__)
    #endif
    #else
       #define LglsAssumeDev(...)             LANGULUS(NOOP)
