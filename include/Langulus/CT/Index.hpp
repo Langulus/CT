@@ -28,11 +28,16 @@ LANGULUS_CTTI_CONCEPT_UNSHEDDABLE(Index);
 
 namespace Langulus::Index
 {
+   struct At;
+
    namespace Inner
    {
-      template<bool VALID>
+      template<bool VALID, int64_t CODE>
       struct Common {
-         using CTTI_Index = Yup;
+         int64_t index = CODE;
+
+         using CTTI_Index     = Yup;
+         using CTTI_ReflectAs = At;
 
          constexpr explicit operator bool() const noexcept {
             return VALID;
@@ -41,21 +46,25 @@ namespace Langulus::Index
          constexpr bool IsSpecial() const noexcept {
             return true;
          }
+
+         constexpr bool operator == (this auto const& self, CT::Index auto const& i) noexcept {
+            return self.index == i.index;
+         }
       };
 
-      struct All      : Common<true>  {};
-      struct Many     : Common<true>  {};
-      struct Single   : Common<true>  {};
-      struct None     : Common<false> {};
-      struct Front    : Common<true>  {};
-      struct Middle   : Common<true>  {};
-      struct Back     : Common<true>  {};
-      struct Modal    : Common<true>  {};
-      struct Biggest  : Common<true>  {};
-      struct Smallest : Common<true>  {};
-      struct Random   : Common<true>  {};
-      struct First    : Common<true>  {};
-      struct Last     : Common<true>  {};
+      struct None     : Common<false, ::std::numeric_limits<int64_t>::max()   > {};
+      struct Last     : Common<true,  ::std::numeric_limits<int64_t>::min()   > {};
+      struct All      : Common<true,  ::std::numeric_limits<int64_t>::min()+1 > {};
+      struct Many     : Common<true,  ::std::numeric_limits<int64_t>::min()+2 > {};
+      struct Single   : Common<true,  ::std::numeric_limits<int64_t>::min()+3 > {};
+      struct Front    : Common<true,  ::std::numeric_limits<int64_t>::min()+4 > {};
+      struct Middle   : Common<true,  ::std::numeric_limits<int64_t>::min()+5 > {};
+      struct Back     : Common<true,  ::std::numeric_limits<int64_t>::min()+6 > {};
+      struct Modal    : Common<true,  ::std::numeric_limits<int64_t>::min()+7 > {};
+      struct Biggest  : Common<true,  ::std::numeric_limits<int64_t>::min()+8 > {};
+      struct Smallest : Common<true,  ::std::numeric_limits<int64_t>::min()+9 > {};
+      struct Random   : Common<true,  ::std::numeric_limits<int64_t>::min()+10> {};
+      struct First    : Common<true,  ::std::numeric_limits<int64_t>::min()+11> {};
    }
 
    /// Equivalent to the container's initialized count                        
@@ -126,32 +135,8 @@ namespace Langulus::Index
 
       int64_t index;
 
-      constexpr At(Inner::None) noexcept
-         : index {::std::numeric_limits<int64_t>::max()} {}
-      constexpr At(Inner::Last) noexcept
-         : index {::std::numeric_limits<int64_t>::min()} {}
-      constexpr At(Inner::All) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+1} {}
-      constexpr At(Inner::Many) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+2} {}
-      constexpr At(Inner::Single) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+3} {}
-      constexpr At(Inner::Front) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+4} {}
-      constexpr At(Inner::Middle) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+5} {}
-      constexpr At(Inner::Back) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+6} {}
-      constexpr At(Inner::Modal) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+7} {}
-      constexpr At(Inner::Biggest) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+8} {}
-      constexpr At(Inner::Smallest) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+9} {}
-      constexpr At(Inner::Random) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+10} {}
-      constexpr At(Inner::First) noexcept
-         : index {::std::numeric_limits<int64_t>::min()+11} {}
+      constexpr At(CT::Index auto const& i) noexcept
+         : index {i.index} {}
 
       explicit constexpr At(Real r)
          : index {static_cast<int64_t>(r)} {
@@ -167,19 +152,23 @@ namespace Langulus::Index
          return index;
       }
 
-      constexpr bool operator == (Inner::None    ) const noexcept { return index == ::std::numeric_limits<int64_t>::max()   ; }
-      constexpr bool operator == (Inner::Last    ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()   ; }
-      constexpr bool operator == (Inner::All     ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+1 ; }
-      constexpr bool operator == (Inner::Many    ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+2 ; }
-      constexpr bool operator == (Inner::Single  ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+3 ; }
-      constexpr bool operator == (Inner::Front   ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+4 ; }
-      constexpr bool operator == (Inner::Middle  ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+5 ; }
-      constexpr bool operator == (Inner::Back    ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+6 ; }
-      constexpr bool operator == (Inner::Modal   ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+7 ; }
-      constexpr bool operator == (Inner::Biggest ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+8 ; }
-      constexpr bool operator == (Inner::Smallest) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+9 ; }
-      constexpr bool operator == (Inner::Random  ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+10; }
-      constexpr bool operator == (Inner::First   ) const noexcept { return index == ::std::numeric_limits<int64_t>::min()+11; }
+      constexpr bool operator == (CT::Index auto const& i) const noexcept {
+         return index == i.index;
+      }
+
+      /*constexpr bool operator == (Inner::None     i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Last     i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::All      i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Many     i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Single   i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Front    i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Middle   i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Back     i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Modal    i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Biggest  i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Smallest i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::Random   i) const noexcept { return index == i.index; }
+      constexpr bool operator == (Inner::First    i) const noexcept { return index == i.index; }*/
 
       /// If true, then indicates that the index needs processing before      
       /// turning into contiguous offset.                                     
