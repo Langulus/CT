@@ -181,7 +181,7 @@ namespace Langulus
    void ForEachIndirection(auto&& lambda) {
       if constexpr (CT::Sparse<T>) {
          lambda();
-         if constexpr (CT::Sparse<Deptr<T>>)
+         if constexpr (CT::Sparse<Deptr<T>> and not ::std::is_same_v<Deptr<T>, T>)
             ForEachIndirection<Deptr<T>>(LglsFwd(lambda));
       }
    }
@@ -191,10 +191,10 @@ namespace Langulus
    /// so that if you provide argument as void***, three lambdas will be      
    /// generated and executed, with 'ptr' being void***, void** and void*.    
    template<class T>
-   void ForEachIndirection(T& pointer, auto&& lambda) {
+   void ForEachIndirection(T const& pointer, auto&& lambda) {
       if constexpr (CT::Sparse<T>) {
          lambda(pointer);
-         if constexpr (CT::Sparse<Deptr<T>>)
+         if constexpr (CT::Sparse<Deptr<T>> and not ::std::is_same_v<Deptr<T>, T>)
             ForEachIndirection((*pointer), LglsFwd(lambda));
       }
    }

@@ -8,6 +8,7 @@
 #pragma once
 #include "Akin.hpp"
 #include "../Utils/Types.hpp"
+#include "../Utils/Literal.hpp"
 
 
 namespace Langulus::CTTI
@@ -122,46 +123,55 @@ namespace Langulus
    /// Context dependent number                                               
    struct AbstractNumber {
       using CTTI_Abstract  = Yup;
+      using CTTI_Named     = Yes<"Number">;
    };
 
    /// Context dependent integer number                                       
    struct AbstractInteger : AbstractNumber {
       using CTTI_Bases     = AbstractNumber;
+      using CTTI_Named     = Yes<"Integer">;
    };
 
    /// Context dependent real number                                          
    struct AbstractReal : AbstractNumber {
       using CTTI_Bases     = AbstractNumber;
+      using CTTI_Named     = Yes<"Real">;
    };
 
    /// Context dependent unsigned number                                      
    struct AbstractUnsigned : AbstractNumber {
       using CTTI_Bases     = AbstractNumber;
+      using CTTI_Named     = Yes<"Unsigned">;
    };
 
    /// Context dependent signed number                                        
    struct AbstractSigned : AbstractNumber {
       using CTTI_Bases     = AbstractNumber;
+      using CTTI_Named     = Yes<"Signed">;
    };
    
    /// Context dependent unsigned integer                                     
    struct AbstractUnsignedInteger : AbstractInteger {
       using CTTI_Bases     = Types<AbstractInteger, AbstractUnsigned>;
+      using CTTI_Named     = Yes<"UnsignedInteger">;
    };
 
    /// Context dependent signed integer                                       
    struct AbstractSignedInteger : AbstractInteger {
       using CTTI_Bases     = Types<AbstractInteger, AbstractSigned>;
+      using CTTI_Named     = Yes<"SignedInteger">;
    };
    
    /// Context dependent unsigned real (unused but here for completeness)     
    struct AbstractUnsignedReal : AbstractReal {
       using CTTI_Bases     = Types<AbstractReal, AbstractUnsigned>;
+      using CTTI_Named     = Yes<"UnsignedReal">;
    };
 
    /// Context dependent signed real                                          
    struct AbstractSignedReal : AbstractReal {
       using CTTI_Bases     = Types<AbstractReal, AbstractSigned>;
+      using CTTI_Named     = Yes<"SignedReal">;
    };
 }
 

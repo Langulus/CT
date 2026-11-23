@@ -432,7 +432,7 @@ namespace Langulus
       if constexpr (LANGULUS(SAFE) >= LEVEL) {
          if not consteval {
             if (not static_cast<bool>(condition)) {
-               // Log error message                                  
+               // Log error message                                     
                auto s = Logger::WarningScoped("Assumption level ", LEVEL, " failure: ");
                Logger::Append(m1);
                (Logger::Append(LglsFwd(mn)), ...);
@@ -446,6 +446,19 @@ namespace Langulus
    #else
    #define LglsAssumeWarn(LEVEL, ...) LANGULUS(NOOP)
    #endif
+
+   /// Make a debug break if the condition is valid                           
+   ///   @param condition the condition that must hold true                   
+   template<class...MORE> LANGULUS(ALWAYS_INLINED)
+   constexpr void BreakIfInner([[maybe_unused]] auto const& condition) noexcept {
+      if not consteval {
+         if (static_cast<bool>(condition)) {
+            LglsDebugBreak();
+         }
+      }
+   }
+
+   #define LglsBreakIf(...) ::Langulus::BreakIfInner(__VA_ARGS__)
 }
 
 /// Convenience macro for specifying temporary lazyness                       
