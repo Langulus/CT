@@ -50,3 +50,9 @@ namespace Langulus::CTTI
 }
 
 LANGULUS_CTTI_CONCEPT_DECVQE(POD);
+
+namespace Langulus::CT
+{
+   template<class...T>
+   concept DensePOD = ((CT::Dense<T> and CT::POD<T>) and ...);
+}

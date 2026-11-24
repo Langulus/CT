@@ -56,26 +56,16 @@ namespace Langulus
    ///      serialize Text ~> Text, which will wrap the contents in quotes,   
    ///      and produce a completely different string. In other words:        
    ///      serialization is an indirection on top of conversion.             
+   ///   @attention another major difference is that serialization ignores    
+   ///      sparsity altogether                                               
    ///   @return the number of elements written to 'to'                       
    template<class FROM, CT::Serializer TO> requires CT::NoIntent<FROM, TO>
    auto Serialize(FROM const& from, TO& to, typename CTTI::Serializer<TO>::Context* context = nullptr) -> size_t {
       using DFROM = DecvqAll<FROM>;
       using DTO   = DecvqAll<TO>;
       const auto initial = to.GetCount();
-      
-      if constexpr (not CT::Complete<Decay<DFROM>>) {
-         // Some custom rules require the decayed type to be complete   
-         // in order to check whether they are CT::Deep. This won't     
-         // pick the correct rule, if Decayed<DFROM> is incomplete,     
-         // because the CT::Deep check requires deeply complete types.  
-         // That's why we handle pointers separately here using the     
-         // appropriate converter.                                      
-         static_assert(CT::Sparse<DFROM>, "If not complete, `FROM` needs to be sparse");
-         (void) context;
-         to += Convert<DTO, FROM>(from);
-      }
-      else if constexpr (requires { CTTI::SerializationRule<DTO, DFROM>{}; }) {
-         // Custom rule exists                                          
+      const auto prepare_dictionary = [&context,&to] {
+         (void) context; (void) to;
          if constexpr (requires { to.GetDictionary(); }) {
             if (not context) {
                context = to.GetDictionary();
@@ -85,13 +75,37 @@ namespace Langulus
                }
             }
          }
-
+      };
+      
+      if constexpr (not CT::Complete<Decay<DFROM>>) {
+         // Some custom rules require the decayed type to be complete   
+         // in order to check whether they are CT::Deep. This won't     
+         // pick the correct rule, if Decayed<DFROM> is incomplete,     
+         // because the CT::Deep check requires deeply complete types.  
+         // That's why we handle pointers separately here using the     
+         // appropriate converter.                                      
+         static_assert(CT::Sparse<DFROM>,
+            "If not complete, `FROM` needs to be sparse");
+         to += Convert<DTO, FROM>(from);
+      }
+      else if constexpr (requires { CTTI::SerializationRule<DTO, DFROM>{}; }) {
+         // Custom rule exists                                          
+         prepare_dictionary();
          CTTI::SerializationRule<DTO, DFROM>::Serialize(from, to, context);
       }
+      else if constexpr (requires { CTTI::SerializationRule<DTO, Decay<DFROM>>{}; }) {
+         // Custom rule exists (when decayed)                           
+         // This is serialization routine, so we can ignore sparseness. 
+         prepare_dictionary();
+         CTTI::SerializationRule<DTO, Decay<DFROM>>::Serialize(DenseCast(from), to, context);
+      }
       else {
-         // No rule exists, just cast and concatenate, if possible      
-         (void) context;
-         to += Convert<DTO, FROM>(from);
+         // No rule exists, just cast and concatenate, if possible.     
+         // This is serialization routine, so we can ignore sparseness. 
+         if constexpr (CT::Convertible<DFROM, DTO>)
+            to += Convert<DTO, FROM>(from);
+         else
+            to += Convert<DTO, Decay<DFROM>>(DenseCast(from));
       }
       return to.GetCount() - initial;
    }
