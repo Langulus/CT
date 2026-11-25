@@ -462,7 +462,7 @@ namespace Langulus
 }
 
 /// Convenience macro for specifying temporary lazyness                       
-#define TODO() ::Langulus::AssertInner(HERE(), false, "Unfinished code")
+#define TODO() ::Langulus::AssertInner<true>(HERE(), false, "Unfinished code")
 
 #if LANGULUS_FEATURE(LOGGING) and defined(LANGULUS_LIBRARY_LOGGER)
 namespace fmt
