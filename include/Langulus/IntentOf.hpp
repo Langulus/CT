@@ -100,6 +100,8 @@ namespace Langulus::CT
 
 namespace Langulus
 {
+   struct Describe;
+
    namespace Inner
    {
       /// Sheds _all_ sheddables, but only if T is an intent.                 
@@ -108,7 +110,9 @@ namespace Langulus
       /// just in case.                                                       
       template<class T>
       consteval auto GetDeintInner() {
-         if constexpr (CT::Intent<T>)
+         if constexpr (Same<Describe, T>)
+            return ::std::type_identity<void> {};
+         else if constexpr (CT::Intent<T>)
             return ::std::type_identity<Shed<T>> {};
          else
             return ::std::type_identity<T> {};
@@ -124,8 +128,9 @@ namespace Langulus
    ///   @return the forwarded inner data                                     
    template<class T> LANGULUS(ALWAYS_INLINED)
    constexpr decltype(auto) DeintCast(T&& intent) noexcept {
-      if constexpr (CT::Intent<T>) return LglsFwd(intent.what);
-      else                         return LglsFwd(intent);
+      if constexpr (Same<T, Describe>)  return;
+      else if constexpr (CT::Intent<T>) return LglsFwd(intent.what);
+      else                              return LglsFwd(intent);
    }
 
    namespace Inner

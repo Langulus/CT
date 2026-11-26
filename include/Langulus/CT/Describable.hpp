@@ -29,12 +29,12 @@ namespace Langulus::CT
    template<class...T>
    concept DescribeConstructible = not Abstract<T...>
        and not Enum<T...> and not Aggregate<T...>
-       and requires (Describe a) { (T {a}, ...); };
+       and requires (Describe&& a) { (T {LglsFwd(a)}, ...); };
    
    /// Check if all T are describe-assignable.                                
    /// It has to have the T::operator = (Describe&&) constructor.             
    template<class...T>
    concept DescribeAssignable = not Abstract<T...>
        and not Enum<T...> and not Aggregate<T...>
-       and requires (T&...lhs, Describe rhs) { ((lhs = rhs), ...); };
+       and requires (T&...lhs, Describe&& rhs) { ((lhs = LglsFwd(rhs)), ...); };
 }

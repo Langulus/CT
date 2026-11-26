@@ -31,7 +31,9 @@ namespace Langulus::CTTI
       template<class T>
       consteval bool CanItBeConsideredPOD() {
          using DT = ::std::remove_all_extents_t<::std::remove_reference_t<T>>;
-         if constexpr (CT::Abstract<DT>)
+         if constexpr (::std::is_void_v<DT>)
+            return false;
+         else if constexpr (CT::Abstract<DT>)
             return false;
          else {
             return CT::Sparse<DT> or CT::Fundamental<DT> or (

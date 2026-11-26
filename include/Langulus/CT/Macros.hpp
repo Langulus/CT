@@ -8,6 +8,10 @@
 #pragma once
 #include "Complete.hpp"
 
+namespace Langulus
+{
+   struct Describe;
+}
 
 /// Checks for reflection traits inside types themselves.                     
 /// Requires the PATTERN to be complete in order to do that.                  
@@ -19,7 +23,9 @@
 
 /// Checks for reflection traits outside types by CTTI struct specializations 
 #define LANGULUS_CTTI_CHECK_EXTRACT(TYPE, NAME, FALLBACK) ([] consteval { \
-      if constexpr (CT::Complete<CTTI::NAME<TYPE>>) { \
+      if constexpr (::std::is_same_v<TYPE, ::Langulus::Describe>) \
+         return FALLBACK; \
+      else if constexpr (CT::Complete<CTTI::NAME<TYPE>>) { \
          LANGULUS_CTTI_DELVE_IN_EXTRACT(CTTI::NAME<TYPE>, FALLBACK); \
       } else if constexpr (::std::is_class_v<TYPE>) { \
          static_assert(CT::Complete<TYPE>, \
@@ -31,7 +37,7 @@
 /// Checks for reflection traits inside types themselves.                     
 /// Requires the TYPE to be complete in order to do that.                     
 #define LANGULUS_CTTI_DELVE_IN(TYPE, NAME, FALLBACK) \
-   if constexpr (::std::is_class_v<TYPE>) { \
+   if constexpr (::std::is_class_v<TYPE> and not ::std::is_same_v<TYPE, ::Langulus::Describe>) { \
       static_assert(Complete<TYPE>, \
          "Can't access `CTTI_" #NAME "` inside incomplete type " #TYPE); \
       if constexpr (requires { TYPE::CTTI_##NAME::Enabled; }) \
@@ -47,7 +53,9 @@
 ///   LANGULUS_CTTI_DELVE_IN is required, the Enabled member is used.         
 #define LANGULUS_CTTI_CHECK(TYPE, NAME) ([] consteval -> bool { \
       using ctti = CTTI::NAME<TYPE>; \
-      if constexpr (Complete<ctti>) { \
+      if constexpr (::std::is_same_v<TYPE, ::Langulus::Describe>) \
+         return false; \
+      else if constexpr (Complete<ctti>) { \
          if constexpr(requires { ctti::Default; }) { \
             { LANGULUS_CTTI_DELVE_IN(TYPE, NAME, ctti::Enabled) } \
          } else if constexpr (requires { ctti::Enabled; }) { \
